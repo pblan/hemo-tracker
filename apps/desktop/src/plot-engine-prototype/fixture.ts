@@ -20,6 +20,7 @@ export type StressFixture = {
   reportCount: number;
   measurementCount: number;
   analyteCount: number;
+  allMeasurements: Float64Array;
   visible: AnalyteSeries[];
 };
 
@@ -28,6 +29,10 @@ export function createStressFixture(): StressFixture {
   const analyteCount = 250;
   const measurementsPerReport = 100;
   const visibleCount = 20;
+  const allMeasurements = Float64Array.from(
+    { length: reportCount * measurementsPerReport },
+    (_, index) => 10 + (index % analyteCount) * 0.1 + Math.sin(index / 31),
+  );
   const visible = Array.from({ length: visibleCount }, (_, analyteIndex) => {
     const base = 15 + analyteIndex * 1.7;
     const points = Array.from({ length: reportCount }, (_, reportIndex) => {
@@ -63,6 +68,7 @@ export function createStressFixture(): StressFixture {
     reportCount,
     measurementCount: reportCount * measurementsPerReport,
     analyteCount,
+    allMeasurements,
     visible,
   };
 }
