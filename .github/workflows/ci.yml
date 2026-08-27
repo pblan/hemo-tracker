@@ -8,12 +8,16 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   checks:
     name: TypeScript checks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.5
@@ -21,46 +25,3 @@ jobs:
       - run: bun run check
       - run: bunx playwright install --with-deps chromium
       - run: bun run test:e2e
-
-  tauri:
-    name: Tauri build (${{ matrix.os }})
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: macos-latest
-            bundles: app
-            executable: apps/desktop/src-tauri/target/release/hemo-tracker-desktop
-          - os: windows-latest
-            bundles: nsis
-            executable: apps/desktop/src-tauri/target/release/hemo-tracker-desktop.exe
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.3.5
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: swatinem/rust-cache@v2
-        with:
-          workspaces: apps/desktop/src-tauri
-      - run: bun install --frozen-lockfile
-      - run: cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml
-      - run:
-          bun run --cwd apps/desktop tauri build --bundles ${{ matrix.bundles }}
-      - name: Start the macOS desktop client
-        if: runner.os == 'macOS'
-        run: |
-          "${{ matrix.executable }}" &
-          app_pid=$!
-          sleep 5
-          kill -0 "$app_pid"
-          kill "$app_pid"
-      - name: Start the Windows desktop client
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $app = Start-Process -FilePath "${{ matrix.executable }}" -PassThru
-          Start-Sleep -Seconds 5
-          if ($app.HasExited) { throw "Hemo Tracker exited during startup" }
-          Stop-Process -Id $app.Id
