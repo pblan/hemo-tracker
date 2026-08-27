@@ -31,7 +31,7 @@ Verify that 20 plots appear. Use Tab and Enter to open a result table. Use the
 theme button to verify a theme change. Use the unmount button to verify that all
 plots disappear.
 
-The fixture has 1,000 irregular report dates, 100,000 measurements across 250
+The fixture has 1,000 irregular lab report dates, 100,000 measurements across 250
 analyte definitions, and 20 visible plots. Both candidates use the same fixture,
 source reference intervals, personal target ranges, a comparability boundary, an
 accessible table, and a keyboard path.
