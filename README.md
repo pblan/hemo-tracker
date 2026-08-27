@@ -47,8 +47,12 @@ The server health route is `http://localhost:3000/health`.
 
 ## Project documents
 
+- [User documentation](docs/user/)
+- [Operator documentation](docs/operations/)
 - [Product plan](docs/product-plan.md)
 - [Architecture](docs/architecture.md)
 - [Domain glossary](CONTEXT.md)
 - [Architecture decisions](docs/adr/)
+- [Security and technology proofs](docs/proofs/)
 - [Research notes](docs/research/)
+- [Contributor guide](docs/contributing.md)
