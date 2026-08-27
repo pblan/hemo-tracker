@@ -4,7 +4,7 @@ Date: 2026-08-27
 
 ## Scope
 
-This note compares plot engines for a React 19 desktop client. The client will show longitudinal laboratory results. It must work offline. It must support irregular dates, reference intervals, tooltips, zoom, and small multiples.
+This note compares plot engines for a React 19 desktop client. The client will show longitudinal laboratory results. It must work offline. It must support irregular dates, source reference intervals, tooltips, zoom, and small multiples.
 
 ADR 0004 selects uPlot after the product benchmark. The earlier sections record the evidence that defined the two-candidate prototype.
 
@@ -105,7 +105,7 @@ Recharts works offline. SVG also gives direct vector export through browser APIs
 ## Recommendations for a prototype, not a product decision
 
 1. Benchmark uPlot and ECharts with the same product fixture. These engines cover the two main positions: minimum runtime cost and richer built-in interaction.
-2. Include at least 30 small plots. Use irregular dates and changing reference intervals. Test 100, 1,000, 10,000, and 100,000 points per visible plot. The upper levels are stress tests. They are not expected laboratory history sizes.
+2. Include at least 30 small plots. Use irregular dates and changing source reference intervals. Test 100, 1,000, 10,000, and 100,000 points per visible plot. The upper levels are stress tests. They are not expected laboratory history sizes.
 3. Measure startup time, first plot time, pan latency, cursor latency, memory, and bundle size. Test the packaged desktop build on target hardware.
 4. Build the same accessible data table for every candidate. Do not let the chart engine define the clinical accessibility boundary.
 5. Test export with reference bands, annotations, dark mode, and local fonts.
