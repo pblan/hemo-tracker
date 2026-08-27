@@ -120,11 +120,11 @@ Issue 8 implemented both candidates in the throwaway [`prototype/plot-engine-ben
 
 | Measurement | uPlot | Apache ECharts | Target |
 | --- | ---: | ---: | ---: |
-| First render | 42.4 ms | 1,154.7 ms | At most 500 ms |
-| Pointer-frame latency, 95th percentile | 10.4 ms | 10.3 ms | At most 50 ms |
-| JavaScript heap | 17.7 MB | 103.6 MB | Lower is better |
-| Candidate chunk, before compression | 55,278 bytes | 557,929 bytes | Lower is better |
-| Theme change | 149.9 ms | 609.7 ms | Recorded, no V1 gate |
+| First render | 43.6 ms | 1,061.4 ms | At most 500 ms |
+| Pointer-frame latency, 95th percentile | 10.3 ms | 10.3 ms | At most 50 ms |
+| JavaScript heap | 17.8 MB | 100.8 MB | Lower is better |
+| Candidate chunk, before compression | 55,491 bytes | 564,569 bytes | Lower is better |
+| Theme change | 125.4 ms | 555.2 ms | Recorded, no V1 gate |
 | PNG export | Passed | Passed | Must pass |
 | Keyboard table path | Passed | Passed | Must pass |
 | Canvas cleanup | Passed | Passed | Must pass |
