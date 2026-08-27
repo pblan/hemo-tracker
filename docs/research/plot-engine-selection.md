@@ -6,7 +6,7 @@ Date: 2026-08-27
 
 This note compares plot engines for a React 19 desktop client. The client will show longitudinal laboratory results. It must work offline. It must support irregular dates, reference intervals, tooltips, zoom, and small multiples.
 
-This note does not select an engine.
+ADR 0004 selects uPlot after the product benchmark. The earlier sections record the evidence that defined the two-candidate prototype.
 
 ## Evidence limits
 
@@ -113,3 +113,20 @@ Recharts works offline. SVG also gives direct vector export through browser APIs
 7. Keep the plot engine behind a narrow application interface. The interface should accept normalized points, source intervals, personal targets, events, and theme tokens. It should not expose engine option objects to feature code.
 
 Plotly.js is a useful candidate when built-in scientific interaction and export have more value than package size. Vega-Lite is a useful candidate when a shared declarative grammar will support several future chart types. Recharts is a useful baseline for accessibility and implementation speed. The evidence does not justify a final choice without the product fixture benchmark.
+
+## Product benchmark result
+
+Issue 8 implemented both candidates in the throwaway [`prototype/plot-engine-benchmark`](https://github.com/pblan/hemo-tracker/tree/prototype/plot-engine-benchmark/apps/desktop/src/plot-engine-prototype) branch. The benchmark used one headless Chromium session per candidate on the same macOS computer.
+
+| Measurement | uPlot | Apache ECharts | Target |
+| --- | ---: | ---: | ---: |
+| First render | 42.4 ms | 1,154.7 ms | At most 500 ms |
+| Pointer-frame latency, 95th percentile | 10.4 ms | 10.3 ms | At most 50 ms |
+| JavaScript heap | 17.7 MB | 103.6 MB | Lower is better |
+| Candidate chunk, before compression | 55,278 bytes | 557,929 bytes | Lower is better |
+| Theme change | 149.9 ms | 609.7 ms | Recorded, no V1 gate |
+| PNG export | Passed | Passed | Must pass |
+| Keyboard table path | Passed | Passed | Must pass |
+| Canvas cleanup | Passed | Passed | Must pass |
+
+Both engines met the pointer target. Only uPlot met the first-render target. ADR 0004 selects uPlot behind a narrow application adapter. The adapter and the shared accessible table own the product behavior that is not native to the engine.
