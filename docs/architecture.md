@@ -6,16 +6,12 @@ Hemo Tracker is a local-first desktop application with an encrypted synchronizat
 
 The trusted desktop client owns all clinical behavior. It decrypts data, validates measurements, normalizes units, searches the account vault, and creates plots. The server authenticates accounts and stores opaque ciphertext.
 
-```text
-Google OAuth
-     |
-     v
-Trusted desktop client  <---- HTTPS ---->  Self-hosted server
-Tauri, React, Chakra UI                    Identity and opaque objects
-     |                                           |
-     v                                           v
-Encrypted local vault                    SQLite metadata + ciphertext files
-SQLCipher + encrypted source files
+```mermaid
+flowchart LR
+    Google[Google OAuth] --> Client[Trusted desktop client<br/>Tauri, React, and Chakra UI]
+    Client <-->|HTTPS| Server[Self-hosted server<br/>Identity and opaque objects]
+    Client --> Vault[Encrypted local vault<br/>SQLCipher and encrypted source files]
+    Server --> Storage[SQLite metadata and ciphertext files]
 ```
 
 ## Technology baseline
