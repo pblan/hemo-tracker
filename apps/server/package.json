@@ -11,7 +11,9 @@
   },
   "dependencies": {
     "@hemo-tracker/contracts": "workspace:*",
+    "@libsql/client": "^0.15.15",
     "@trpc/server": "^11.5.0",
+    "drizzle-orm": "^0.44.5",
     "zod": "^4.1.5"
   }
 }

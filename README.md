@@ -29,13 +29,15 @@ The server health route is `http://localhost:3000/health`.
 
 ## Commands
 
-| Command               | Result                                       |
-| --------------------- | -------------------------------------------- |
-| `bun run check`       | Run formatting, lint, types, and unit tests. |
-| `bun run test:e2e`    | Run the desktop webview smoke test.          |
-| `bun run build`       | Build all TypeScript workspace packages.     |
-| `bun run dev:desktop` | Start the Tauri desktop client.              |
-| `bun run dev:server`  | Start the self-hosted server.                |
+| Command                 | Result                                       |
+| ----------------------- | -------------------------------------------- |
+| `bun run check`         | Run formatting, lint, types, and unit tests. |
+| `bun run test:e2e`      | Run the desktop webview smoke test.          |
+| `bun run test:rust`     | Run the native desktop tests.                |
+| `bun run build`         | Build all TypeScript workspace packages.     |
+| `bun run build:desktop` | Build and package the desktop client.        |
+| `bun run dev:desktop`   | Start the Tauri desktop client.              |
+| `bun run dev:server`    | Start the self-hosted server.                |
 
 ## Workspace
 

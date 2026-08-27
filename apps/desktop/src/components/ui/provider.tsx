@@ -1,15 +1,8 @@
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import type { PropsWithChildren } from "react";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-      staleTime: Number.POSITIVE_INFINITY,
-    },
-  },
-});
+import { queryClient } from "../../query-client";
 
 export function Provider({ children }: PropsWithChildren) {
   return (
