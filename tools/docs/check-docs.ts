@@ -35,6 +35,9 @@ for (const file of markdownFiles) {
   if (referenceDefinition.test(source)) {
     errors.push(`${displayFile}: use inline links instead of reference links`);
   }
+  if (/!?\[[^\]]*\]\(<[^>]+>\)/.test(source)) {
+    errors.push(`${displayFile}: do not use angle-bracket link destinations`);
+  }
 
   const linkPattern = /(!?)\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
   for (const match of source.matchAll(linkPattern)) {

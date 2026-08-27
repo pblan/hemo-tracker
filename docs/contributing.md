@@ -5,7 +5,7 @@
 Run this command after you change a Markdown file, a diagram, or a documentation image:
 
 ```sh
-bun run docs:check
+bun run --cwd tools/docs check
 ```
 
 The command checks Markdown style, relative link targets, image alternative text, image file names, and Mermaid syntax. The check does not test external links. Review external sources when you update time-specific research.

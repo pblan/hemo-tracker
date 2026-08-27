@@ -14,7 +14,6 @@
     "check": "bun run format:check && bun run lint && bun run typecheck && bun run test",
     "dev:desktop": "bun run --cwd apps/desktop tauri dev",
     "dev:server": "bun run --cwd apps/server dev",
-    "docs:check": "bun run --cwd tools/docs check",
     "format:check": "prettier --check .",
     "format:write": "prettier --write .",
     "lint": "eslint .",
