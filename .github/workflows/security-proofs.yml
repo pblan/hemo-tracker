@@ -1,0 +1,39 @@
+name: Security proofs
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/security-proofs.yml"
+      - "proofs/**"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/security-proofs.yml"
+      - "proofs/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-proofs-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  key-lifecycle:
+    name: Key lifecycle
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: proofs/key-lifecycle
+      - run:
+          cargo fmt --manifest-path proofs/key-lifecycle/Cargo.toml -- --check
+      - run:
+          cargo clippy --manifest-path proofs/key-lifecycle/Cargo.toml
+          --all-targets -- -D warnings
+      - run: cargo test --locked --manifest-path proofs/key-lifecycle/Cargo.toml
