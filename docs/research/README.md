@@ -5,6 +5,7 @@ These time-specific notes record the primary sources that support product and ar
 - [Blood-result visualizations](blood-result-visualizations.md)
 - [GitHub documentation practices](github-documentation.md)
 - [Lab-unit normalization](lab-unit-normalization.md)
+- [Native credential storage](native-credential-storage.md)
 - [Plot engine selection](plot-engine-selection.md)
 - [Private-data encryption](private-data-encryption.md)
 - [Source-file encryption](source-file-encryption.md)
