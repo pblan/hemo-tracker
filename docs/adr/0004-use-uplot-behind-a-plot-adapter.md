@@ -12,7 +12,7 @@ Issue 8 compared uPlot 1.6.32 and Apache ECharts 6.1.0 with the same browser, fi
 
 uPlot completed the first render in 43.6 ms. Its 95th percentile pointer-frame latency was 10.3 ms. ECharts completed the first render in 1,061.4 ms. Its pointer-frame latency was 10.3 ms. uPlot used about 17.8 MB of JavaScript heap. ECharts used about 100.8 MB. The candidate chunks were about 55 KB and 565 KB before compression.
 
-Both candidates exported an image, changed theme, released their canvases, and used the same keyboard-accessible table. ECharts provides more built-in plot behavior, but its first render did not meet the product target with the required changing intervals.
+Both candidates exported an image, changed theme, released their canvases, and used the same keyboard-accessible table. ECharts provides more built-in plot behavior, but its first render did not meet the product target with the required changing source reference intervals.
 
 ## Decision
 

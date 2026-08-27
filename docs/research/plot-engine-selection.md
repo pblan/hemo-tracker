@@ -110,7 +110,7 @@ Recharts works offline. SVG also gives direct vector export through browser APIs
 4. Build the same accessible data table for every candidate. Do not let the chart engine define the clinical accessibility boundary.
 5. Test export with reference bands, annotations, dark mode, and local fonts.
 6. Test React 19 strict development behavior. Verify cleanup, resize, theme changes, and data replacement.
-7. Keep the plot engine behind a narrow application interface. The interface should accept normalized points, source intervals, personal targets, events, and theme tokens. It should not expose engine option objects to feature code.
+7. Keep the plot engine behind a narrow application interface. The interface should accept normalized points, source reference intervals, personal target ranges, events, and theme tokens. It should not expose engine option objects to feature code.
 
 Plotly.js is a useful candidate when built-in scientific interaction and export have more value than package size. Vega-Lite is a useful candidate when a shared declarative grammar will support several future chart types. Recharts is a useful baseline for accessibility and implementation speed. The evidence does not justify a final choice without the product fixture benchmark.
 
