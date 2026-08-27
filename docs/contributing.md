@@ -2,11 +2,19 @@
 
 ## Documentation checks
 
+Install Bun 1.3.5 or a later 1.x release. Install the isolated documentation tools after you clone the repository or change `tools/docs/bun.lock`:
+
+```sh
+bun install --cwd tools/docs --frozen-lockfile
+```
+
 Run this command after you change a Markdown file, a diagram, or a documentation image:
 
 ```sh
 bun run --cwd tools/docs check
 ```
+
+The command prints the number of checked Markdown files when it succeeds. Correct each reported file and run the command again when it fails. Run the install command again if Bun cannot find a documentation tool.
 
 The command checks Markdown style, relative link targets, image alternative text, image file names, and Mermaid syntax. The check does not test external links. Review external sources when you update time-specific research.
 
