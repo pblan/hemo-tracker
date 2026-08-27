@@ -1,0 +1,68 @@
+name: Source-file encryption proof
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_multi_gigabyte:
+        description: Run the 2 GiB streaming proof on macOS
+        required: false
+        default: false
+        type: boolean
+  pull_request:
+    paths:
+      - ".github/workflows/source-file-proof.yml"
+      - "proofs/source-file-encryption/**"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/source-file-proof.yml"
+      - "proofs/source-file-encryption/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: source-file-proof-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: proofs/source-file-encryption
+      - run:
+          cargo fmt --manifest-path proofs/source-file-encryption/Cargo.toml --
+          --check
+      - run:
+          cargo clippy --manifest-path proofs/source-file-encryption/Cargo.toml
+          --all-targets -- -D warnings
+      - run:
+          cargo test --locked --manifest-path
+          proofs/source-file-encryption/Cargo.toml
+
+  multi-gigabyte:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_multi_gigabyte
+    runs-on: macos-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: proofs/source-file-encryption
+      - run:
+          cargo test --release --locked --manifest-path
+          proofs/source-file-encryption/Cargo.toml
+          multi_gigabyte_stream_has_bounded_buffers -- --ignored --exact

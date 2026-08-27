@@ -12,6 +12,10 @@ Windows clients. It runs when native or packaging inputs change. A maintainer
 can also start it manually. Routine documentation and TypeScript-only changes
 do not start native packaging.
 
+Each security proof has a separate path-filtered workflow. A proof change runs
+only its required targets. The 2 GiB source-file test runs only after a manual
+request. It does not run in routine CI.
+
 The release workflow will run only for a semantic-version tag. Issue
 “Prove signed applications and updates” owns this workflow. Do not add an
 unsigned release workflow before that proof is complete.

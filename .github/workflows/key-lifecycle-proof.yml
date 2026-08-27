@@ -1,0 +1,39 @@
+name: Key lifecycle proof
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/key-lifecycle-proof.yml"
+      - "proofs/key-lifecycle/**"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/key-lifecycle-proof.yml"
+      - "proofs/key-lifecycle/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: key-lifecycle-proof-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: proofs/key-lifecycle
+      - run:
+          cargo fmt --manifest-path proofs/key-lifecycle/Cargo.toml -- --check
+      - run:
+          cargo clippy --manifest-path proofs/key-lifecycle/Cargo.toml
+          --all-targets -- -D warnings
+      - run: cargo test --locked --manifest-path proofs/key-lifecycle/Cargo.toml
