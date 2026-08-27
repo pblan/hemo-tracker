@@ -1,0 +1,16 @@
+{
+  "name": "@hemo-tracker/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc --build",
+    "typecheck": "tsc --build --pretty false"
+  },
+  "dependencies": {
+    "zod": "^4.1.5"
+  }
+}

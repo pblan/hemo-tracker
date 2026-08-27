@@ -1,0 +1,8 @@
+.agents/
+AGENTS.md
+CONTEXT.md
+apps/desktop/src-tauri/gen/
+apps/desktop/src-tauri/target/
+docs/
+node_modules/
+skills-lock.json

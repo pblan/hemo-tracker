@@ -1,0 +1,17 @@
+{
+  "name": "@hemo-tracker/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --build",
+    "dev": "bun --watch src/main.ts",
+    "start": "bun src/main.ts",
+    "typecheck": "tsc --build --pretty false"
+  },
+  "dependencies": {
+    "@hemo-tracker/contracts": "workspace:*",
+    "@trpc/server": "^11.5.0",
+    "zod": "^4.1.5"
+  }
+}
