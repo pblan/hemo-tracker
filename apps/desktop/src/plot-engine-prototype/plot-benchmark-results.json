@@ -1,0 +1,29 @@
+{
+  "fixture": {
+    "reports": 1000,
+    "measurements": 100000,
+    "analytes": 250,
+    "visiblePlots": 20
+  },
+  "measuredAt": "2026-08-27T22:08:15.880Z",
+  "uplot": {
+    "firstRenderMs": 41.7,
+    "pointerP95Ms": 10.300000000745058,
+    "heapBytes": 17746464,
+    "themeChangeMs": 149.6247499999995,
+    "exportBytes": 71062,
+    "keyboardTableReachable": true,
+    "cleanupCanvasCount": 0,
+    "candidateChunkBytes": 55278
+  },
+  "echarts": {
+    "firstRenderMs": 1149.5,
+    "pointerP95Ms": 9.800000000745058,
+    "heapBytes": 103618724,
+    "themeChangeMs": 601.8609999999999,
+    "exportBytes": 95326,
+    "keyboardTableReachable": true,
+    "cleanupCanvasCount": 0,
+    "candidateChunkBytes": 557929
+  }
+}

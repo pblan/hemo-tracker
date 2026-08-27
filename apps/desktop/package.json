@@ -14,10 +14,12 @@
     "@chakra-ui/react": "^3.26.0",
     "@emotion/react": "^11.14.0",
     "@hemo-tracker/contracts": "workspace:*",
-    "@tauri-apps/api": "^2",
     "@tanstack/react-query": "^5.85.5",
+    "@tauri-apps/api": "^2",
+    "echarts": "6.1.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "uplot": "1.6.32",
     "zod": "^4.1.5"
   },
   "devDependencies": {

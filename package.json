@@ -17,6 +17,8 @@
     "format:check": "prettier --check .",
     "format:write": "prettier --write .",
     "lint": "eslint .",
+    "prototype:plots": "bun run --cwd apps/desktop dev --host 127.0.0.1",
+    "prototype:plots:benchmark": "bun run apps/desktop/src/plot-engine-prototype/benchmark.ts",
     "test": "vitest run",
     "test:e2e": "playwright test",
     "test:key-proof": "cargo test --manifest-path proofs/key-lifecycle/Cargo.toml",
