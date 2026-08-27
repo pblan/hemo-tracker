@@ -5,25 +5,25 @@
     "analytes": 250,
     "visiblePlots": 20
   },
-  "measuredAt": "2026-08-27T22:09:26.286Z",
+  "measuredAt": "2026-08-27T22:13:04.800Z",
   "uplot": {
-    "firstRenderMs": 42.4,
-    "pointerP95Ms": 10.399999998509884,
-    "heapBytes": 17728480,
-    "themeChangeMs": 149.9454999999998,
-    "exportBytes": 71062,
+    "firstRenderMs": 43.6,
+    "pointerP95Ms": 10.299999997019768,
+    "heapBytes": 17754364,
+    "themeChangeMs": 125.36437500000011,
+    "exportBytes": 25162,
     "keyboardTableReachable": true,
     "cleanupCanvasCount": 0,
-    "candidateChunkBytes": 55278
+    "candidateChunkBytes": 55491
   },
   "echarts": {
-    "firstRenderMs": 1154.7,
+    "firstRenderMs": 1061.4,
     "pointerP95Ms": 10.300000000745058,
-    "heapBytes": 103645056,
-    "themeChangeMs": 609.6630830000004,
-    "exportBytes": 95326,
+    "heapBytes": 100764396,
+    "themeChangeMs": 555.1993750000001,
+    "exportBytes": 92246,
     "keyboardTableReachable": true,
     "cleanupCanvasCount": 0,
-    "candidateChunkBytes": 557929
+    "candidateChunkBytes": 564569
   }
 }

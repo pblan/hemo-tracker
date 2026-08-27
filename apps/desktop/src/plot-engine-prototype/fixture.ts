@@ -35,10 +35,10 @@ export function createStressFixture(): StressFixture {
   );
   const visible = Array.from({ length: visibleCount }, (_, analyteIndex) => {
     const base = 15 + analyteIndex * 1.7;
+    let currentDate = Date.UTC(2010, 0, 1) / 1_000;
     const points = Array.from({ length: reportCount }, (_, reportIndex) => {
-      const date =
-        Date.UTC(2010, 0, 1) / 1_000 +
-        reportIndex * 86400 * (2 + (reportIndex % 5));
+      if (reportIndex > 0) currentDate += 86400 * (2 + (reportIndex % 5));
+      const date = currentDate;
       const intervalShift = reportIndex >= 500 ? base * 0.08 : 0;
       const low = base * 0.75 + intervalShift;
       const high = base * 1.25 + intervalShift;

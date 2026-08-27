@@ -108,7 +108,8 @@ async function measure(engine: "echarts" | "uplot"): Promise<EngineResult> {
     );
   }, engine);
 
-  await page.goto("about:blank");
+  await page.getByRole("button", { name: "Unmount plots" }).click();
+  await page.locator('body[data-active-plot-instances="0"]').waitFor();
   const cleanupCanvasCount = await page.locator("canvas").count();
   await browser.close();
 

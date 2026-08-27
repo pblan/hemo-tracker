@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import * as echarts from "echarts/core";
-import { LineChart } from "echarts/charts";
+import { LineChart, ScatterChart } from "echarts/charts";
 import {
   AriaComponent,
   DataZoomComponent,
@@ -19,6 +19,7 @@ echarts.use([
   DataZoomComponent,
   GridComponent,
   LineChart,
+  ScatterChart,
   MarkAreaComponent,
   MarkLineComponent,
   TooltipComponent,
@@ -38,6 +39,9 @@ export function EChartsChart({
     const chart = echarts.init(host.current, dark ? "dark" : undefined, {
       renderer: "canvas",
     });
+    document.body.dataset.activePlotInstances = String(
+      Number(document.body.dataset.activePlotInstances ?? 0) + 1,
+    );
     chart.setOption({
       animation: false,
       aria: { enabled: true },
@@ -52,12 +56,7 @@ export function EChartsChart({
           type: "line",
           name: series.name,
           showSymbol: false,
-          data: series.points.map((point) => ({
-            value: [point.date * 1_000, point.value],
-            symbol: point.flagged ? "circle" : "none",
-            symbolSize: point.flagged ? 6 : 0,
-            itemStyle: { color: point.flagged ? "#e53e3e" : "#319795" },
-          })),
+          data: series.points.map((point) => [point.date * 1_000, point.value]),
           markArea: {
             silent: true,
             data: series.points.slice(0, -1).map((point, index) => [
@@ -80,12 +79,26 @@ export function EChartsChart({
             ],
           },
         },
+        {
+          type: "scatter",
+          name: "Source flags",
+          symbolSize: 7,
+          itemStyle: { color: "#e53e3e" },
+          data: series.points
+            .filter((point) => point.flagged)
+            .map((point) => [point.date * 1_000, point.value]),
+        },
       ],
     });
     host.current.dataset.exportBytes = String(
       chart.getDataURL({ type: "png" }).length,
     );
-    return () => chart.dispose();
+    return () => {
+      chart.dispose();
+      document.body.dataset.activePlotInstances = String(
+        Number(document.body.dataset.activePlotInstances ?? 1) - 1,
+      );
+    };
   }, [dark, series]);
 
   return (

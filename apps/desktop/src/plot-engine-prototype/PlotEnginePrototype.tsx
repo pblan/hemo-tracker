@@ -16,6 +16,7 @@ export default function PlotEnginePrototype() {
   const fixture = useMemo(createStressFixture, []);
   const [Chart, setChart] = useState<ChartComponent>();
   const [dark, setDark] = useState(false);
+  const [showPlots, setShowPlots] = useState(true);
 
   useEffect(() => {
     const started = performance.now();
@@ -51,6 +52,7 @@ export default function PlotEnginePrototype() {
         plots
       </p>
       <button onClick={() => setDark((value) => !value)}>Change theme</button>
+      <button onClick={() => setShowPlots(false)}>Unmount plots</button>
       <div
         style={{
           display: "grid",
@@ -58,7 +60,8 @@ export default function PlotEnginePrototype() {
           gap: 16,
         }}
       >
-        {Chart &&
+        {showPlots &&
+          Chart &&
           fixture.visible.map((series) => (
             <section key={series.id} data-chart>
               <h2>{series.name}</h2>

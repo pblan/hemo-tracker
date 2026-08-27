@@ -83,7 +83,15 @@ export function UPlotChart({
       data,
       host.current,
     );
-    return () => plot.destroy();
+    document.body.dataset.activePlotInstances = String(
+      Number(document.body.dataset.activePlotInstances ?? 0) + 1,
+    );
+    return () => {
+      plot.destroy();
+      document.body.dataset.activePlotInstances = String(
+        Number(document.body.dataset.activePlotInstances ?? 1) - 1,
+      );
+    };
   }, [dark, series]);
 
   return <div ref={host} aria-hidden="true" />;
