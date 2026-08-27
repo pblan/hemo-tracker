@@ -22,7 +22,7 @@ GitHub Pages can publish a `docs` directory, but it creates another deployment a
 
 Keep V1 documentation as GitHub-flavored Markdown in the repository. Use the root README as the entry page. Add separate user and operator sections under `docs`.
 
-Use Mermaid for system, sequence, state, and dependency diagrams when a visual improves understanding. Keep the equivalent required information in text.
+Use Mermaid UML sequence, state, and class diagrams when a visual improves understanding. Do not add decorative diagrams. Keep the equivalent required information in text.
 
 Use deterministic fictional data for screenshots. Store reviewed V1 images in the repository. Capture screenshots through a repeatable Playwright fixture where possible. Capture native operating-system dialogs manually on each signed platform because browser automation cannot reproduce those dialogs reliably.
 

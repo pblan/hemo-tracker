@@ -35,9 +35,9 @@ Do not repeat one rule on many pages. Link to the page that owns the rule.
 
 ## Diagrams
 
-Use a diagram only when it makes a relationship, sequence, state change, or dependency easier to understand. Use fenced Mermaid syntax that GitHub can render in Markdown files and issues.
+Use a diagram only when it makes a relationship, sequence, or state change easier to understand. Do not add a decorative diagram. Use fenced Mermaid syntax that GitHub can render in Markdown files and issues.
 
-Use a flowchart for system boundaries. Use a sequence diagram for authentication, unlock, synchronization, backup, and recovery. Use a state diagram for report, device, and conflict states.
+Use a UML sequence diagram for authentication, unlock, synchronization, backup, and recovery. Use a UML state diagram for report, device, and conflict states. Use a UML class diagram only when it explains stable domain structure. Do not use a generic flowchart when direct text is clearer.
 
 Explain the important diagram information in the adjacent text. Do not make a diagram the only source of required information.
 
