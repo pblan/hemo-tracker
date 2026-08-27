@@ -1,10 +1,8 @@
 import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
 
-export function openOperationsDatabase(path: string) {
-  const client = createClient({
-    url: path === ":memory:" ? "file::memory:" : `file:${path}`,
-  });
+export function openOperationsDatabase(url: string) {
+  const client = createClient({ url });
 
   return {
     close: () => client.close(),

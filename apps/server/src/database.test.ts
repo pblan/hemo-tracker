@@ -6,7 +6,7 @@ import { openOperationsDatabase } from "./database";
 
 describe("operations database", () => {
   it("opens an isolated SQLite database through Drizzle", async () => {
-    const operations = openOperationsDatabase(":memory:");
+    const operations = openOperationsDatabase("file::memory:");
 
     try {
       const result = await operations.database.get<{ answer: number }>(

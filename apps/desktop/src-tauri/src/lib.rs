@@ -1,9 +1,3 @@
-const PRODUCT_NAME: &str = "Hemo Tracker";
-
-pub fn product_name() -> &'static str {
-    PRODUCT_NAME
-}
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -13,10 +7,11 @@ pub fn run() {
 
 #[cfg(test)]
 mod tests {
-    use super::product_name;
-
     #[test]
-    fn identifies_the_desktop_application() {
-        assert_eq!(product_name(), "Hemo Tracker");
+    fn configuration_identifies_the_desktop_application() {
+        let config: serde_json::Value =
+            serde_json::from_str(include_str!("../tauri.conf.json")).unwrap();
+
+        assert_eq!(config["productName"], "Hemo Tracker");
     }
 }
