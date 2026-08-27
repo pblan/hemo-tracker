@@ -81,16 +81,22 @@ impl CredentialStore for NativeCredentialStore {
 impl CredentialStore for NativeCredentialStore {
     fn save(&self, account: &str, encoded: &str) -> Result<(), CredentialError> {
         use windows::Security::Credentials::{PasswordCredential, PasswordVault};
+        use windows::core::HSTRING;
         let vault = PasswordVault::new().map_err(|_| CredentialError::Store)?;
-        let item = PasswordCredential::CreatePasswordCredential(SERVICE, account, encoded)
-            .map_err(|_| CredentialError::Store)?;
+        let item = PasswordCredential::CreatePasswordCredential(
+            &HSTRING::from(SERVICE),
+            &HSTRING::from(account),
+            &HSTRING::from(encoded),
+        )
+        .map_err(|_| CredentialError::Store)?;
         vault.Add(&item).map_err(|_| CredentialError::Store)
     }
     fn load(&self, account: &str) -> Result<String, CredentialError> {
         use windows::Security::Credentials::PasswordVault;
+        use windows::core::HSTRING;
         let vault = PasswordVault::new().map_err(|_| CredentialError::Store)?;
         let item = vault
-            .Retrieve(SERVICE, account)
+            .Retrieve(&HSTRING::from(SERVICE), &HSTRING::from(account))
             .map_err(|_| CredentialError::NotFound)?;
         item.RetrievePassword()
             .map_err(|_| CredentialError::Store)?;
@@ -100,9 +106,10 @@ impl CredentialStore for NativeCredentialStore {
     }
     fn delete(&self, account: &str) -> Result<(), CredentialError> {
         use windows::Security::Credentials::PasswordVault;
+        use windows::core::HSTRING;
         let vault = PasswordVault::new().map_err(|_| CredentialError::Store)?;
         let item = vault
-            .Retrieve(SERVICE, account)
+            .Retrieve(&HSTRING::from(SERVICE), &HSTRING::from(account))
             .map_err(|_| CredentialError::NotFound)?;
         vault.Remove(&item).map_err(|_| CredentialError::Store)
     }

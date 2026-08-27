@@ -29,7 +29,7 @@ cargo test --locked --manifest-path proofs/native-credentials/Cargo.toml
 Run the live native-store test on a disposable test account:
 
 ```sh
-cargo test --locked --manifest-path proofs/native-credentials/Cargo.toml native_store_round_trip_and_revocation -- --ignored --exact
+cargo test --locked --manifest-path proofs/native-credentials/Cargo.toml tests::native_store_round_trip_and_revocation -- --ignored --exact
 ```
 
 The live test saves, reads, verifies, and deletes one credential. A cleanup guard deletes the item after a test failure. If a process stops before cleanup, remove the item with service name `dev.hemo-tracker.device-unlock.v1` from Keychain Access or Windows Credential Manager. The path-filtered workflow compiles and tests the module on macOS and Windows. Its manual mode runs the live store test on both GitHub runner platforms.
