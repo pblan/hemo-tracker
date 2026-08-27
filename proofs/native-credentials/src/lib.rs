@@ -1,10 +1,8 @@
-use std::collections::HashMap;
-use std::sync::Mutex;
-
-use base64::Engine;
-use base64::engine::general_purpose::STANDARD_NO_PAD;
+use base64::{Engine, engine::general_purpose::STANDARD_NO_PAD};
+#[cfg(test)]
+use std::{collections::HashMap, sync::Mutex};
 use thiserror::Error;
-use zeroize::{Zeroize, ZeroizeOnDrop};
+use zeroize::{Zeroize, ZeroizeOnDrop, Zeroizing};
 
 const SERVICE: &str = "dev.hemo-tracker.device-unlock.v1";
 
@@ -28,60 +26,97 @@ pub enum SavedAccessApproval {
 
 #[derive(Zeroize, ZeroizeOnDrop)]
 pub struct DeviceUnlockKey([u8; 32]);
-
 impl DeviceUnlockKey {
     pub fn new(bytes: [u8; 32]) -> Self {
         Self(bytes)
     }
-
-    fn expose(&self) -> &[u8; 32] {
-        &self.0
-    }
 }
 
-pub trait CredentialStore: Send + Sync {
-    fn save(&self, account: &str, encoded_key: &str) -> Result<(), CredentialError>;
+trait CredentialStore: Send + Sync {
+    fn save(&self, account: &str, encoded: &str) -> Result<(), CredentialError>;
     fn load(&self, account: &str) -> Result<String, CredentialError>;
     fn delete(&self, account: &str) -> Result<(), CredentialError>;
 }
+struct NativeCredentialStore;
 
-pub struct NativeCredentialStore;
-
+#[cfg(target_os = "macos")]
+fn apple_entry(account: &str) -> Result<keyring_core::Entry, CredentialError> {
+    use apple_native_keyring_store::protected::{AccessPolicy, Cred};
+    Cred::build(
+        SERVICE,
+        account,
+        AccessPolicy::WhenUnlockedThisDeviceOnly,
+        None,
+        false,
+    )
+    .map_err(map_apple_error)
+}
+#[cfg(target_os = "macos")]
+fn map_apple_error(error: keyring_core::Error) -> CredentialError {
+    match error {
+        keyring_core::Error::NoEntry => CredentialError::NotFound,
+        _ => CredentialError::Store,
+    }
+}
+#[cfg(target_os = "macos")]
 impl CredentialStore for NativeCredentialStore {
-    fn save(&self, account: &str, encoded_key: &str) -> Result<(), CredentialError> {
-        keyring::Entry::new(SERVICE, account)
-            .and_then(|entry| entry.set_password(encoded_key))
+    fn save(&self, account: &str, encoded: &str) -> Result<(), CredentialError> {
+        apple_entry(account)?
+            .set_password(encoded)
+            .map_err(map_apple_error)
+    }
+    fn load(&self, account: &str) -> Result<String, CredentialError> {
+        apple_entry(account)?
+            .get_password()
+            .map_err(map_apple_error)
+    }
+    fn delete(&self, account: &str) -> Result<(), CredentialError> {
+        apple_entry(account)?
+            .delete_credential()
+            .map_err(map_apple_error)
+    }
+}
+
+#[cfg(target_os = "windows")]
+impl CredentialStore for NativeCredentialStore {
+    fn save(&self, account: &str, encoded: &str) -> Result<(), CredentialError> {
+        use windows::Security::Credentials::{PasswordCredential, PasswordVault};
+        let vault = PasswordVault::new().map_err(|_| CredentialError::Store)?;
+        let item = PasswordCredential::CreatePasswordCredential(SERVICE, account, encoded)
+            .map_err(|_| CredentialError::Store)?;
+        vault.Add(&item).map_err(|_| CredentialError::Store)
+    }
+    fn load(&self, account: &str) -> Result<String, CredentialError> {
+        use windows::Security::Credentials::PasswordVault;
+        let vault = PasswordVault::new().map_err(|_| CredentialError::Store)?;
+        let item = vault
+            .Retrieve(SERVICE, account)
+            .map_err(|_| CredentialError::NotFound)?;
+        item.RetrievePassword()
+            .map_err(|_| CredentialError::Store)?;
+        item.Password()
+            .map(|value| value.to_string())
             .map_err(|_| CredentialError::Store)
     }
-
-    fn load(&self, account: &str) -> Result<String, CredentialError> {
-        keyring::Entry::new(SERVICE, account)
-            .and_then(|entry| entry.get_password())
-            .map_err(|error| match error {
-                keyring::Error::NoEntry => CredentialError::NotFound,
-                _ => CredentialError::Store,
-            })
-    }
-
     fn delete(&self, account: &str) -> Result<(), CredentialError> {
-        keyring::Entry::new(SERVICE, account)
-            .and_then(|entry| entry.delete_credential())
-            .map_err(|error| match error {
-                keyring::Error::NoEntry => CredentialError::NotFound,
-                _ => CredentialError::Store,
-            })
+        use windows::Security::Credentials::PasswordVault;
+        let vault = PasswordVault::new().map_err(|_| CredentialError::Store)?;
+        let item = vault
+            .Retrieve(SERVICE, account)
+            .map_err(|_| CredentialError::NotFound)?;
+        vault.Remove(&item).map_err(|_| CredentialError::Store)
     }
 }
 
-pub struct TrustedDeviceCredentials<S> {
-    store: S,
+pub struct TrustedDeviceCredentials {
+    store: Box<dyn CredentialStore>,
 }
-
-impl<S: CredentialStore> TrustedDeviceCredentials<S> {
-    pub fn new(store: S) -> Self {
-        Self { store }
+impl TrustedDeviceCredentials {
+    pub fn native() -> Self {
+        Self {
+            store: Box::new(NativeCredentialStore),
+        }
     }
-
     pub fn save_after_approval(
         &self,
         account: &str,
@@ -91,48 +126,46 @@ impl<S: CredentialStore> TrustedDeviceCredentials<S> {
         if approval != SavedAccessApproval::Approved {
             return Err(CredentialError::ApprovalRequired);
         }
-        self.store
-            .save(account, &STANDARD_NO_PAD.encode(key.expose()))
+        let encoded = Zeroizing::new(STANDARD_NO_PAD.encode(key.0));
+        self.store.save(account, &encoded)
     }
-
     pub fn use_key<T>(
         &self,
         account: &str,
         operation: impl FnOnce(&DeviceUnlockKey) -> T,
     ) -> Result<T, CredentialError> {
-        let mut encoded = self.store.load(account)?;
-        let decoded = STANDARD_NO_PAD
-            .decode(&encoded)
-            .map_err(|_| CredentialError::InvalidFormat)?;
-        encoded.zeroize();
+        let encoded = Zeroizing::new(self.store.load(account)?);
+        let decoded = Zeroizing::new(
+            STANDARD_NO_PAD
+                .decode(encoded.as_bytes())
+                .map_err(|_| CredentialError::InvalidFormat)?,
+        );
         let bytes: [u8; 32] = decoded
+            .as_slice()
             .try_into()
             .map_err(|_| CredentialError::InvalidFormat)?;
-        let key = DeviceUnlockKey::new(bytes);
-        Ok(operation(&key))
+        Ok(operation(&DeviceUnlockKey::new(bytes)))
     }
-
     pub fn logout(&self, account: &str) -> Result<(), CredentialError> {
         self.store.delete(account)
     }
-
     pub fn revoke_device(&self, account: &str) -> Result<(), CredentialError> {
         self.store.delete(account)
     }
 }
 
+#[cfg(test)]
 #[derive(Default)]
-pub struct MemoryCredentialStore(Mutex<HashMap<String, String>>);
-
+struct MemoryCredentialStore(Mutex<HashMap<String, String>>);
+#[cfg(test)]
 impl CredentialStore for MemoryCredentialStore {
-    fn save(&self, account: &str, encoded_key: &str) -> Result<(), CredentialError> {
+    fn save(&self, account: &str, encoded: &str) -> Result<(), CredentialError> {
         self.0
             .lock()
             .map_err(|_| CredentialError::Store)?
-            .insert(account.into(), encoded_key.into());
+            .insert(account.into(), encoded.into());
         Ok(())
     }
-
     fn load(&self, account: &str) -> Result<String, CredentialError> {
         self.0
             .lock()
@@ -141,7 +174,6 @@ impl CredentialStore for MemoryCredentialStore {
             .cloned()
             .ok_or(CredentialError::NotFound)
     }
-
     fn delete(&self, account: &str) -> Result<(), CredentialError> {
         self.0
             .lock()
@@ -155,10 +187,14 @@ impl CredentialStore for MemoryCredentialStore {
 #[cfg(test)]
 mod tests {
     use super::*;
-
+    fn memory() -> TrustedDeviceCredentials {
+        TrustedDeviceCredentials {
+            store: Box::new(MemoryCredentialStore::default()),
+        }
+    }
     #[test]
     fn approval_is_required_before_save() {
-        let credentials = TrustedDeviceCredentials::new(MemoryCredentialStore::default());
+        let credentials = memory();
         let key = DeviceUnlockKey::new([7; 32]);
         assert!(matches!(
             credentials.save_after_approval("account", SavedAccessApproval::Declined, &key),
@@ -169,33 +205,34 @@ mod tests {
             Err(CredentialError::NotFound)
         ));
     }
-
     #[test]
     fn raw_key_stays_inside_the_operation_callback() {
-        let credentials = TrustedDeviceCredentials::new(MemoryCredentialStore::default());
+        let credentials = memory();
         let key = DeviceUnlockKey::new([9; 32]);
         credentials
             .save_after_approval("account", SavedAccessApproval::Approved, &key)
             .unwrap();
-        let checksum = credentials
-            .use_key("account", |stored| {
-                stored
-                    .expose()
+        assert_eq!(
+            credentials
+                .use_key("account", |stored| stored
+                    .0
                     .iter()
                     .map(|byte| u32::from(*byte))
-                    .sum::<u32>()
-            })
-            .unwrap();
-        assert_eq!(checksum, 288);
+                    .sum::<u32>())
+                .unwrap(),
+            288
+        );
     }
-
     #[test]
     fn logout_and_revocation_remove_saved_access() {
         for revoke in [false, true] {
-            let credentials = TrustedDeviceCredentials::new(MemoryCredentialStore::default());
-            let key = DeviceUnlockKey::new([3; 32]);
+            let credentials = memory();
             credentials
-                .save_after_approval("account", SavedAccessApproval::Approved, &key)
+                .save_after_approval(
+                    "account",
+                    SavedAccessApproval::Approved,
+                    &DeviceUnlockKey::new([3; 32]),
+                )
                 .unwrap();
             if revoke {
                 credentials.revoke_device("account").unwrap();
@@ -207,5 +244,36 @@ mod tests {
                 Err(CredentialError::NotFound)
             ));
         }
+    }
+    #[test]
+    #[ignore = "changes and cleans up the signed user's native credential store"]
+    fn native_store_round_trip_and_revocation() {
+        let account = format!("proof-{}", std::process::id());
+        let credentials = TrustedDeviceCredentials::native();
+        struct Cleanup<'a>(&'a TrustedDeviceCredentials, &'a str);
+        impl Drop for Cleanup<'_> {
+            fn drop(&mut self) {
+                let _ = self.0.revoke_device(self.1);
+            }
+        }
+        let _cleanup = Cleanup(&credentials, &account);
+        credentials
+            .save_after_approval(
+                &account,
+                SavedAccessApproval::Approved,
+                &DeviceUnlockKey::new([0x5a; 32]),
+            )
+            .unwrap();
+        assert_eq!(
+            credentials
+                .use_key(&account, |stored| stored
+                    .0
+                    .iter()
+                    .map(|byte| u32::from(*byte))
+                    .sum::<u32>())
+                .unwrap(),
+            2_880
+        );
+        credentials.revoke_device(&account).unwrap();
     }
 }

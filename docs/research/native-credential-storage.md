@@ -14,11 +14,13 @@ An application upgrade with the same signed application identity and access grou
 
 Windows Credential Locker stores small credentials through `PasswordVault`. Microsoft states that credentials can roam with the user's Microsoft account. The store has a limit of 20 credentials per application. Microsoft requires the user to opt in before an application saves a credential. See [Credential Locker for Windows apps](https://learn.microsoft.com/en-us/windows/apps/develop/security/credential-locker).
 
-The `keyring` 4.1.6 Rust crate provides one interface for Apple Keychain and Windows Credential Locker. Its default V1 facade selects the native store on each supported target. The proof pins this version and keeps its interface behind a project-owned module. See [`keyring` 4.1.6](https://docs.rs/keyring/4.1.6/keyring/).
+The `apple-native-keyring-store` crate provides explicit access to the protected data Keychain. Its protected backend supports `WhenUnlockedThisDeviceOnly` and a disabled cloud-synchronization flag. See [`apple-native-keyring-store` 1.0.2](https://docs.rs/apple-native-keyring-store/1.0.2/apple_native_keyring_store/protected/).
+
+The Rust `windows` crate provides the Windows Runtime `PasswordVault` API. This API uses Credential Locker. See [`windows` 0.62.2](https://docs.rs/windows/0.62.2/windows/Security/Credentials/struct.PasswordVault.html).
 
 ## Recommendation
 
-Use `keyring` behind the trusted Rust module. Store one 32-byte device-unlock key for each account as a native credential. Require an explicit in-application approval before the first save.
+Use the explicit protected data Keychain backend on macOS and the `PasswordVault` API on Windows. Keep both implementations behind the trusted Rust module. Store one 32-byte device-unlock key for each account as a native credential. Require an explicit in-application approval before the first save.
 
 Do not return the raw key from a Tauri command. Load the key inside Rust, perform the requested key operation, and return only the operation result.
 
