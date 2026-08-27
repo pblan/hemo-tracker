@@ -1,0 +1,12 @@
+{
+  "name": "@hemo-tracker/docs-tools",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "bun run check-docs.ts"
+  },
+  "devDependencies": {
+    "markdownlint-cli2": "0.23.2",
+    "mermaid": "11.17.2"
+  }
+}
