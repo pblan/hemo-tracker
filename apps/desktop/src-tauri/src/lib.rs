@@ -22,6 +22,7 @@ pub fn run() {
             vault_commands::complete_lab_report,
             vault_commands::archive_lab_report,
             vault_commands::correct_lab_measurement,
+            vault_commands::permanently_delete_lab_report,
         ])
         .run(tauri::generate_context!())
         .expect("Hemo Tracker failed to start");

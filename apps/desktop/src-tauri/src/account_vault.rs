@@ -89,6 +89,7 @@ pub struct LabReportSourceFile {
     pub original_filename: String,
     pub media_type: String,
     pub role: String,
+    pub opaque_object_id: String,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -448,6 +449,30 @@ impl LocalAccountVault {
             .map_err(|_| LocalAccountError::Operation)
     }
 
+    pub fn permanently_delete_lab_report(
+        &mut self,
+        report_id: &str,
+        confirmed: bool,
+    ) -> Result<(), LocalAccountError> {
+        if !confirmed {
+            return Err(LocalAccountError::Operation);
+        }
+        let report = self.get_lab_report(report_id)?;
+        let unlocked = self.unlocked_mut()?;
+        unlocked
+            ._vault
+            .delete_report(report_id)
+            .map_err(|_| LocalAccountError::Operation)?;
+        for source in report.source_files {
+            let _ = fs::remove_file(
+                self.directory
+                    .join("objects")
+                    .join(format!("{}.hemo", source.opaque_object_id)),
+            );
+        }
+        Ok(())
+    }
+
     pub fn get_lab_report(&self, report_id: &str) -> Result<LabReportDetails, LocalAccountError> {
         let report = self
             .unlocked_ref()?
@@ -476,6 +501,7 @@ impl LocalAccountVault {
                     original_filename: source.original_filename,
                     media_type: source.media_type,
                     role: source.role,
+                    opaque_object_id: source.opaque_object_id,
                 })
                 .collect(),
             measurements: report

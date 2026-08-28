@@ -87,3 +87,7 @@ export type ReportSummary = {
 export const getLabReport = (reportId: string) =>
   invoke<ReportSummary>("get_lab_report", { reportId });
 export const listLabReports = () => invoke<string[]>("list_lab_reports");
+export const permanentlyDeleteLabReport = (
+  reportId: string,
+  confirmed: boolean,
+) => invoke<void>("permanently_delete_lab_report", { reportId, confirmed });

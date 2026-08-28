@@ -410,6 +410,20 @@ fn with_vault(
     Ok(result(Some(vault)))
 }
 
+#[tauri::command]
+pub fn permanently_delete_lab_report(
+    state: State<'_, DesktopVaultState>,
+    report_id: String,
+    confirmed: bool,
+) -> Result<(), String> {
+    let mut guard = state.vault.lock().map_err(|_| safe_error())?;
+    guard
+        .as_mut()
+        .ok_or_else(safe_error)?
+        .permanently_delete_lab_report(&report_id, confirmed)
+        .map_err(|_| safe_error())
+}
+
 fn result(vault: Option<&LocalAccountVault>) -> VaultStateResult {
     match vault.map(LocalAccountVault::status) {
         None => VaultStateResult {

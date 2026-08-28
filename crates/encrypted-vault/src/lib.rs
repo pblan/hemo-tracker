@@ -142,6 +142,11 @@ impl AccountVault {
         self.connection.execute("INSERT OR IGNORE INTO archived_reports (report_id, archived_at) VALUES (?1, datetime('now'))", [report_id]).map_err(|_| VaultError::Operation)?;
         Ok(())
     }
+
+    pub fn delete_report(&self, report_id: &str) -> Result<(), VaultError> {
+        let changed = self.connection.execute("DELETE FROM reports WHERE id = ?1", [report_id]).map_err(|_| VaultError::Operation)?;
+        if changed == 1 { Ok(()) } else { Err(VaultError::Operation) }
+    }
     pub fn upsert_analyte(&self, analyte: &AnalyteDefinition) -> Result<(), VaultError> {
         let aliases = serde_json::to_string(&analyte.aliases).map_err(|_| VaultError::Operation)?;
         self.connection.execute("INSERT INTO analyte_definitions (id,name,component,property,specimen,scale,method,aliases_json,loinc_code) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9) ON CONFLICT(id) DO UPDATE SET name=excluded.name,component=excluded.component,property=excluded.property,specimen=excluded.specimen,scale=excluded.scale,method=excluded.method,aliases_json=excluded.aliases_json,loinc_code=excluded.loinc_code", params![analyte.id, analyte.name, analyte.component, analyte.property, analyte.specimen, analyte.scale, analyte.method, aliases, analyte.loinc_code]).map_err(|_| VaultError::Operation)?;
