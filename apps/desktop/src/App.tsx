@@ -51,6 +51,7 @@ function App() {
   const [vaultState, setVaultState] = useState<VaultState | null>(null);
   const [recoveryCode, setRecoveryCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
     void getVaultState()
@@ -88,9 +89,33 @@ function App() {
           </Text>
         </Stack>
         {error ? (
-          <Alert.Root status="error">
+          <Alert.Root status="error" role="alert">
             <Alert.Indicator />
             <Alert.Title>{error}</Alert.Title>
+            <Button
+              size="xs"
+              variant="ghost"
+              ml="auto"
+              onClick={() => setError(null)}
+              aria-label="Dismiss error"
+            >
+              Dismiss
+            </Button>
+          </Alert.Root>
+        ) : null}
+        {notice ? (
+          <Alert.Root status="success" role="status">
+            <Alert.Indicator />
+            <Alert.Title>{notice}</Alert.Title>
+            <Button
+              size="xs"
+              variant="ghost"
+              ml="auto"
+              onClick={() => setNotice(null)}
+              aria-label="Dismiss notification"
+            >
+              Dismiss
+            </Button>
           </Alert.Root>
         ) : null}
         {!vaultState ? <Text>Read local vault…</Text> : null}
@@ -125,6 +150,7 @@ function App() {
               setVaultState({ accountExists: true, status: "unlocked" });
             }}
             onError={setError}
+            onNotice={setNotice}
           />
         ) : null}
       </Stack>
@@ -342,10 +368,12 @@ function UnlockedVault({
   onLocked,
   onReset,
   onError,
+  onNotice,
 }: {
   onLocked: (state: VaultState) => void;
   onReset: (recoveryCode: string) => void;
   onError: (message: string) => void;
+  onNotice: (message: string) => void;
 }) {
   const [collectionTime, setCollectionTime] = useState("");
   const [laboratory, setLaboratory] = useState("");
@@ -535,6 +563,7 @@ function UnlockedVault({
       setSourceUnit("");
       setSourceReferenceInterval("");
       setSourceFlag("");
+      onNotice("Lab report saved in the encrypted vault.");
     } catch {
       onError("Hemo Tracker could not save the lab report.");
     } finally {
@@ -576,6 +605,7 @@ function UnlockedVault({
       setRangeContext("");
       setRangeNotes("");
       setRangeMessage("Personal target range added.");
+      onNotice("Personal target range added.");
     } catch {
       onError("Hemo Tracker could not save the personal target range.");
     }
@@ -584,6 +614,7 @@ function UnlockedVault({
   async function backupVault() {
     try {
       await chooseAndBackupLocalVault();
+      onNotice("Encrypted backup saved.");
     } catch {
       onError("Hemo Tracker could not create the encrypted backup.");
     }
@@ -596,7 +627,7 @@ function UnlockedVault({
     }
     try {
       const restored = await chooseAndRestoreLocalVault(restorePassphrase);
-      if (restored) onError("The encrypted backup was restored.");
+      if (restored) onNotice("The encrypted backup was restored.");
       setRestorePassphrase("");
     } catch {
       onError("Hemo Tracker could not restore that encrypted backup.");
@@ -639,7 +670,7 @@ function UnlockedVault({
     try {
       const exported = await chooseAndExportPlaintextZip();
       if (exported)
-        onError(
+        onNotice(
           "The plaintext JSON export was saved. Protect or delete it when it is no longer needed.",
         );
     } catch {
@@ -665,6 +696,7 @@ function UnlockedVault({
         analyteId: correctionAnalyteId || measurement.analyteId,
       });
       setEditingMeasurement(null);
+      onNotice("Measurement correction saved.");
       setCorrectionAnalyteId("");
       const ids = await listLabReports();
       setReports(await Promise.all(ids.map((id) => getLabReport(id))));
@@ -915,6 +947,40 @@ function UnlockedVault({
   return (
     <Stack gap="6">
       <Box
+        as="nav"
+        aria-label="Vault sections"
+        position="sticky"
+        top="2"
+        zIndex="docked"
+        bg="bg.panel"
+        borderWidth="1px"
+        borderColor="border"
+        borderRadius="xl"
+        p="2"
+        shadow="sm"
+      >
+        <Stack direction={{ base: "column", sm: "row" }} gap="1">
+          {[
+            ["trend", "Trends"],
+            ["ranges", "Ranges"],
+            ["reports", "Reports"],
+            ["record", "Record"],
+            ["tools", "Tools"],
+          ].map(([id, label]) => (
+            <Button
+              key={id}
+              asChild
+              variant="ghost"
+              size="sm"
+              justifyContent="start"
+            >
+              <a href={`#${id}`}>{label}</a>
+            </Button>
+          ))}
+        </Stack>
+      </Box>
+      <Box
+        id="trend"
         bg="bg.panel"
         borderWidth="1px"
         borderColor="border"
@@ -1063,6 +1129,7 @@ function UnlockedVault({
         </Stack>
       </Box>
       <Box
+        id="ranges"
         as="form"
         bg="bg.panel"
         borderWidth="1px"
@@ -1165,7 +1232,7 @@ function UnlockedVault({
           >
             Add personal target range
           </Button>
-          {rangeMessage ? <Text role="status">{rangeMessage}</Text> : null}
+          {rangeMessage ? <Text>{rangeMessage}</Text> : null}
           {rangeAnalyteId ? (
             <Stack gap="2" aria-label="Saved personal target ranges">
               {analytes
@@ -1185,6 +1252,7 @@ function UnlockedVault({
         </Stack>
       </Box>
       <Box
+        id="reports"
         bg="bg.panel"
         borderWidth="1px"
         borderColor="border"
@@ -1508,7 +1576,13 @@ function UnlockedVault({
           ) : null}
         </Stack>
       </Box>
-      <Box borderWidth="1px" borderColor="border" borderRadius="xl" p="4">
+      <Box
+        id="tools"
+        borderWidth="1px"
+        borderColor="border"
+        borderRadius="xl"
+        p="4"
+      >
         <Stack gap="3">
           <Heading as="h2" size="lg">
             Relink existing results
@@ -1575,6 +1649,7 @@ function UnlockedVault({
         </Stack>
       </Box>
       <Box
+        id="record"
         bgGradient="to-r"
         gradientFrom="teal.700"
         gradientTo="cyan.600"
