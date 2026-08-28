@@ -36,6 +36,7 @@ export const addLabMeasurement = (
     sourceUnit: string;
     sourceReferenceInterval: string;
     sourceFlag: string;
+    analyteId?: string;
   },
 ) => invoke<string>("add_lab_measurement", { reportId, request });
 export const completeLabReport = (reportId: string) =>

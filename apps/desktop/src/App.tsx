@@ -11,6 +11,7 @@ import {
 import { type FormEvent, useEffect, useState } from "react";
 
 import {
+  addAnalyteDefinition,
   addLabMeasurement,
   completeLabReport,
   createLabReport,
@@ -287,6 +288,9 @@ function UnlockedVault({
   const [sourceUnit, setSourceUnit] = useState("");
   const [sourceReferenceInterval, setSourceReferenceInterval] = useState("");
   const [sourceFlag, setSourceFlag] = useState("");
+  const [analyteName, setAnalyteName] = useState("");
+  const [analyteComponent, setAnalyteComponent] = useState("");
+  const [analyteProperty, setAnalyteProperty] = useState("");
   const [sourceFilename, setSourceFilename] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -303,12 +307,21 @@ function UnlockedVault({
       const source = await selectAndAttachSourceFile(reportId);
       if (!source) throw new Error("source file not selected");
       setSourceFilename(source.originalFilename);
+      const analyteId = await addAnalyteDefinition({
+        name: analyteName || sourceLabel,
+        component: analyteComponent || analyteName || sourceLabel,
+        property: analyteProperty || "Result",
+        specimen: "Blood",
+        scale: "Quantitative",
+        aliases: [],
+      });
       await addLabMeasurement(reportId, {
         sourceLabel,
         sourceValue,
         sourceUnit,
         sourceReferenceInterval,
         sourceFlag,
+        analyteId,
       });
       await completeLabReport(reportId);
       setCollectionTime("");
@@ -376,6 +389,29 @@ function UnlockedVault({
             title="Report details"
             description="When and where was the sample collected?"
           />
+          <Stack gap="3" bg="bg.subtle" borderRadius="lg" p="4">
+            <Text fontWeight="semibold" fontSize="sm">
+              Analyte identity (optional)
+            </Text>
+            <Text color="fg.muted" fontSize="sm">
+              Use a definition to group this result with later reports.
+            </Text>
+            <Input
+              placeholder="Analyte name, for example Hemoglobin"
+              value={analyteName}
+              onChange={(event) => setAnalyteName(event.target.value)}
+            />
+            <Input
+              placeholder="Component"
+              value={analyteComponent}
+              onChange={(event) => setAnalyteComponent(event.target.value)}
+            />
+            <Input
+              placeholder="Property, for example concentration"
+              value={analyteProperty}
+              onChange={(event) => setAnalyteProperty(event.target.value)}
+            />
+          </Stack>
           <Field.Root required>
             <Field.Label>Collection date and time</Field.Label>
             <Input
