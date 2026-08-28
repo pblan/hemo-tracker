@@ -62,7 +62,10 @@ jobs:
         run: |
           set -euo pipefail
           mkdir release-${{ matrix.artifact }}
-          mapfile -t packages < <(find "apps/desktop/src-tauri/target/release/bundle" -type f \( -name '*.dmg' -o -name '*.exe' -o -name '*.msi' \) -print)
+          packages=()
+          while IFS= read -r package; do
+            packages+=("$package")
+          done < <(find "apps/desktop/src-tauri/target/release/bundle" -type f \( -name '*.dmg' -o -name '*.exe' -o -name '*.msi' \) -print)
           if (( ${#packages[@]} == 0 )); then
             echo "No installable package was produced" >&2
             exit 1
@@ -91,7 +94,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          mapfile -t files < <(find release-artifacts -type f)
+          files=()
+          while IFS= read -r file; do
+            files+=("$file")
+          done < <(find release-artifacts -type f)
           if (( ${#files[@]} == 0 )); then
             echo "No release assets were downloaded" >&2
             exit 1
