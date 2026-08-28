@@ -128,3 +128,6 @@ The unsigned V1 application is intended for local use. Keep the device, passphra
 
 The demo reports in a new vault are fictional. They do not describe your
 health and must not guide a medical decision.
+
+Imported source files are limited to 512 MiB. This protects the local app from
+an accidental oversized selection while the file is encrypted as a stream.

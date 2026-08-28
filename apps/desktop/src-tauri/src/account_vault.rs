@@ -12,8 +12,9 @@ use hemo_source_file_encryption::{
 };
 use serde::{Deserialize, Serialize};
 use std::{
+    cmp::min,
     fs::{self, File, OpenOptions},
-    io::{Cursor, Read, Write},
+    io::{self, Cursor, Read, Write},
     path::{Path, PathBuf},
 };
 use thiserror::Error;
@@ -23,6 +24,44 @@ const MANIFEST_NAME: &str = "account.json";
 const VAULT_NAME: &str = "vault.db";
 const FORMAT: &str = "hemo-tracker-local-account";
 const VERSION: u8 = 1;
+/// Keep interactive imports bounded while retaining streaming encryption.
+const MAX_SOURCE_FILE_BYTES: u64 = 512 * 1024 * 1024;
+
+struct SizeLimitedReader<R> {
+    inner: R,
+    remaining: u64,
+}
+
+impl<R> SizeLimitedReader<R> {
+    fn new(inner: R, maximum: u64) -> Self {
+        Self {
+            inner,
+            remaining: maximum,
+        }
+    }
+}
+
+impl<R: Read> Read for SizeLimitedReader<R> {
+    fn read(&mut self, buffer: &mut [u8]) -> io::Result<usize> {
+        if buffer.is_empty() {
+            return Ok(0);
+        }
+        if self.remaining == 0 {
+            let mut probe = [0_u8; 1];
+            return match self.inner.read(&mut probe)? {
+                0 => Ok(0),
+                _ => Err(io::Error::new(
+                    io::ErrorKind::FileTooLarge,
+                    "source file exceeds the V1 size limit",
+                )),
+            };
+        }
+        let readable = min(self.remaining, buffer.len() as u64) as usize;
+        let count = self.inner.read(&mut buffer[..readable])?;
+        self.remaining -= count as u64;
+        Ok(count)
+    }
+}
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct CreateLocalAccount {
@@ -559,7 +598,7 @@ impl LocalAccountVault {
         let context = SourceFileContext::new(account_id, object_id.clone());
         let source_key = SourceFileKey::from_bytes(*unlocked.source_file_key.bytes());
         let encrypted_path = encrypt_source_file(
-            source,
+            SizeLimitedReader::new(source, MAX_SOURCE_FILE_BYTES),
             &objects,
             &context,
             &source_key,
@@ -1167,5 +1206,25 @@ mod tests {
             "\"value \"\"as printed\"\"\""
         );
         assert_eq!(csv_field("line\none"), "\"line\none\"");
+    }
+
+    #[test]
+    fn size_limited_reader_rejects_bytes_after_the_limit() {
+        let mut reader = SizeLimitedReader::new(Cursor::new(b"12345"), 4);
+        let mut buffer = [0_u8; 4];
+        assert_eq!(reader.read(&mut buffer).unwrap(), 4);
+        assert_eq!(&buffer, b"1234");
+        assert_eq!(
+            reader.read(&mut [0_u8; 1]).unwrap_err().kind(),
+            io::ErrorKind::FileTooLarge
+        );
+    }
+
+    #[test]
+    fn size_limited_reader_accepts_a_source_at_the_limit() {
+        let mut reader = SizeLimitedReader::new(Cursor::new(b"1234"), 4);
+        let mut buffer = [0_u8; 4];
+        assert_eq!(reader.read(&mut buffer).unwrap(), 4);
+        assert_eq!(reader.read(&mut [0_u8; 1]).unwrap(), 0);
     }
 }

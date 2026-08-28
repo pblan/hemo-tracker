@@ -203,6 +203,7 @@ pub fn encrypt_source_file(
             .map_err(|_| SourceFileError::OperationFailed)?;
         drop(destination);
         fs::rename(&partial_path, &final_path).map_err(|_| SourceFileError::OperationFailed)?;
+        sync_parent_directory(directory)?;
         Ok(final_path.clone())
     })();
 
@@ -210,6 +211,16 @@ pub fn encrypt_source_file(
         let _ = fs::remove_file(&partial_path);
     }
     result
+}
+
+fn sync_parent_directory(directory: &Path) -> Result<(), SourceFileError> {
+    #[cfg(unix)]
+    {
+        File::open(directory)
+            .and_then(|file| file.sync_all())
+            .map_err(|_| SourceFileError::OperationFailed)?;
+    }
+    Ok(())
 }
 
 pub fn decrypt_source_file(

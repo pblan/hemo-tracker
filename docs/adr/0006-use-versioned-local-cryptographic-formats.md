@@ -28,6 +28,14 @@ Derive a separate file key from the source-file purpose key for each random 256-
 
 Write source ciphertext to an opaque partial path. Synchronize it and rename it only after the final frame succeeds. Never create a plaintext temporary file.
 
+The desktop application accepts source files up to 512 MiB. The streaming
+container keeps 1 MiB data frames, and libsodium secretstream performs its
+authenticated internal rekeying. V1 does not add an application-level rekey
+interval. After the opaque rename, the application synchronizes the containing
+directory on Unix systems. Windows relies on the filesystem's durable rename
+semantics because directory handles cannot be synchronized portably by this
+crate.
+
 ## Consequences
 
 A passphrase change creates a new passphrase envelope. It does not re-encrypt clinical data. Recovery-key replacement creates a new recovery envelope. A purpose-key generation change applies only to new writes until a verified migration completes.

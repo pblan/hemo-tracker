@@ -90,4 +90,13 @@ The application must not decrypt to an internal persistent temporary file. A use
 
 The proof does not provide random file access or resume an interrupted stream. It does not hide ciphertext length or 1 MiB frame boundaries. It does not protect plaintext that the user exports or another program reads.
 
-The security ADR must decide whether V1 needs periodic explicit rekey tags, a maximum source-file size, and a durable directory-synchronization step after rename. An independent security review must approve the container and native dependency chain.
+The desktop application limits an imported source file to 512 MiB before it
+enters the streaming encryptor. The limit is an application policy, not a
+format limit, so the standalone proof can still exercise multi-gigabyte
+bounded-memory streams. Secretstream performs authenticated internal rekeying;
+V1 has no additional application-level rekey interval. The native application
+synchronizes the object directory after the final rename on Unix systems.
+Windows uses the platform rename result because portable directory-handle
+synchronization is not available through this crate.
+
+The independent security review must approve the container and native dependency chain.
