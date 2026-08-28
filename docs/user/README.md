@@ -52,6 +52,8 @@ Hemo Tracker encrypts the backup. The backup does not contain the passphrase or 
 
 The table also shows missing and flagged results. A plot does not give medical advice. Results with different units are not comparable until Hemo Tracker confirms a safe normalization rule.
 
+Select **Compare with another analyte** to show a second local series. Use the source units and flags to check that the two series are meaningful to compare. Hemo Tracker does not convert incompatible units.
+
 ## Safety limits
 
 Hemo Tracker is a record-keeping tool. It does not diagnose conditions or give medical advice. Check laboratory results with a qualified health professional.
