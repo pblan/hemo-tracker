@@ -10,3 +10,4 @@ The accepted records explain decisions that constrain the Hemo Tracker architect
 - [ADR 0006: Use versioned local cryptographic formats](0006-use-versioned-local-cryptographic-formats.md)
 - [ADR 0007: Keep source facts immutable and corrections explicit](0007-source-facts-and-corrections.md)
 - [ADR 0008: Use NLM UCUM for automatic normalization](0008-use-nlm-ucum-for-automatic-normalization.md)
+- [ADR 0009: Seed fictional demo reports in new vaults](0009-seed-fictional-demo-reports.md)
