@@ -18,6 +18,7 @@ pub fn run() {
             vault_commands::add_analyte_definition,
             vault_commands::list_analyte_definitions,
             vault_commands::get_lab_report,
+            vault_commands::list_lab_reports,
             vault_commands::complete_lab_report,
             vault_commands::archive_lab_report,
         ])

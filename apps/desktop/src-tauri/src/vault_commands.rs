@@ -332,6 +332,16 @@ pub fn get_lab_report(
 }
 
 #[tauri::command]
+pub fn list_lab_reports(state: State<'_, DesktopVaultState>) -> Result<Vec<String>, String> {
+    let guard = state.vault.lock().map_err(|_| safe_error())?;
+    guard
+        .as_ref()
+        .ok_or_else(safe_error)?
+        .list_lab_report_ids()
+        .map_err(|_| safe_error())
+}
+
+#[tauri::command]
 pub fn complete_lab_report(
     state: State<'_, DesktopVaultState>,
     report_id: String,

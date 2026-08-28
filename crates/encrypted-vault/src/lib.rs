@@ -132,6 +132,10 @@ pub struct AccountVault {
 }
 
 impl AccountVault {
+    pub fn list_report_ids(&self) -> Result<Vec<String>, VaultError> {
+        let mut statement = self.connection.prepare("SELECT id FROM reports ORDER BY collection_time DESC, rowid DESC").map_err(|_| VaultError::Operation)?;
+        statement.query_map([], |row| row.get(0)).map_err(|_| VaultError::Operation)?.collect::<Result<Vec<String>, _>>().map_err(|_| VaultError::Operation)
+    }
     pub fn archive_report(&self, report_id: &str) -> Result<(), VaultError> {
         self.connection.execute("INSERT OR IGNORE INTO archived_reports (report_id, archived_at) VALUES (?1, datetime('now'))", [report_id]).map_err(|_| VaultError::Operation)?;
         Ok(())

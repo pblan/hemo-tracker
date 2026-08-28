@@ -76,3 +76,4 @@ export type ReportSummary = {
 };
 export const getLabReport = (reportId: string) =>
   invoke<ReportSummary>("get_lab_report", { reportId });
+export const listLabReports = () => invoke<string[]>("list_lab_reports");

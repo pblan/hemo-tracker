@@ -461,6 +461,13 @@ impl LocalAccountVault {
         })
     }
 
+    pub fn list_lab_report_ids(&self) -> Result<Vec<String>, LocalAccountError> {
+        self.unlocked_ref()?
+            ._vault
+            .list_report_ids()
+            .map_err(|_| LocalAccountError::Operation)
+    }
+
     pub fn unlock_with_passphrase(
         &mut self,
         mut passphrase_text: String,
