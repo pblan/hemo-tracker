@@ -70,7 +70,7 @@ function App() {
       px={{ base: "6", md: "10" }}
       py="12"
     >
-      <Stack gap="8" maxW="3xl" mx="auto">
+      <Stack gap="8" maxW="6xl" mx="auto">
         <Stack gap="3">
           <Text
             color="teal.700"
@@ -396,6 +396,7 @@ function UnlockedVault({
   const [analyteName, setAnalyteName] = useState("");
   const [analyteComponent, setAnalyteComponent] = useState("");
   const [analyteProperty, setAnalyteProperty] = useState("");
+  const [analyteCanonicalUnit, setAnalyteCanonicalUnit] = useState("");
   const [analytes, setAnalytes] = useState<
     Awaited<ReturnType<typeof listAnalyteDefinitions>>
   >([]);
@@ -517,18 +518,6 @@ function UnlockedVault({
       const source = await selectAndAttachSourceFile(reportId, sourceRole);
       if (!source) throw new Error("source file not selected");
       setSourceFilename(source.originalFilename);
-      const analyteId =
-        selectedAnalyteId ||
-        (await addAnalyteDefinition({
-          name: analyteName || sourceLabel,
-          component: analyteComponent || analyteName || sourceLabel,
-          property: analyteProperty || "Result",
-          specimen: "Blood",
-          scale: "Quantitative",
-          aliases: [],
-          canonicalUnit: sourceUnit,
-          personalTargetRanges: [],
-        }));
       const parsedSourceValue = parseMeasurementInput(sourceValue, "de-DE");
       await addLabMeasurement(reportId, {
         sourceLabel,
@@ -540,7 +529,7 @@ function UnlockedVault({
           parsedSourceValue.kind === "number"
             ? parsedSourceValue.normalized
             : undefined,
-        analyteId,
+        analyteId: selectedAnalyteId || undefined,
       });
       if (extraMeasurement) {
         const parsedSecondValue = parseMeasurementInput(secondValue, "de-DE");
@@ -554,7 +543,7 @@ function UnlockedVault({
             parsedSecondValue.kind === "number"
               ? parsedSecondValue.normalized
               : undefined,
-          analyteId,
+          analyteId: selectedAnalyteId || undefined,
         });
       }
       await completeLabReport(reportId);
@@ -571,6 +560,38 @@ function UnlockedVault({
       onError("Hemo Tracker could not save the lab report.");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function saveAnalyte(event: FormEvent) {
+    event.preventDefault();
+    if (
+      !analyteName.trim() ||
+      !analyteComponent.trim() ||
+      !analyteProperty.trim()
+    ) {
+      onError("Enter an analyte name, component, and property.");
+      return;
+    }
+    try {
+      await addAnalyteDefinition({
+        name: analyteName.trim(),
+        component: analyteComponent.trim(),
+        property: analyteProperty.trim(),
+        specimen: "Blood",
+        scale: "Quantitative",
+        aliases: [],
+        canonicalUnit: analyteCanonicalUnit.trim() || undefined,
+        personalTargetRanges: [],
+      });
+      setAnalytes(await listAnalyteDefinitions());
+      setAnalyteName("");
+      setAnalyteComponent("");
+      setAnalyteProperty("");
+      setAnalyteCanonicalUnit("");
+      onNotice("Analyte definition saved.");
+    } catch {
+      onError("Hemo Tracker could not save the analyte definition.");
     }
   }
 
@@ -948,21 +969,36 @@ function UnlockedVault({
   };
 
   return (
-    <Stack gap="6">
+    <Box
+      display={{ base: "block", md: "grid" }}
+      gridTemplateColumns={{ md: "220px minmax(0, 1fr)" }}
+      gap="6"
+      alignItems="start"
+    >
       <Box
         as="nav"
         aria-label="Vault sections"
-        position="sticky"
-        top="2"
-        zIndex="docked"
+        position={{ base: "static", md: "sticky" }}
+        top="6"
         bg="bg.panel"
         borderWidth="1px"
         borderColor="border"
         borderRadius="xl"
-        p="2"
+        p="3"
         shadow="sm"
       >
-        <Stack direction={{ base: "column", sm: "row" }} gap="1">
+        <Stack gap="1">
+          <Text
+            fontSize="xs"
+            fontWeight="bold"
+            color="fg.muted"
+            textTransform="uppercase"
+            letterSpacing="wide"
+            px="3"
+            py="2"
+          >
+            Vault
+          </Text>
           {[
             ["overview", "Overview"],
             ["trends", "Trends"],
@@ -984,226 +1020,109 @@ function UnlockedVault({
           ))}
         </Stack>
       </Box>
-      <Box
-        id="analytes"
-        hidden={activePage !== "overview" && activePage !== "analytes"}
-        bg="bg.panel"
-        borderWidth="1px"
-        borderColor="border"
-        borderRadius="2xl"
-        p={{ base: "5", md: "6" }}
-      >
-        <Stack gap="4">
-          <Stack gap="1">
-            <Heading as="h2" size="lg">
-              Analyte settings
-            </Heading>
-            <Text color="fg.muted" fontSize="sm">
-              Review the saved definitions, canonical units, and personal ranges
-              used by trends.
-            </Text>
-          </Stack>
-          {analytes.length ? (
-            <Stack as="ul" gap="2" pl="5">
-              {analytes.map((analyte) => (
-                <Box as="li" key={analyte.id}>
-                  <Text fontWeight="semibold">{analyte.name}</Text>
-                  <Text color="fg.muted" fontSize="sm">
-                    {analyte.component} · {analyte.property} ·{" "}
-                    {analyte.canonicalUnit || "source units"}
-                  </Text>
-                </Box>
-              ))}
+      <Stack gap="6" minW="0">
+        <Box
+          id="analytes"
+          hidden={activePage !== "overview" && activePage !== "analytes"}
+          bg="bg.panel"
+          borderWidth="1px"
+          borderColor="border"
+          borderRadius="2xl"
+          p={{ base: "5", md: "6" }}
+        >
+          <Stack gap="4">
+            <Stack gap="1">
+              <Heading as="h2" size="lg">
+                Analyte settings
+              </Heading>
+              <Text color="fg.muted" fontSize="sm">
+                Review the saved definitions, canonical units, and personal
+                ranges used by trends.
+              </Text>
             </Stack>
-          ) : (
-            <Text color="fg.muted">No analyte definitions saved yet.</Text>
-          )}
-          <Button
-            alignSelf="start"
-            variant="outline"
-            onClick={() => setActivePage("record")}
-          >
-            Add an analyte while recording a report
-          </Button>
-        </Stack>
-      </Box>
-      <Box
-        id="trend"
-        hidden={activePage !== "overview" && activePage !== "trends"}
-        bg="bg.panel"
-        borderWidth="1px"
-        borderColor="border"
-        borderRadius="2xl"
-        p={{ base: "5", md: "6" }}
-      >
-        <Stack gap="3">
-          <Heading as="h2" size="lg">
-            Analyte trend
-          </Heading>
-          <select
-            aria-label="Trend analyte"
-            value={trendAnalyteId}
-            onChange={(event) => setTrendAnalyteId(event.target.value)}
-          >
-            <option value="">Select an analyte</option>
-            {analytes.map((analyte) => (
-              <option key={analyte.id} value={analyte.id}>
-                {analyte.name}
-              </option>
-            ))}
-          </select>
-          <Stack gap="2" aria-label="Pinned analytes">
-            <Text fontWeight="semibold" fontSize="sm">
-              Pin analytes for this overview (up to 6)
-            </Text>
-            <Stack
-              direction={{ base: "column", sm: "row" }}
-              wrap="wrap"
-              gap="2"
+            {analytes.length ? (
+              <Stack as="ul" gap="2" pl="5">
+                {analytes.map((analyte) => (
+                  <Box as="li" key={analyte.id}>
+                    <Text fontWeight="semibold">{analyte.name}</Text>
+                    <Text color="fg.muted" fontSize="sm">
+                      {analyte.component} · {analyte.property} ·{" "}
+                      {analyte.canonicalUnit || "source units"}
+                    </Text>
+                  </Box>
+                ))}
+              </Stack>
+            ) : (
+              <Text color="fg.muted">No analyte definitions saved yet.</Text>
+            )}
+            <Box
+              as="form"
+              onSubmit={saveAnalyte}
+              borderTopWidth="1px"
+              borderColor="border"
+              pt="4"
             >
-              {analytes.map((analyte) => (
-                <label key={analyte.id}>
-                  <input
-                    type="checkbox"
-                    checked={pinnedAnalyteIds.includes(analyte.id)}
-                    onChange={() => togglePinnedAnalyte(analyte.id)}
-                    disabled={
-                      !pinnedAnalyteIds.includes(analyte.id) &&
-                      pinnedAnalyteIds.length >= 6
-                    }
-                  />{" "}
-                  {analyte.name}
-                </label>
-              ))}
-            </Stack>
+              <Stack gap="3">
+                <Heading as="h3" size="sm">
+                  Add analyte definition
+                </Heading>
+                <Text color="fg.muted" fontSize="sm">
+                  Define an analyte before recording results. This keeps report
+                  capture focused on source facts.
+                </Text>
+                <Input
+                  aria-label="Analyte name"
+                  placeholder="Name, for example Hemoglobin"
+                  value={analyteName}
+                  onChange={(event) => setAnalyteName(event.target.value)}
+                  required
+                />
+                <Input
+                  aria-label="Analyte component"
+                  placeholder="Component"
+                  value={analyteComponent}
+                  onChange={(event) => setAnalyteComponent(event.target.value)}
+                  required
+                />
+                <Input
+                  aria-label="Analyte property"
+                  placeholder="Property, for example concentration"
+                  value={analyteProperty}
+                  onChange={(event) => setAnalyteProperty(event.target.value)}
+                  required
+                />
+                <Input
+                  aria-label="Canonical unit"
+                  placeholder="Canonical unit, for example g/L (optional)"
+                  value={analyteCanonicalUnit}
+                  onChange={(event) =>
+                    setAnalyteCanonicalUnit(event.target.value)
+                  }
+                />
+                <Button type="submit" alignSelf="start" colorPalette="teal">
+                  Save analyte definition
+                </Button>
+              </Stack>
+            </Box>
           </Stack>
-          <select
-            aria-label="Compare analyte"
-            value={compareAnalyteId}
-            onChange={(event) => setCompareAnalyteId(event.target.value)}
-          >
-            <option value="">Compare with another analyte (optional)</option>
-            {analytes
-              .filter((analyte) => analyte.id !== trendAnalyteId)
-              .map((analyte) => (
-                <option key={analyte.id} value={analyte.id}>
-                  {analyte.name}
-                </option>
-              ))}
-          </select>
-          {trendAnalyteId || pinnedAnalyteIds.length ? (
-            <Stack gap="4">
-              {trendAnalyteId ? (
-                <Stack gap="2">
-                  <TrendPlot
-                    title="Local analyte trend"
-                    points={trend.points}
-                    onOpenReport={openReportFromTrend}
-                    timeRange={sharedTimeRange}
-                    onTimeRangeChange={handleTimeRangeChange}
-                  />
-                  {trend.excluded ? (
-                    <Text color="orange.700" fontSize="sm" role="status">
-                      {trend.excluded} result could not be normalized and is not
-                      connected to this series.
-                    </Text>
-                  ) : null}
-                </Stack>
-              ) : null}
-              {trendAnalyteId && compareAnalyteId ? (
-                <Stack gap="2">
-                  <TrendPlot
-                    title="Compared analyte trend"
-                    points={comparison.points}
-                    onOpenReport={openReportFromTrend}
-                    timeRange={sharedTimeRange}
-                    onTimeRangeChange={handleTimeRangeChange}
-                  />
-                  {comparison.excluded ? (
-                    <Text color="orange.700" fontSize="sm" role="status">
-                      {comparison.excluded} comparison result could not be
-                      normalized and is not connected to this series.
-                    </Text>
-                  ) : null}
-                </Stack>
-              ) : null}
-              {pinnedAnalyteIds.length ? (
-                <Stack gap="4" aria-label="Pinned analyte overview">
-                  <Heading as="h3" size="md">
-                    Pinned analytes
-                  </Heading>
-                  {pinnedAnalyteIds.map((analyteId) => {
-                    const pinned = analytes.find(
-                      (item) => item.id === analyteId,
-                    );
-                    const pinnedTrend = buildTrend(analyteId);
-                    return pinned ? (
-                      <Stack key={analyteId} gap="2">
-                        {pinnedTrend.points.length ? (
-                          <Text fontSize="sm" color="fg.muted">
-                            Latest:{" "}
-                            {pinnedTrend.points.at(-1)?.sourceValue ||
-                              "Not recorded"}{" "}
-                            {pinnedTrend.points.at(-1)?.sourceUnit || ""} ·{" "}
-                            {pinnedTrend.points.at(-1)?.date}
-                            {pinnedTrend.points.at(-1)?.flag
-                              ? ` · ${pinnedTrend.points.at(-1)?.flag}`
-                              : ""}
-                          </Text>
-                        ) : null}
-                        <TrendPlot
-                          title={pinned.name}
-                          points={pinnedTrend.points}
-                          onOpenReport={openReportFromTrend}
-                          timeRange={sharedTimeRange}
-                          onTimeRangeChange={handleTimeRangeChange}
-                        />
-                        {pinnedTrend.excluded ? (
-                          <Text color="orange.700" fontSize="sm" role="status">
-                            {pinnedTrend.excluded} result could not be
-                            normalized for this pinned series.
-                          </Text>
-                        ) : null}
-                      </Stack>
-                    ) : null;
-                  })}
-                </Stack>
-              ) : null}
-            </Stack>
-          ) : (
-            <Text color="fg.muted" fontSize="sm">
-              Select an analyte to view recorded numeric values.
-            </Text>
-          )}
-        </Stack>
-      </Box>
-      <Box
-        id="ranges"
-        hidden={activePage !== "overview" && activePage !== "trends"}
-        as="form"
-        bg="bg.panel"
-        borderWidth="1px"
-        borderColor="border"
-        borderRadius="2xl"
-        p={{ base: "5", md: "6" }}
-        onSubmit={savePersonalTargetRange}
-      >
-        <Stack gap="4">
-          <Stack gap="1">
+        </Box>
+        <Box
+          id="trend"
+          hidden={activePage !== "overview" && activePage !== "trends"}
+          bg="bg.panel"
+          borderWidth="1px"
+          borderColor="border"
+          borderRadius="2xl"
+          p={{ base: "5", md: "6" }}
+        >
+          <Stack gap="3">
             <Heading as="h2" size="lg">
-              Personal target ranges
+              Analyte trend
             </Heading>
-            <Text color="fg.muted" fontSize="sm">
-              These ranges are informational. They do not replace the source
-              laboratory interval or medical advice.
-            </Text>
-          </Stack>
-          <Field.Root required>
-            <Field.Label>Analyte</Field.Label>
             <select
-              aria-label="Target range analyte"
-              value={rangeAnalyteId}
-              onChange={(event) => setRangeAnalyteId(event.target.value)}
+              aria-label="Trend analyte"
+              value={trendAnalyteId}
+              onChange={(event) => setTrendAnalyteId(event.target.value)}
             >
               <option value="">Select an analyte</option>
               {analytes.map((analyte) => (
@@ -1212,850 +1131,1011 @@ function UnlockedVault({
                 </option>
               ))}
             </select>
-          </Field.Root>
-          <Stack direction={{ base: "column", sm: "row" }} gap="3">
-            <Field.Root>
-              <Field.Label>Lower limit</Field.Label>
-              <Input
-                inputMode="decimal"
-                value={rangeLower}
-                onChange={(event) => setRangeLower(event.target.value)}
-              />
-            </Field.Root>
-            <Field.Root>
-              <Field.Label>Upper limit</Field.Label>
-              <Input
-                inputMode="decimal"
-                value={rangeUpper}
-                onChange={(event) => setRangeUpper(event.target.value)}
-              />
-            </Field.Root>
-            <Field.Root required>
-              <Field.Label>Unit</Field.Label>
-              <Input
-                value={rangeUnit}
-                onChange={(event) => setRangeUnit(event.target.value)}
-              />
-            </Field.Root>
-          </Stack>
-          <Stack direction={{ base: "column", sm: "row" }} gap="3">
-            <Field.Root>
-              <Field.Label>Valid from</Field.Label>
-              <Input
-                type="date"
-                value={rangeValidFrom}
-                onChange={(event) => setRangeValidFrom(event.target.value)}
-              />
-            </Field.Root>
-            <Field.Root>
-              <Field.Label>Valid to</Field.Label>
-              <Input
-                type="date"
-                value={rangeValidTo}
-                onChange={(event) => setRangeValidTo(event.target.value)}
-              />
-            </Field.Root>
-          </Stack>
-          <Stack direction={{ base: "column", sm: "row" }} gap="3">
-            <Field.Root>
-              <Field.Label>Applicability note</Field.Label>
-              <Input
-                placeholder="For example, fasting"
-                value={rangeContext}
-                onChange={(event) => setRangeContext(event.target.value)}
-              />
-            </Field.Root>
-            <Field.Root>
-              <Field.Label>Personal note</Field.Label>
-              <Input
-                value={rangeNotes}
-                onChange={(event) => setRangeNotes(event.target.value)}
-              />
-            </Field.Root>
-          </Stack>
-          <Button
-            type="submit"
-            alignSelf="start"
-            bg="teal.700"
-            color="white"
-            _hover={{ bg: "teal.800" }}
-          >
-            Add personal target range
-          </Button>
-          {rangeMessage ? <Text>{rangeMessage}</Text> : null}
-          {rangeAnalyteId ? (
-            <Stack gap="2" aria-label="Saved personal target ranges">
-              {analytes
-                .find((analyte) => analyte.id === rangeAnalyteId)
-                ?.personalTargetRanges.map((range) => (
-                  <Text key={range.id} fontSize="sm">
-                    {range.lowerBound || "No lower limit"} to{" "}
-                    {range.upperBound || "no upper limit"} {range.unit}
-                    {range.validFrom ? ` from ${range.validFrom}` : ""}
-                    {range.validTo ? ` to ${range.validTo}` : ""}
-                    {range.context ? ` · ${range.context}` : ""}
-                    {range.notes ? ` · ${range.notes}` : ""}
-                  </Text>
-                ))}
-            </Stack>
-          ) : null}
-        </Stack>
-      </Box>
-      <Box
-        id="reports"
-        hidden={activePage !== "overview" && activePage !== "reports"}
-        bg="bg.panel"
-        borderWidth="1px"
-        borderColor="border"
-        borderRadius="2xl"
-        p={{ base: "5", md: "6" }}
-        shadow="sm"
-      >
-        <Stack gap="4">
-          <Stack
-            direction={{ base: "column", sm: "row" }}
-            justify="space-between"
-            align={{ base: "stretch", sm: "center" }}
-          >
-            <Stack gap="0">
-              <Heading as="h2" size="lg">
-                Report history
-              </Heading>
-              <Text color="fg.muted" fontSize="sm">
-                Stored only in this encrypted vault.
+            <Stack gap="2" aria-label="Pinned analytes">
+              <Text fontWeight="semibold" fontSize="sm">
+                Pin analytes for this overview (up to 6)
               </Text>
-            </Stack>
-            <Input
-              aria-label="Search reports"
-              placeholder="Search laboratory"
-              maxW="sm"
-              value={reportSearch}
-              onChange={(event) => setReportSearch(event.target.value)}
-            />
-          </Stack>
-          {demoReportCount ? (
-            <Box
-              role="note"
-              borderWidth="1px"
-              borderColor="orange.300"
-              bg="orange.50"
-              color="orange.900"
-              borderRadius="lg"
-              px="4"
-              py="3"
-            >
-              Fictional demo data is included so you can explore Hemo Tracker.
-              It is not your health data. Archive or permanently delete these
-              demo reports before you rely on the report history for personal
-              records.
-            </Box>
-          ) : null}
-          {reports
-            .filter(
-              (report) =>
-                !reportSearch ||
-                report.laboratory
-                  ?.toLowerCase()
-                  .includes(reportSearch.toLowerCase()),
-            )
-            .slice(0, 5)
-            .map((report) => (
-              <Box
-                key={report.id}
-                id={`report-${report.id}`}
-                borderWidth="1px"
-                borderColor="border"
-                borderRadius="lg"
-                px="4"
-                py="3"
-                cursor="pointer"
-                onClick={() =>
-                  setExpandedReportId((current) =>
-                    current === report.id ? null : report.id,
-                  )
-                }
+              <Stack
+                direction={{ base: "column", sm: "row" }}
+                wrap="wrap"
+                gap="2"
               >
-                <Stack direction="row" justify="space-between" align="center">
-                  <Stack gap="0">
-                    <Text fontWeight="semibold">
-                      {report.laboratory || "Laboratory report"}
-                    </Text>
-                    <Text color="fg.muted" fontSize="sm">
-                      {report.collectionTime} · {report.measurementCount}{" "}
-                      measurements · {report.sourceFileCount} source files
-                    </Text>
-                  </Stack>
-                  <Text fontSize="sm" textTransform="capitalize">
-                    {report.status}
-                  </Text>
-                </Stack>
-                {expandedReportId === report.id ? (
-                  <Stack
-                    gap="2"
-                    mt="3"
-                    pt="3"
-                    borderTopWidth="1px"
-                    borderColor="border"
-                  >
-                    <Stack direction={{ base: "column", sm: "row" }} gap="2">
-                      <select
-                        aria-label={`Source file role for ${report.laboratory || "report"}`}
-                        value={sourceRole}
-                        onChange={(event) => setSourceRole(event.target.value)}
-                      >
-                        <option value="supplement">Supplement</option>
-                        <option value="correction">Correction</option>
-                        <option value="primary">Primary</option>
-                      </select>
-                      <Button
-                        size="xs"
-                        variant="outline"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          void selectAndAttachSourceFile(
-                            report.id,
-                            sourceRole,
-                          ).then((source) => {
-                            if (source) setDataVersion((value) => value + 1);
-                          });
-                        }}
-                      >
-                        Attach source file
-                      </Button>
-                      <Button
-                        size="xs"
-                        variant="outline"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          setAddingMeasurementReportId(report.id);
-                        }}
-                      >
-                        Add measurement
-                      </Button>
-                      {report.status === "complete" ? (
-                        <Button
-                          size="xs"
-                          variant="ghost"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            void archiveReport(report.id);
-                          }}
-                        >
-                          Archive report
-                        </Button>
-                      ) : null}
-                      {report.status === "archived" ? (
-                        <Button
-                          size="xs"
-                          variant="ghost"
-                          colorPalette="red"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            void permanentlyDeleteReport(report.id);
-                          }}
-                        >
-                          Permanently delete
-                        </Button>
-                      ) : null}
-                    </Stack>
-                    {addingMeasurementReportId === report.id ? (
-                      <Stack direction={{ base: "column", sm: "row" }} gap="2">
-                        <Input
-                          aria-label="Additional measurement label"
-                          placeholder="Analyte label"
-                          value={additionalLabel}
-                          onChange={(event) =>
-                            setAdditionalLabel(event.target.value)
-                          }
-                        />
-                        <Input
-                          aria-label="Additional measurement value"
-                          placeholder="Value"
-                          value={additionalValue}
-                          onChange={(event) =>
-                            setAdditionalValue(event.target.value)
-                          }
-                        />
-                        <Input
-                          aria-label="Additional measurement unit"
-                          placeholder="Unit"
-                          value={additionalUnit}
-                          onChange={(event) =>
-                            setAdditionalUnit(event.target.value)
-                          }
-                        />
-                        <Button
-                          size="xs"
-                          onClick={() =>
-                            void saveAdditionalMeasurement(report.id)
-                          }
-                        >
-                          Save
-                        </Button>
-                      </Stack>
-                    ) : null}
-                    {report.sourceFiles.map((source) => (
-                      <Button
-                        key={source.id}
-                        size="xs"
-                        variant="outline"
-                        alignSelf="start"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          void previewSource(report.id, source.id);
-                        }}
-                      >
-                        Preview {source.filename}
-                      </Button>
-                    ))}
-                    {report.measurements.map((measurement) => (
-                      <Stack key={measurement.id} gap="1">
-                        {editingMeasurement === measurement.id ? (
-                          <Stack direction="row" gap="2">
-                            <Input
-                              aria-label={`Correct ${measurement.sourceLabel}`}
-                              value={correctionValue}
-                              onChange={(event) =>
-                                setCorrectionValue(event.target.value)
-                              }
-                            />
-                            <select
-                              aria-label={`Correct analyte for ${measurement.sourceLabel}`}
-                              value={correctionAnalyteId}
-                              onChange={(event) =>
-                                setCorrectionAnalyteId(event.target.value)
-                              }
-                            >
-                              <option value="">Keep current analyte</option>
-                              {analytes.map((analyte) => (
-                                <option key={analyte.id} value={analyte.id}>
-                                  {analyte.name}
-                                </option>
-                              ))}
-                            </select>
-                            <Button
-                              size="sm"
-                              onClick={() => void saveCorrection(measurement)}
-                            >
-                              Save
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => setEditingMeasurement(null)}
-                            >
-                              Cancel
-                            </Button>
-                          </Stack>
-                        ) : (
-                          <Stack
-                            direction="row"
-                            justify="space-between"
-                            align="center"
-                          >
-                            <Text fontSize="sm">
-                              {measurement.sourceLabel}:{" "}
-                              {measurement.sourceValue} {measurement.sourceUnit}
-                              {measurement.sourceFlag
-                                ? ` (${measurement.sourceFlag})`
-                                : ""}
-                            </Text>
-                            {measurement.updatedAt ? (
-                              <Text fontSize="xs" color="fg.muted">
-                                Corrected {measurement.updatedAt} by{" "}
-                                {measurement.updatedBy}
-                              </Text>
-                            ) : null}
-                            <Button
-                              size="xs"
-                              variant="ghost"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                setEditingMeasurement(measurement.id);
-                                setCorrectionValue(measurement.sourceValue);
-                                setCorrectionAnalyteId(
-                                  measurement.analyteId || "",
-                                );
-                              }}
-                            >
-                              Correct
-                            </Button>
-                          </Stack>
-                        )}
-                      </Stack>
-                    ))}
-                    {!report.measurements.length ? (
-                      <Text fontSize="sm" color="fg.muted">
-                        No measurements recorded.
+                {analytes.map((analyte) => (
+                  <label key={analyte.id}>
+                    <input
+                      type="checkbox"
+                      checked={pinnedAnalyteIds.includes(analyte.id)}
+                      onChange={() => togglePinnedAnalyte(analyte.id)}
+                      disabled={
+                        !pinnedAnalyteIds.includes(analyte.id) &&
+                        pinnedAnalyteIds.length >= 6
+                      }
+                    />{" "}
+                    {analyte.name}
+                  </label>
+                ))}
+              </Stack>
+            </Stack>
+            <select
+              aria-label="Compare analyte"
+              value={compareAnalyteId}
+              onChange={(event) => setCompareAnalyteId(event.target.value)}
+            >
+              <option value="">Compare with another analyte (optional)</option>
+              {analytes
+                .filter((analyte) => analyte.id !== trendAnalyteId)
+                .map((analyte) => (
+                  <option key={analyte.id} value={analyte.id}>
+                    {analyte.name}
+                  </option>
+                ))}
+            </select>
+            {trendAnalyteId || pinnedAnalyteIds.length ? (
+              <Stack gap="4">
+                {trendAnalyteId ? (
+                  <Stack gap="2">
+                    <TrendPlot
+                      title="Local analyte trend"
+                      points={trend.points}
+                      onOpenReport={openReportFromTrend}
+                      timeRange={sharedTimeRange}
+                      onTimeRangeChange={handleTimeRangeChange}
+                    />
+                    {trend.excluded ? (
+                      <Text color="orange.700" fontSize="sm" role="status">
+                        {trend.excluded} result could not be normalized and is
+                        not connected to this series.
                       </Text>
                     ) : null}
                   </Stack>
                 ) : null}
-              </Box>
-            ))}
-          {!reports.length ? (
-            <Text color="fg.muted" fontSize="sm">
-              No reports recorded yet.
-            </Text>
-          ) : null}
-          {sourcePreview ? (
-            <Box borderWidth="1px" borderRadius="lg" p="3">
-              <Text fontWeight="semibold" mb="2">
-                Source preview: {sourcePreview.filename}
+                {trendAnalyteId && compareAnalyteId ? (
+                  <Stack gap="2">
+                    <TrendPlot
+                      title="Compared analyte trend"
+                      points={comparison.points}
+                      onOpenReport={openReportFromTrend}
+                      timeRange={sharedTimeRange}
+                      onTimeRangeChange={handleTimeRangeChange}
+                    />
+                    {comparison.excluded ? (
+                      <Text color="orange.700" fontSize="sm" role="status">
+                        {comparison.excluded} comparison result could not be
+                        normalized and is not connected to this series.
+                      </Text>
+                    ) : null}
+                  </Stack>
+                ) : null}
+                {pinnedAnalyteIds.length ? (
+                  <Stack gap="4" aria-label="Pinned analyte overview">
+                    <Heading as="h3" size="md">
+                      Pinned analytes
+                    </Heading>
+                    {pinnedAnalyteIds.map((analyteId) => {
+                      const pinned = analytes.find(
+                        (item) => item.id === analyteId,
+                      );
+                      const pinnedTrend = buildTrend(analyteId);
+                      return pinned ? (
+                        <Stack key={analyteId} gap="2">
+                          {pinnedTrend.points.length ? (
+                            <Text fontSize="sm" color="fg.muted">
+                              Latest:{" "}
+                              {pinnedTrend.points.at(-1)?.sourceValue ||
+                                "Not recorded"}{" "}
+                              {pinnedTrend.points.at(-1)?.sourceUnit || ""} ·{" "}
+                              {pinnedTrend.points.at(-1)?.date}
+                              {pinnedTrend.points.at(-1)?.flag
+                                ? ` · ${pinnedTrend.points.at(-1)?.flag}`
+                                : ""}
+                            </Text>
+                          ) : null}
+                          <TrendPlot
+                            title={pinned.name}
+                            points={pinnedTrend.points}
+                            onOpenReport={openReportFromTrend}
+                            timeRange={sharedTimeRange}
+                            onTimeRangeChange={handleTimeRangeChange}
+                          />
+                          {pinnedTrend.excluded ? (
+                            <Text
+                              color="orange.700"
+                              fontSize="sm"
+                              role="status"
+                            >
+                              {pinnedTrend.excluded} result could not be
+                              normalized for this pinned series.
+                            </Text>
+                          ) : null}
+                        </Stack>
+                      ) : null;
+                    })}
+                  </Stack>
+                ) : null}
+              </Stack>
+            ) : (
+              <Text color="fg.muted" fontSize="sm">
+                Select an analyte to view recorded numeric values.
               </Text>
-              {sourcePreview.mediaType === "application/pdf" ? (
-                <iframe
-                  title={`Preview of ${sourcePreview.filename}`}
-                  src={sourcePreview.url}
-                  width="100%"
-                  height="480"
-                />
-              ) : sourcePreview.mediaType.startsWith("image/") ? (
-                <img
-                  src={sourcePreview.url}
-                  alt={`Preview of ${sourcePreview.filename}`}
-                  style={{ maxWidth: "100%", maxHeight: 480 }}
-                />
-              ) : (
-                <Text color="fg.muted" fontSize="sm">
-                  This file is encrypted and stored safely, but this webview
-                  cannot render its format. Use the original file in the
-                  report&apos;s source list.
-                </Text>
-              )}
-            </Box>
-          ) : null}
-        </Stack>
-      </Box>
-      <Box
-        id="tools"
-        hidden={activePage !== "overview" && activePage !== "reports"}
-        borderWidth="1px"
-        borderColor="border"
-        borderRadius="xl"
-        p="4"
-      >
-        <Stack gap="3">
-          <Heading as="h2" size="lg">
-            Relink existing results
-          </Heading>
-          <Text color="fg.muted" fontSize="sm">
-            Review exact-label matches before linking older results to a saved
-            analyte. Unsafe units stay blocked.
-          </Text>
-          <select
-            aria-label="Relink target analyte"
-            value={relinkAnalyteId}
-            onChange={(event) => setRelinkAnalyteId(event.target.value)}
-          >
-            <option value="">Select a target analyte</option>
-            {analytes.map((analyte) => (
-              <option key={analyte.id} value={analyte.id}>
-                {analyte.name}
-              </option>
-            ))}
-          </select>
-          {relinkTarget ? (
-            <Stack gap="2" aria-label="Relink preview">
-              <Text fontSize="sm">
-                {
-                  relinkCandidates.filter(
-                    (candidate) => candidate.status === "safe",
-                  ).length
-                }{" "}
-                safe and{" "}
-                {
-                  relinkCandidates.filter(
-                    (candidate) => candidate.status === "blocked",
-                  ).length
-                }{" "}
-                blocked matches.
+            )}
+          </Stack>
+        </Box>
+        <Box
+          id="ranges"
+          hidden={activePage !== "overview" && activePage !== "trends"}
+          as="form"
+          bg="bg.panel"
+          borderWidth="1px"
+          borderColor="border"
+          borderRadius="2xl"
+          p={{ base: "5", md: "6" }}
+          onSubmit={savePersonalTargetRange}
+        >
+          <Stack gap="4">
+            <Stack gap="1">
+              <Heading as="h2" size="lg">
+                Personal target ranges
+              </Heading>
+              <Text color="fg.muted" fontSize="sm">
+                These ranges are informational. They do not replace the source
+                laboratory interval or medical advice.
               </Text>
-              {relinkCandidates.map((candidate) => (
-                <Text
-                  key={`${candidate.reportId}-${candidate.measurement.id}`}
-                  fontSize="sm"
-                >
-                  {candidate.measurement.sourceLabel} ·{" "}
-                  {candidate.measurement.sourceValue}{" "}
-                  {candidate.measurement.sourceUnit} ·{" "}
-                  {candidate.status === "safe"
-                    ? "Safe"
-                    : `Blocked (${candidate.reason})`}
-                </Text>
-              ))}
-              <Button
-                alignSelf="start"
-                variant="outline"
-                disabled={
-                  !relinkCandidates.some(
-                    (candidate) => candidate.status === "safe",
-                  )
-                }
-                onClick={() => void applySafeRelinking()}
-              >
-                Apply safe relinking
-              </Button>
             </Stack>
-          ) : null}
-        </Stack>
-      </Box>
-      <Box
-        id="record"
-        hidden={activePage !== "overview" && activePage !== "record"}
-        bgGradient="to-r"
-        gradientFrom="teal.700"
-        gradientTo="cyan.600"
-        color="white"
-        borderRadius="2xl"
-        px={{ base: "6", md: "8" }}
-        py={{ base: "6", md: "8" }}
-        shadow="lg"
-      >
-        <Stack gap="2">
-          <Text
-            fontSize="sm"
-            opacity="0.85"
-            fontWeight="semibold"
-            textTransform="uppercase"
-            letterSpacing="wide"
-          >
-            Your private health record
-          </Text>
-          <Heading size="xl">Record a lab report</Heading>
-          <Text opacity="0.9">
-            Keep the original document and record values exactly as printed.
-          </Text>
-        </Stack>
-      </Box>
-      <Box
-        as="form"
-        bg="bg.panel"
-        borderWidth="1px"
-        borderColor="border"
-        borderRadius="2xl"
-        p={{ base: "5", md: "8" }}
-        shadow="sm"
-        onSubmit={saveReport}
-      >
-        <Stack gap="5">
-          <SectionHeading
-            number="1"
-            title="Report details"
-            description="When and where was the sample collected?"
-          />
-          <Stack gap="3" bg="bg.subtle" borderRadius="lg" p="4">
-            <Text fontWeight="semibold" fontSize="sm">
-              Analyte identity (optional)
-            </Text>
-            <Text color="fg.muted" fontSize="sm">
-              Use a definition to group this result with later reports.
-            </Text>
-            <Field.Root>
-              <Field.Label>Use a saved analyte</Field.Label>
+            <Field.Root required>
+              <Field.Label>Analyte</Field.Label>
               <select
-                aria-label="Use a saved analyte"
-                value={selectedAnalyteId}
-                onChange={(event) => setSelectedAnalyteId(event.target.value)}
+                aria-label="Target range analyte"
+                value={rangeAnalyteId}
+                onChange={(event) => setRangeAnalyteId(event.target.value)}
               >
-                <option value="">Create a new definition</option>
+                <option value="">Select an analyte</option>
                 {analytes.map((analyte) => (
                   <option key={analyte.id} value={analyte.id}>
-                    {analyte.name} — {analyte.component} ({analyte.property})
+                    {analyte.name}
                   </option>
                 ))}
               </select>
             </Field.Root>
-            <Input
-              placeholder="Analyte name, for example Hemoglobin"
-              value={analyteName}
-              onChange={(event) => setAnalyteName(event.target.value)}
-            />
-            <Input
-              placeholder="Component"
-              value={analyteComponent}
-              onChange={(event) => setAnalyteComponent(event.target.value)}
-            />
-            <Input
-              placeholder="Property, for example concentration"
-              value={analyteProperty}
-              onChange={(event) => setAnalyteProperty(event.target.value)}
-            />
-          </Stack>
-          <Field.Root required>
-            <Field.Label>Collection date and time</Field.Label>
-            <Input
-              type="datetime-local"
-              value={collectionTime}
-              onChange={(event) => setCollectionTime(event.target.value)}
-            />
-          </Field.Root>
-          {!extraMeasurement ? (
+            <Stack direction={{ base: "column", sm: "row" }} gap="3">
+              <Field.Root>
+                <Field.Label>Lower limit</Field.Label>
+                <Input
+                  inputMode="decimal"
+                  value={rangeLower}
+                  onChange={(event) => setRangeLower(event.target.value)}
+                />
+              </Field.Root>
+              <Field.Root>
+                <Field.Label>Upper limit</Field.Label>
+                <Input
+                  inputMode="decimal"
+                  value={rangeUpper}
+                  onChange={(event) => setRangeUpper(event.target.value)}
+                />
+              </Field.Root>
+              <Field.Root required>
+                <Field.Label>Unit</Field.Label>
+                <Input
+                  value={rangeUnit}
+                  onChange={(event) => setRangeUnit(event.target.value)}
+                />
+              </Field.Root>
+            </Stack>
+            <Stack direction={{ base: "column", sm: "row" }} gap="3">
+              <Field.Root>
+                <Field.Label>Valid from</Field.Label>
+                <Input
+                  type="date"
+                  value={rangeValidFrom}
+                  onChange={(event) => setRangeValidFrom(event.target.value)}
+                />
+              </Field.Root>
+              <Field.Root>
+                <Field.Label>Valid to</Field.Label>
+                <Input
+                  type="date"
+                  value={rangeValidTo}
+                  onChange={(event) => setRangeValidTo(event.target.value)}
+                />
+              </Field.Root>
+            </Stack>
+            <Stack direction={{ base: "column", sm: "row" }} gap="3">
+              <Field.Root>
+                <Field.Label>Applicability note</Field.Label>
+                <Input
+                  placeholder="For example, fasting"
+                  value={rangeContext}
+                  onChange={(event) => setRangeContext(event.target.value)}
+                />
+              </Field.Root>
+              <Field.Root>
+                <Field.Label>Personal note</Field.Label>
+                <Input
+                  value={rangeNotes}
+                  onChange={(event) => setRangeNotes(event.target.value)}
+                />
+              </Field.Root>
+            </Stack>
             <Button
-              type="button"
-              variant="outline"
+              type="submit"
               alignSelf="start"
-              onClick={() => setExtraMeasurement(true)}
+              bg="teal.700"
+              color="white"
+              _hover={{ bg: "teal.800" }}
             >
-              + Add another result
+              Add personal target range
             </Button>
-          ) : (
-            <Stack gap="4" borderTopWidth="1px" borderColor="border" pt="5">
-              <Heading as="h4" size="sm">
-                Second result
-              </Heading>
+            {rangeMessage ? <Text>{rangeMessage}</Text> : null}
+            {rangeAnalyteId ? (
+              <Stack gap="2" aria-label="Saved personal target ranges">
+                {analytes
+                  .find((analyte) => analyte.id === rangeAnalyteId)
+                  ?.personalTargetRanges.map((range) => (
+                    <Text key={range.id} fontSize="sm">
+                      {range.lowerBound || "No lower limit"} to{" "}
+                      {range.upperBound || "no upper limit"} {range.unit}
+                      {range.validFrom ? ` from ${range.validFrom}` : ""}
+                      {range.validTo ? ` to ${range.validTo}` : ""}
+                      {range.context ? ` · ${range.context}` : ""}
+                      {range.notes ? ` · ${range.notes}` : ""}
+                    </Text>
+                  ))}
+              </Stack>
+            ) : null}
+          </Stack>
+        </Box>
+        <Box
+          id="reports"
+          hidden={activePage !== "overview" && activePage !== "reports"}
+          bg="bg.panel"
+          borderWidth="1px"
+          borderColor="border"
+          borderRadius="2xl"
+          p={{ base: "5", md: "6" }}
+          shadow="sm"
+        >
+          <Stack gap="4">
+            <Stack
+              direction={{ base: "column", sm: "row" }}
+              justify="space-between"
+              align={{ base: "stretch", sm: "center" }}
+            >
+              <Stack gap="0">
+                <Heading as="h2" size="lg">
+                  Report history
+                </Heading>
+                <Text color="fg.muted" fontSize="sm">
+                  Stored only in this encrypted vault.
+                </Text>
+              </Stack>
               <Input
-                placeholder="Source label"
-                value={secondLabel}
-                onChange={(event) => setSecondLabel(event.target.value)}
-                required
-              />
-              <Input
-                placeholder="Source value"
-                value={secondValue}
-                onChange={(event) => setSecondValue(event.target.value)}
-                required
-              />
-              <Input
-                placeholder="Unit"
-                value={secondUnit}
-                onChange={(event) => setSecondUnit(event.target.value)}
-                required
-              />
-              <Input
-                placeholder="Reference interval"
-                value={secondInterval}
-                onChange={(event) => setSecondInterval(event.target.value)}
-                required
-              />
-              <Input
-                placeholder="Flag"
-                value={secondFlag}
-                onChange={(event) => setSecondFlag(event.target.value)}
-                required
+                aria-label="Search reports"
+                placeholder="Search laboratory"
+                maxW="sm"
+                value={reportSearch}
+                onChange={(event) => setReportSearch(event.target.value)}
               />
             </Stack>
-          )}
-          <Field.Root>
-            <Field.Label>Laboratory</Field.Label>
-            <Input
-              value={laboratory}
-              onChange={(event) => setLaboratory(event.target.value)}
-            />
-          </Field.Root>
-          <SectionHeading
-            number="2"
-            title="First measurement"
-            description="Enter the result as shown on the source document."
-          />
-          <Field.Root required>
-            <Field.Label>Source label</Field.Label>
-            <Input
-              value={sourceLabel}
-              onChange={(event) => setSourceLabel(event.target.value)}
-            />
-          </Field.Root>
-          <Field.Root required>
-            <Field.Label>Source value</Field.Label>
-            <Input
-              value={sourceValue}
-              onChange={(event) => {
-                const next = event.target.value;
-                setSourceValue(next);
-                setFormatConfirmed(false);
-                const parsed = parseMeasurementInput(next, "de-DE");
-                setValueHint(
-                  parsed.kind === "ambiguous"
-                    ? "This value can have more than one meaning. Confirm the intended format."
-                    : parsed.kind === "number" || parsed.kind === "date"
-                      ? `Normalized preview: ${parsed.normalized}`
-                      : null,
-                );
-              }}
-            />
-          </Field.Root>
-          {valueHint ? (
+            {demoReportCount ? (
+              <Box
+                role="note"
+                borderWidth="1px"
+                borderColor="orange.300"
+                bg="orange.50"
+                color="orange.900"
+                borderRadius="lg"
+                px="4"
+                py="3"
+              >
+                Fictional demo data is included so you can explore Hemo Tracker.
+                It is not your health data. Archive or permanently delete these
+                demo reports before you rely on the report history for personal
+                records.
+              </Box>
+            ) : null}
+            {reports
+              .filter(
+                (report) =>
+                  !reportSearch ||
+                  report.laboratory
+                    ?.toLowerCase()
+                    .includes(reportSearch.toLowerCase()),
+              )
+              .slice(0, 5)
+              .map((report) => (
+                <Box
+                  key={report.id}
+                  id={`report-${report.id}`}
+                  borderWidth="1px"
+                  borderColor="border"
+                  borderRadius="lg"
+                  px="4"
+                  py="3"
+                  cursor="pointer"
+                  onClick={() =>
+                    setExpandedReportId((current) =>
+                      current === report.id ? null : report.id,
+                    )
+                  }
+                >
+                  <Stack direction="row" justify="space-between" align="center">
+                    <Stack gap="0">
+                      <Text fontWeight="semibold">
+                        {report.laboratory || "Laboratory report"}
+                      </Text>
+                      <Text color="fg.muted" fontSize="sm">
+                        {report.collectionTime} · {report.measurementCount}{" "}
+                        measurements · {report.sourceFileCount} source files
+                      </Text>
+                    </Stack>
+                    <Text fontSize="sm" textTransform="capitalize">
+                      {report.status}
+                    </Text>
+                  </Stack>
+                  {expandedReportId === report.id ? (
+                    <Stack
+                      gap="2"
+                      mt="3"
+                      pt="3"
+                      borderTopWidth="1px"
+                      borderColor="border"
+                    >
+                      <Stack direction={{ base: "column", sm: "row" }} gap="2">
+                        <select
+                          aria-label={`Source file role for ${report.laboratory || "report"}`}
+                          value={sourceRole}
+                          onChange={(event) =>
+                            setSourceRole(event.target.value)
+                          }
+                        >
+                          <option value="supplement">Supplement</option>
+                          <option value="correction">Correction</option>
+                          <option value="primary">Primary</option>
+                        </select>
+                        <Button
+                          size="xs"
+                          variant="outline"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            void selectAndAttachSourceFile(
+                              report.id,
+                              sourceRole,
+                            ).then((source) => {
+                              if (source) setDataVersion((value) => value + 1);
+                            });
+                          }}
+                        >
+                          Attach source file
+                        </Button>
+                        <Button
+                          size="xs"
+                          variant="outline"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setAddingMeasurementReportId(report.id);
+                          }}
+                        >
+                          Add measurement
+                        </Button>
+                        {report.status === "complete" ? (
+                          <Button
+                            size="xs"
+                            variant="ghost"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              void archiveReport(report.id);
+                            }}
+                          >
+                            Archive report
+                          </Button>
+                        ) : null}
+                        {report.status === "archived" ? (
+                          <Button
+                            size="xs"
+                            variant="ghost"
+                            colorPalette="red"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              void permanentlyDeleteReport(report.id);
+                            }}
+                          >
+                            Permanently delete
+                          </Button>
+                        ) : null}
+                      </Stack>
+                      {addingMeasurementReportId === report.id ? (
+                        <Stack
+                          direction={{ base: "column", sm: "row" }}
+                          gap="2"
+                        >
+                          <Input
+                            aria-label="Additional measurement label"
+                            placeholder="Analyte label"
+                            value={additionalLabel}
+                            onChange={(event) =>
+                              setAdditionalLabel(event.target.value)
+                            }
+                          />
+                          <Input
+                            aria-label="Additional measurement value"
+                            placeholder="Value"
+                            value={additionalValue}
+                            onChange={(event) =>
+                              setAdditionalValue(event.target.value)
+                            }
+                          />
+                          <Input
+                            aria-label="Additional measurement unit"
+                            placeholder="Unit"
+                            value={additionalUnit}
+                            onChange={(event) =>
+                              setAdditionalUnit(event.target.value)
+                            }
+                          />
+                          <Button
+                            size="xs"
+                            onClick={() =>
+                              void saveAdditionalMeasurement(report.id)
+                            }
+                          >
+                            Save
+                          </Button>
+                        </Stack>
+                      ) : null}
+                      {report.sourceFiles.map((source) => (
+                        <Button
+                          key={source.id}
+                          size="xs"
+                          variant="outline"
+                          alignSelf="start"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            void previewSource(report.id, source.id);
+                          }}
+                        >
+                          Preview {source.filename}
+                        </Button>
+                      ))}
+                      {report.measurements.map((measurement) => (
+                        <Stack key={measurement.id} gap="1">
+                          {editingMeasurement === measurement.id ? (
+                            <Stack direction="row" gap="2">
+                              <Input
+                                aria-label={`Correct ${measurement.sourceLabel}`}
+                                value={correctionValue}
+                                onChange={(event) =>
+                                  setCorrectionValue(event.target.value)
+                                }
+                              />
+                              <select
+                                aria-label={`Correct analyte for ${measurement.sourceLabel}`}
+                                value={correctionAnalyteId}
+                                onChange={(event) =>
+                                  setCorrectionAnalyteId(event.target.value)
+                                }
+                              >
+                                <option value="">Keep current analyte</option>
+                                {analytes.map((analyte) => (
+                                  <option key={analyte.id} value={analyte.id}>
+                                    {analyte.name}
+                                  </option>
+                                ))}
+                              </select>
+                              <Button
+                                size="sm"
+                                onClick={() => void saveCorrection(measurement)}
+                              >
+                                Save
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => setEditingMeasurement(null)}
+                              >
+                                Cancel
+                              </Button>
+                            </Stack>
+                          ) : (
+                            <Stack
+                              direction="row"
+                              justify="space-between"
+                              align="center"
+                            >
+                              <Text fontSize="sm">
+                                {measurement.sourceLabel}:{" "}
+                                {measurement.sourceValue}{" "}
+                                {measurement.sourceUnit}
+                                {measurement.sourceFlag
+                                  ? ` (${measurement.sourceFlag})`
+                                  : ""}
+                              </Text>
+                              {measurement.updatedAt ? (
+                                <Text fontSize="xs" color="fg.muted">
+                                  Corrected {measurement.updatedAt} by{" "}
+                                  {measurement.updatedBy}
+                                </Text>
+                              ) : null}
+                              <Button
+                                size="xs"
+                                variant="ghost"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  setEditingMeasurement(measurement.id);
+                                  setCorrectionValue(measurement.sourceValue);
+                                  setCorrectionAnalyteId(
+                                    measurement.analyteId || "",
+                                  );
+                                }}
+                              >
+                                Correct
+                              </Button>
+                            </Stack>
+                          )}
+                        </Stack>
+                      ))}
+                      {!report.measurements.length ? (
+                        <Text fontSize="sm" color="fg.muted">
+                          No measurements recorded.
+                        </Text>
+                      ) : null}
+                    </Stack>
+                  ) : null}
+                </Box>
+              ))}
+            {!reports.length ? (
+              <Text color="fg.muted" fontSize="sm">
+                No reports recorded yet.
+              </Text>
+            ) : null}
+            {sourcePreview ? (
+              <Box borderWidth="1px" borderRadius="lg" p="3">
+                <Text fontWeight="semibold" mb="2">
+                  Source preview: {sourcePreview.filename}
+                </Text>
+                {sourcePreview.mediaType === "application/pdf" ? (
+                  <iframe
+                    title={`Preview of ${sourcePreview.filename}`}
+                    src={sourcePreview.url}
+                    width="100%"
+                    height="480"
+                  />
+                ) : sourcePreview.mediaType.startsWith("image/") ? (
+                  <img
+                    src={sourcePreview.url}
+                    alt={`Preview of ${sourcePreview.filename}`}
+                    style={{ maxWidth: "100%", maxHeight: 480 }}
+                  />
+                ) : (
+                  <Text color="fg.muted" fontSize="sm">
+                    This file is encrypted and stored safely, but this webview
+                    cannot render its format. Use the original file in the
+                    report&apos;s source list.
+                  </Text>
+                )}
+              </Box>
+            ) : null}
+          </Stack>
+        </Box>
+        <Box
+          id="tools"
+          hidden={activePage !== "overview" && activePage !== "reports"}
+          borderWidth="1px"
+          borderColor="border"
+          borderRadius="xl"
+          p="4"
+        >
+          <Stack gap="3">
+            <Heading as="h2" size="lg">
+              Relink existing results
+            </Heading>
+            <Text color="fg.muted" fontSize="sm">
+              Review exact-label matches before linking older results to a saved
+              analyte. Unsafe units stay blocked.
+            </Text>
+            <select
+              aria-label="Relink target analyte"
+              value={relinkAnalyteId}
+              onChange={(event) => setRelinkAnalyteId(event.target.value)}
+            >
+              <option value="">Select a target analyte</option>
+              {analytes.map((analyte) => (
+                <option key={analyte.id} value={analyte.id}>
+                  {analyte.name}
+                </option>
+              ))}
+            </select>
+            {relinkTarget ? (
+              <Stack gap="2" aria-label="Relink preview">
+                <Text fontSize="sm">
+                  {
+                    relinkCandidates.filter(
+                      (candidate) => candidate.status === "safe",
+                    ).length
+                  }{" "}
+                  safe and{" "}
+                  {
+                    relinkCandidates.filter(
+                      (candidate) => candidate.status === "blocked",
+                    ).length
+                  }{" "}
+                  blocked matches.
+                </Text>
+                {relinkCandidates.map((candidate) => (
+                  <Text
+                    key={`${candidate.reportId}-${candidate.measurement.id}`}
+                    fontSize="sm"
+                  >
+                    {candidate.measurement.sourceLabel} ·{" "}
+                    {candidate.measurement.sourceValue}{" "}
+                    {candidate.measurement.sourceUnit} ·{" "}
+                    {candidate.status === "safe"
+                      ? "Safe"
+                      : `Blocked (${candidate.reason})`}
+                  </Text>
+                ))}
+                <Button
+                  alignSelf="start"
+                  variant="outline"
+                  disabled={
+                    !relinkCandidates.some(
+                      (candidate) => candidate.status === "safe",
+                    )
+                  }
+                  onClick={() => void applySafeRelinking()}
+                >
+                  Apply safe relinking
+                </Button>
+              </Stack>
+            ) : null}
+          </Stack>
+        </Box>
+        <Box
+          id="record"
+          hidden={activePage !== "overview" && activePage !== "record"}
+          bgGradient="to-r"
+          gradientFrom="teal.700"
+          gradientTo="cyan.600"
+          color="white"
+          borderRadius="2xl"
+          px={{ base: "6", md: "8" }}
+          py={{ base: "6", md: "8" }}
+          shadow="lg"
+        >
+          <Stack gap="2">
             <Text
               fontSize="sm"
-              color={valueHint.startsWith("This") ? "orange.600" : "fg.muted"}
+              opacity="0.85"
+              fontWeight="semibold"
+              textTransform="uppercase"
+              letterSpacing="wide"
             >
-              {valueHint}
+              Your private health record
             </Text>
-          ) : null}
-          {valueHint?.startsWith("This value") && !formatConfirmed ? (
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              alignSelf="start"
-              onClick={() => setFormatConfirmed(true)}
-            >
-              Confirm this format
-            </Button>
-          ) : null}
-          <Field.Root required>
-            <Field.Label>Source unit</Field.Label>
-            <Input
-              value={sourceUnit}
-              onChange={(event) => setSourceUnit(event.target.value)}
+            <Heading size="xl">Record a lab report</Heading>
+            <Text opacity="0.9">
+              Keep the original document and record values exactly as printed.
+            </Text>
+          </Stack>
+        </Box>
+        <Box
+          as="form"
+          bg="bg.panel"
+          borderWidth="1px"
+          borderColor="border"
+          borderRadius="2xl"
+          p={{ base: "5", md: "8" }}
+          shadow="sm"
+          onSubmit={saveReport}
+        >
+          <Stack gap="5">
+            <SectionHeading
+              number="1"
+              title="Report details"
+              description="When and where was the sample collected?"
             />
-          </Field.Root>
-          <Field.Root required>
-            <Field.Label>Source reference interval</Field.Label>
-            <Input
-              value={sourceReferenceInterval}
-              onChange={(event) =>
-                setSourceReferenceInterval(event.target.value)
-              }
+            <Stack gap="3" bg="bg.subtle" borderRadius="lg" p="4">
+              <Text fontWeight="semibold" fontSize="sm">
+                Link this result to a saved analyte
+              </Text>
+              <Text color="fg.muted" fontSize="sm">
+                Analyte definitions are managed separately on the Analytes page.
+                You can record an unlinked source value and link it later.
+              </Text>
+              <Field.Root>
+                <Field.Label>Use a saved analyte</Field.Label>
+                <select
+                  aria-label="Use a saved analyte"
+                  value={selectedAnalyteId}
+                  onChange={(event) => setSelectedAnalyteId(event.target.value)}
+                >
+                  <option value="">No analyte link</option>
+                  {analytes.map((analyte) => (
+                    <option key={analyte.id} value={analyte.id}>
+                      {analyte.name} — {analyte.component} ({analyte.property})
+                    </option>
+                  ))}
+                </select>
+              </Field.Root>
+            </Stack>
+            <Field.Root required>
+              <Field.Label>Collection date and time</Field.Label>
+              <Input
+                type="datetime-local"
+                value={collectionTime}
+                onChange={(event) => setCollectionTime(event.target.value)}
+              />
+            </Field.Root>
+            {!extraMeasurement ? (
+              <Button
+                type="button"
+                variant="outline"
+                alignSelf="start"
+                onClick={() => setExtraMeasurement(true)}
+              >
+                + Add another result
+              </Button>
+            ) : (
+              <Stack gap="4" borderTopWidth="1px" borderColor="border" pt="5">
+                <Heading as="h4" size="sm">
+                  Second result
+                </Heading>
+                <Input
+                  placeholder="Source label"
+                  value={secondLabel}
+                  onChange={(event) => setSecondLabel(event.target.value)}
+                  required
+                />
+                <Input
+                  placeholder="Source value"
+                  value={secondValue}
+                  onChange={(event) => setSecondValue(event.target.value)}
+                  required
+                />
+                <Input
+                  placeholder="Unit"
+                  value={secondUnit}
+                  onChange={(event) => setSecondUnit(event.target.value)}
+                  required
+                />
+                <Input
+                  placeholder="Reference interval"
+                  value={secondInterval}
+                  onChange={(event) => setSecondInterval(event.target.value)}
+                  required
+                />
+                <Input
+                  placeholder="Flag"
+                  value={secondFlag}
+                  onChange={(event) => setSecondFlag(event.target.value)}
+                  required
+                />
+              </Stack>
+            )}
+            <Field.Root>
+              <Field.Label>Laboratory</Field.Label>
+              <Input
+                value={laboratory}
+                onChange={(event) => setLaboratory(event.target.value)}
+              />
+            </Field.Root>
+            <SectionHeading
+              number="2"
+              title="First measurement"
+              description="Enter the result as shown on the source document."
             />
-          </Field.Root>
-          <Field.Root required>
-            <Field.Label>Source flag</Field.Label>
-            <Input
-              value={sourceFlag}
-              onChange={(event) => setSourceFlag(event.target.value)}
-            />
-          </Field.Root>
-          {sourceFilename ? (
-            <Box
-              bg="teal.50"
-              _dark={{ bg: "teal.950" }}
-              borderRadius="lg"
-              px="4"
-              py="3"
-            >
+            <Field.Root required>
+              <Field.Label>Source label</Field.Label>
+              <Input
+                value={sourceLabel}
+                onChange={(event) => setSourceLabel(event.target.value)}
+              />
+            </Field.Root>
+            <Field.Root required>
+              <Field.Label>Source value</Field.Label>
+              <Input
+                value={sourceValue}
+                onChange={(event) => {
+                  const next = event.target.value;
+                  setSourceValue(next);
+                  setFormatConfirmed(false);
+                  const parsed = parseMeasurementInput(next, "de-DE");
+                  setValueHint(
+                    parsed.kind === "ambiguous"
+                      ? "This value can have more than one meaning. Confirm the intended format."
+                      : parsed.kind === "number" || parsed.kind === "date"
+                        ? `Normalized preview: ${parsed.normalized}`
+                        : null,
+                  );
+                }}
+              />
+            </Field.Root>
+            {valueHint ? (
               <Text
                 fontSize="sm"
-                color="teal.800"
-                _dark={{ color: "teal.100" }}
+                color={valueHint.startsWith("This") ? "orange.600" : "fg.muted"}
               >
-                Attached source file: {sourceFilename}
+                {valueHint}
               </Text>
-            </Box>
-          ) : null}
-          <Field.Root>
-            <Field.Label>Source file role</Field.Label>
-            <select
-              aria-label="Source file role"
-              value={sourceRole}
-              onChange={(event) => setSourceRole(event.target.value)}
+            ) : null}
+            {valueHint?.startsWith("This value") && !formatConfirmed ? (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                alignSelf="start"
+                onClick={() => setFormatConfirmed(true)}
+              >
+                Confirm this format
+              </Button>
+            ) : null}
+            <Field.Root required>
+              <Field.Label>Source unit</Field.Label>
+              <Input
+                value={sourceUnit}
+                onChange={(event) => setSourceUnit(event.target.value)}
+              />
+            </Field.Root>
+            <Field.Root required>
+              <Field.Label>Source reference interval</Field.Label>
+              <Input
+                value={sourceReferenceInterval}
+                onChange={(event) =>
+                  setSourceReferenceInterval(event.target.value)
+                }
+              />
+            </Field.Root>
+            <Field.Root required>
+              <Field.Label>Source flag</Field.Label>
+              <Input
+                value={sourceFlag}
+                onChange={(event) => setSourceFlag(event.target.value)}
+              />
+            </Field.Root>
+            {sourceFilename ? (
+              <Box
+                bg="teal.50"
+                _dark={{ bg: "teal.950" }}
+                borderRadius="lg"
+                px="4"
+                py="3"
+              >
+                <Text
+                  fontSize="sm"
+                  color="teal.800"
+                  _dark={{ color: "teal.100" }}
+                >
+                  Attached source file: {sourceFilename}
+                </Text>
+              </Box>
+            ) : null}
+            <Field.Root>
+              <Field.Label>Source file role</Field.Label>
+              <select
+                aria-label="Source file role"
+                value={sourceRole}
+                onChange={(event) => setSourceRole(event.target.value)}
+              >
+                <option value="primary">Primary report</option>
+                <option value="supplement">Supplement</option>
+                <option value="correction">Correction</option>
+              </select>
+            </Field.Root>
+            <Button
+              type="submit"
+              alignSelf="start"
+              bg="teal.700"
+              color="white"
+              _hover={{ bg: "teal.800" }}
+              loading={saving}
             >
-              <option value="primary">Primary report</option>
-              <option value="supplement">Supplement</option>
-              <option value="correction">Correction</option>
-            </select>
-          </Field.Root>
-          <Button
-            type="submit"
-            alignSelf="start"
-            bg="teal.700"
-            color="white"
-            _hover={{ bg: "teal.800" }}
-            loading={saving}
-          >
-            Choose source file and save report
-          </Button>
-        </Stack>
-      </Box>
-      <Stack
-        hidden={activePage !== "overview" && activePage !== "settings"}
-        direction={{ base: "column", sm: "row" }}
-        gap="3"
-      >
-        <Button
-          alignSelf="start"
-          variant="outline"
-          onClick={() => void backupVault()}
+              Choose source file and save report
+            </Button>
+          </Stack>
+        </Box>
+        <Stack
+          hidden={activePage !== "overview" && activePage !== "settings"}
+          direction={{ base: "column", sm: "row" }}
+          gap="3"
         >
-          Save encrypted backup
-        </Button>
-        <Button alignSelf="start" variant="outline" onClick={() => void lock()}>
-          Lock vault
-        </Button>
-      </Stack>
-      <Box
-        hidden={activePage !== "overview" && activePage !== "settings"}
-        borderWidth="1px"
-        borderColor="border"
-        borderRadius="xl"
-        p="4"
-      >
-        <Stack gap="3">
-          <Text fontWeight="semibold">Restore an encrypted backup</Text>
-          <Text color="fg.muted" fontSize="sm">
-            This replaces the current vault after integrity checks. Keep the
-            current vault until you confirm the restored data.
-          </Text>
-          <Input
-            type="password"
-            aria-label="Backup passphrase"
-            placeholder="Backup passphrase"
-            value={restorePassphrase}
-            onChange={(event) => setRestorePassphrase(event.target.value)}
-          />
           <Button
             alignSelf="start"
             variant="outline"
-            onClick={() => void restoreVault()}
+            onClick={() => void backupVault()}
           >
-            Choose backup and restore
+            Save encrypted backup
           </Button>
-        </Stack>
-      </Box>
-      <Box
-        hidden={activePage !== "overview" && activePage !== "settings"}
-        borderWidth="1px"
-        borderColor="red.300"
-        borderRadius="xl"
-        p="4"
-        bg="red.50"
-        _dark={{ bg: "red.950" }}
-      >
-        <Stack gap="3">
-          <Heading as="h2" size="md">
-            Reset vault to demo data
-          </Heading>
-          <Text fontSize="sm">
-            This permanently deletes all reports, source files, analytes,
-            personal ranges, and keys. It does not create a backup. Use this
-            only when you want a clean fictional demo vault.
-          </Text>
-          <Field.Root required>
-            <Field.Label>Current passphrase</Field.Label>
-            <Input
-              type="password"
-              autoComplete="current-password"
-              value={resetPassphrase}
-              onChange={(event) => setResetPassphrase(event.target.value)}
-            />
-          </Field.Root>
-          <Field.Root required>
-            <Field.Label>Type RESET DEMO VAULT</Field.Label>
-            <Input
-              value={resetConfirmation}
-              onChange={(event) => setResetConfirmation(event.target.value)}
-              spellCheck={false}
-              autoCapitalize="characters"
-            />
-          </Field.Root>
           <Button
             alignSelf="start"
-            colorPalette="red"
-            onClick={() => void resetVault()}
+            variant="outline"
+            onClick={() => void lock()}
           >
-            Permanently reset to demo data
+            Lock vault
           </Button>
         </Stack>
-      </Box>
-      <Button
-        hidden={activePage !== "overview" && activePage !== "settings"}
-        alignSelf="start"
-        variant="outline"
-        onClick={() => void exportPlaintext()}
-      >
-        Export plaintext ZIP (review warning)
-      </Button>
-    </Stack>
+        <Box
+          hidden={activePage !== "overview" && activePage !== "settings"}
+          borderWidth="1px"
+          borderColor="border"
+          borderRadius="xl"
+          p="4"
+        >
+          <Stack gap="3">
+            <Text fontWeight="semibold">Restore an encrypted backup</Text>
+            <Text color="fg.muted" fontSize="sm">
+              This replaces the current vault after integrity checks. Keep the
+              current vault until you confirm the restored data.
+            </Text>
+            <Input
+              type="password"
+              aria-label="Backup passphrase"
+              placeholder="Backup passphrase"
+              value={restorePassphrase}
+              onChange={(event) => setRestorePassphrase(event.target.value)}
+            />
+            <Button
+              alignSelf="start"
+              variant="outline"
+              onClick={() => void restoreVault()}
+            >
+              Choose backup and restore
+            </Button>
+          </Stack>
+        </Box>
+        <Box
+          hidden={activePage !== "overview" && activePage !== "settings"}
+          borderWidth="1px"
+          borderColor="red.300"
+          borderRadius="xl"
+          p="4"
+          bg="red.50"
+          _dark={{ bg: "red.950" }}
+        >
+          <Stack gap="3">
+            <Heading as="h2" size="md">
+              Reset vault to demo data
+            </Heading>
+            <Text fontSize="sm">
+              This permanently deletes all reports, source files, analytes,
+              personal ranges, and keys. It does not create a backup. Use this
+              only when you want a clean fictional demo vault.
+            </Text>
+            <Field.Root required>
+              <Field.Label>Current passphrase</Field.Label>
+              <Input
+                type="password"
+                autoComplete="current-password"
+                value={resetPassphrase}
+                onChange={(event) => setResetPassphrase(event.target.value)}
+              />
+            </Field.Root>
+            <Field.Root required>
+              <Field.Label>Type RESET DEMO VAULT</Field.Label>
+              <Input
+                value={resetConfirmation}
+                onChange={(event) => setResetConfirmation(event.target.value)}
+                spellCheck={false}
+                autoCapitalize="characters"
+              />
+            </Field.Root>
+            <Button
+              alignSelf="start"
+              colorPalette="red"
+              onClick={() => void resetVault()}
+            >
+              Permanently reset to demo data
+            </Button>
+          </Stack>
+        </Box>
+        <Button
+          hidden={activePage !== "overview" && activePage !== "settings"}
+          alignSelf="start"
+          variant="outline"
+          onClick={() => void exportPlaintext()}
+        >
+          Export plaintext ZIP (review warning)
+        </Button>
+      </Stack>
+    </Box>
   );
 }
 

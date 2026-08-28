@@ -77,6 +77,11 @@ export function TrendPlot({
   const min = bounds.length ? Math.min(...bounds) : 0;
   const max = bounds.length ? Math.max(...bounds) : 1;
   const range = max - min || 1;
+  const yDomain = useMemo<[number, number]>(
+    () => [min - range * 0.05, max + range * 0.05],
+    [min, max, range],
+  );
+  const displayUnit = numeric[0]?.unit || points[0]?.unit || "normalized unit";
   const width = 640;
   const height = 180;
   const path = numeric
@@ -183,6 +188,7 @@ export function TrendPlot({
                 time: true,
                 range: timeRange ? () => timeRange : undefined,
               },
+              y: { range: () => yDomain },
             },
             cursor: { drag: { x: true, y: false, setScale: true } },
             hooks: {
@@ -209,7 +215,7 @@ export function TrendPlot({
             },
             plugins: targetPlugin ? [targetPlugin] : undefined,
             series: [{}, { label: title, stroke: "currentColor", width: 2 }],
-            axes: [{}, { label: "Value" }],
+            axes: [{}, { label: displayUnit }],
           },
           [timestamps, numeric.map((point) => point.value as number)],
           host,
@@ -232,6 +238,8 @@ export function TrendPlot({
     targetBounds,
     timeRange,
     title,
+    displayUnit,
+    yDomain,
   ]);
   return (
     <Box
