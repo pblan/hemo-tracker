@@ -306,6 +306,19 @@ pub fn complete_lab_report(
         .map_err(|_| safe_error())
 }
 
+#[tauri::command]
+pub fn archive_lab_report(
+    state: State<'_, DesktopVaultState>,
+    report_id: String,
+) -> Result<(), String> {
+    let mut guard = state.vault.lock().map_err(|_| safe_error())?;
+    guard
+        .as_mut()
+        .ok_or_else(safe_error)?
+        .archive_lab_report(&report_id)
+        .map_err(|_| safe_error())
+}
+
 fn with_vault(
     app: &AppHandle,
     state: &State<'_, DesktopVaultState>,

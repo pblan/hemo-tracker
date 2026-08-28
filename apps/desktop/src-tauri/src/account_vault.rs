@@ -80,6 +80,7 @@ pub struct NewAnalyte {
 pub enum ReportStatus {
     Draft,
     Complete,
+    Archived,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -407,6 +408,13 @@ impl LocalAccountVault {
             .map_err(|_| LocalAccountError::Operation)
     }
 
+    pub fn archive_lab_report(&mut self, report_id: &str) -> Result<(), LocalAccountError> {
+        self.unlocked_mut()?
+            ._vault
+            .archive_report(report_id)
+            .map_err(|_| LocalAccountError::Operation)
+    }
+
     pub fn get_lab_report(&self, report_id: &str) -> Result<LabReportDetails, LocalAccountError> {
         let report = self
             .unlocked_ref()?
@@ -425,6 +433,7 @@ impl LocalAccountVault {
             status: match report.state {
                 ReportState::Draft => ReportStatus::Draft,
                 ReportState::Complete => ReportStatus::Complete,
+                ReportState::Archived => ReportStatus::Archived,
             },
             source_files: report
                 .source_files

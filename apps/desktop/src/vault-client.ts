@@ -41,6 +41,8 @@ export const addLabMeasurement = (
 ) => invoke<string>("add_lab_measurement", { reportId, request });
 export const completeLabReport = (reportId: string) =>
   invoke<void>("complete_lab_report", { reportId });
+export const archiveLabReport = (reportId: string) =>
+  invoke<void>("archive_lab_report", { reportId });
 export const addAnalyteDefinition = (request: {
   name: string;
   component: string;

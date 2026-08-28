@@ -11,7 +11,7 @@ use std::{
 use thiserror::Error;
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
-const SCHEMA_VERSION: i64 = 3;
+const SCHEMA_VERSION: i64 = 4;
 const KEY_BYTES: usize = 32;
 
 #[derive(Clone, Zeroize, ZeroizeOnDrop)]
@@ -106,6 +106,7 @@ pub struct AnalyteDefinition {
 pub enum ReportState {
     Draft,
     Complete,
+    Archived,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -131,6 +132,10 @@ pub struct AccountVault {
 }
 
 impl AccountVault {
+    pub fn archive_report(&self, report_id: &str) -> Result<(), VaultError> {
+        self.connection.execute("INSERT OR IGNORE INTO archived_reports (report_id, archived_at) VALUES (?1, datetime('now'))", [report_id]).map_err(|_| VaultError::Operation)?;
+        Ok(())
+    }
     pub fn upsert_analyte(&self, analyte: &AnalyteDefinition) -> Result<(), VaultError> {
         let aliases = serde_json::to_string(&analyte.aliases).map_err(|_| VaultError::Operation)?;
         self.connection.execute("INSERT INTO analyte_definitions (id,name,component,property,specimen,scale,method,aliases_json,loinc_code) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9) ON CONFLICT(id) DO UPDATE SET name=excluded.name,component=excluded.component,property=excluded.property,specimen=excluded.specimen,scale=excluded.scale,method=excluded.method,aliases_json=excluded.aliases_json,loinc_code=excluded.loinc_code", params![analyte.id, analyte.name, analyte.component, analyte.property, analyte.specimen, analyte.scale, analyte.method, aliases, analyte.loinc_code]).map_err(|_| VaultError::Operation)?;
@@ -303,11 +308,12 @@ impl AccountVault {
             .map_err(|_| VaultError::Operation)?
             .ok_or(VaultError::Operation)?;
         let tags = serde_json::from_str(&report.6).map_err(|_| VaultError::Operation)?;
-        let state = match report.7.as_str() {
+        let archived: bool = self.connection.query_row("SELECT EXISTS (SELECT 1 FROM archived_reports WHERE report_id = ?1)", [report_id], |row| row.get(0)).map_err(|_| VaultError::Operation)?;
+        let state = if archived { ReportState::Archived } else { match report.7.as_str() {
             "draft" => ReportState::Draft,
             "complete" => ReportState::Complete,
             _ => return Err(VaultError::Operation),
-        };
+        }};
         Ok(ReportRecord {
             id: report_id.to_owned(),
             collection_time: report.0,
@@ -650,7 +656,8 @@ fn migrate(connection: &Connection) -> Result<(), VaultError> {
                      source_flag TEXT NOT NULL,
                      analyte_id TEXT
                  );
-                 PRAGMA user_version = 3;
+                 CREATE TABLE archived_reports (report_id TEXT PRIMARY KEY REFERENCES reports(id) ON DELETE CASCADE, archived_at TEXT NOT NULL);
+                 PRAGMA user_version = 4;
                  COMMIT;",
             )
             .map_err(|_| VaultError::InvalidKeyOrVault)?;
@@ -692,7 +699,8 @@ fn migrate(connection: &Connection) -> Result<(), VaultError> {
                      source_flag TEXT NOT NULL,
                      analyte_id TEXT
                  );
-                 PRAGMA user_version = 3;
+                 CREATE TABLE archived_reports (report_id TEXT PRIMARY KEY REFERENCES reports(id) ON DELETE CASCADE, archived_at TEXT NOT NULL);
+                 PRAGMA user_version = 4;
                  COMMIT;",
             )
             .map_err(|_| VaultError::InvalidKeyOrVault)?;
@@ -700,6 +708,8 @@ fn migrate(connection: &Connection) -> Result<(), VaultError> {
         connection
             .execute_batch("BEGIN IMMEDIATE; ALTER TABLE measurements ADD COLUMN analyte_id TEXT; CREATE TABLE analyte_definitions (id TEXT PRIMARY KEY, name TEXT NOT NULL, component TEXT NOT NULL, property TEXT NOT NULL, specimen TEXT NOT NULL, scale TEXT NOT NULL, method TEXT, aliases_json TEXT NOT NULL, loinc_code TEXT); PRAGMA user_version = 3; COMMIT;")
             .map_err(|_| VaultError::InvalidKeyOrVault)?;
+    } else if version == 3 {
+        connection.execute_batch("BEGIN IMMEDIATE; CREATE TABLE archived_reports (report_id TEXT PRIMARY KEY REFERENCES reports(id) ON DELETE CASCADE, archived_at TEXT NOT NULL); PRAGMA user_version = 4; COMMIT;").map_err(|_| VaultError::InvalidKeyOrVault)?;
     } else if version != SCHEMA_VERSION {
         return Err(VaultError::InvalidKeyOrVault);
     }
