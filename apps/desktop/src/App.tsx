@@ -899,6 +899,18 @@ function UnlockedVault({
                     const pinnedTrend = buildTrend(analyteId);
                     return pinned ? (
                       <Stack key={analyteId} gap="2">
+                        {pinnedTrend.points.length ? (
+                          <Text fontSize="sm" color="fg.muted">
+                            Latest:{" "}
+                            {pinnedTrend.points.at(-1)?.sourceValue ||
+                              "Not recorded"}{" "}
+                            {pinnedTrend.points.at(-1)?.sourceUnit || ""} ·{" "}
+                            {pinnedTrend.points.at(-1)?.date}
+                            {pinnedTrend.points.at(-1)?.flag
+                              ? ` · ${pinnedTrend.points.at(-1)?.flag}`
+                              : ""}
+                          </Text>
+                        ) : null}
                         <TrendPlot
                           title={pinned.name}
                           points={pinnedTrend.points}
