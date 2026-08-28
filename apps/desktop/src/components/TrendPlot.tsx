@@ -1,4 +1,4 @@
-import { Box, Table, Text } from "@chakra-ui/react";
+import { Box, Stack, Table, Text } from "@chakra-ui/react";
 import "uplot/dist/uPlot.min.css";
 import type uPlot from "uplot";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -244,6 +244,48 @@ export function TrendPlot({
       <Text fontWeight="semibold" mb="3">
         {title}
       </Text>
+      <Stack
+        direction="row"
+        gap="4"
+        wrap="wrap"
+        mb="2"
+        fontSize="xs"
+        color="fg.muted"
+        aria-label="Plot legend"
+      >
+        <Stack direction="row" gap="1" align="center">
+          <Box w="3" h="1" bg="fg" aria-hidden="true" />
+          <Text>{title} (normalized)</Text>
+        </Stack>
+        {sourceBounds.some(
+          (source) => source.lower !== undefined || source.upper !== undefined,
+        ) ? (
+          <Stack direction="row" gap="1" align="center">
+            <Box
+              w="3"
+              h="3"
+              bg="orange.200"
+              borderWidth="1px"
+              borderColor="orange.500"
+              aria-hidden="true"
+            />
+            <Text>Laboratory interval</Text>
+          </Stack>
+        ) : null}
+        {targetBounds ? (
+          <Stack direction="row" gap="1" align="center">
+            <Box
+              w="3"
+              h="3"
+              bg="teal.200"
+              borderWidth="1px"
+              borderColor="teal.500"
+              aria-hidden="true"
+            />
+            <Text>Personal target</Text>
+          </Stack>
+        ) : null}
+      </Stack>
       <Text color="fg.muted" fontSize="sm" mb="2">
         Drag across the plot to zoom the collection-time range. Use the table
         for keyboard inspection and exact values.
