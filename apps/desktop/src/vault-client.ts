@@ -66,3 +66,13 @@ export type AnalyteDefinition = {
 };
 export const listAnalyteDefinitions = () =>
   invoke<AnalyteDefinition[]>("list_analyte_definitions");
+export type ReportSummary = {
+  id: string;
+  collectionTime: string;
+  laboratory?: string;
+  status: "draft" | "complete" | "archived";
+  sourceFileCount: number;
+  measurementCount: number;
+};
+export const getLabReport = (reportId: string) =>
+  invoke<ReportSummary>("get_lab_report", { reportId });

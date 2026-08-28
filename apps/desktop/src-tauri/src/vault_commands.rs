@@ -86,6 +86,17 @@ pub struct SourceFileResult {
     pub original_filename: String,
 }
 
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ReportResult {
+    pub id: String,
+    pub collection_time: String,
+    pub laboratory: Option<String>,
+    pub status: String,
+    pub source_file_count: usize,
+    pub measurement_count: usize,
+}
+
 #[tauri::command]
 pub fn get_vault_state(
     app: AppHandle,
@@ -292,6 +303,32 @@ pub fn list_analyte_definitions(
                 .collect()
         })
         .map_err(|_| safe_error())
+}
+
+#[tauri::command]
+pub fn get_lab_report(
+    state: State<'_, DesktopVaultState>,
+    report_id: String,
+) -> Result<ReportResult, String> {
+    let guard = state.vault.lock().map_err(|_| safe_error())?;
+    let report = guard
+        .as_ref()
+        .ok_or_else(safe_error)?
+        .get_lab_report(&report_id)
+        .map_err(|_| safe_error())?;
+    Ok(ReportResult {
+        id: report.id,
+        collection_time: report.collection_time,
+        laboratory: report.laboratory,
+        status: match report.status {
+            crate::account_vault::ReportStatus::Draft => "draft",
+            crate::account_vault::ReportStatus::Complete => "complete",
+            crate::account_vault::ReportStatus::Archived => "archived",
+        }
+        .to_owned(),
+        source_file_count: report.source_files.len(),
+        measurement_count: report.measurements.len(),
+    })
 }
 
 #[tauri::command]
