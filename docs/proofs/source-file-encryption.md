@@ -2,7 +2,7 @@
 
 Date: 2026-08-27
 
-Status: Proposed input for the security ADR
+Status: Supporting proof for accepted ADR 0006; specialist review pending
 
 ## Purpose
 

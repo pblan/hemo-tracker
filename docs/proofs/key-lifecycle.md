@@ -2,13 +2,13 @@
 
 Date: 2026-08-27
 
-Status: Proposed input for the security ADR
+Status: Supporting proof for accepted ADR 0006; specialist review pending
 
 ## Purpose
 
-This proof tests the account key lifecycle before the application stores health data.
-
-The proof is not the production key store. A security review must approve the design before the application uses it for real data.
+This proof tests the account key lifecycle used by the local account vault. It
+is evidence for the implementation, not a substitute for the independent
+specialist review required before real medical use.
 
 ## Key hierarchy
 
@@ -21,13 +21,15 @@ The proof creates a separate random 256-bit recovery key. It makes two envelopes
 
 The recovery key uses the versioned form `HTRK1-<base64url>`. The payload contains the 32-byte recovery key and the first four bytes of its SHA-256 digest. The checksum detects typing and storage errors. It is not an authentication mechanism. The authenticated recovery envelope detects a valid but wrong recovery key.
 
-The server stores the envelopes. The server must not store the passphrase, recovery key, wrapping keys, account data key, or derived purpose keys.
+The local account manifest stores the encrypted envelopes. A future server may
+store envelope copies, but it must not store the passphrase, recovery key,
+wrapping keys, account data key, or derived purpose keys.
 
 The proof uses HKDF-SHA-256 to derive purpose keys from the account data key. The derivation binds the account identifier, purpose, format version, and key generation. The current purposes are the database, source files, and sync manifest.
 
 ## Passphrase parameters
 
-The proposed version 1 defaults are:
+The accepted V1 parameters are:
 
 | Field | Value |
 | --- | --- |
@@ -98,7 +100,10 @@ A purpose-key rotation increments the generation for one purpose. New writes use
 
 An account data key rotates only after suspected key compromise or a cryptographic format migration. This rotation requires re-encryption of every purpose-protected object and creation of new passphrase and recovery envelopes. The application must keep the old account data key available until it verifies every migrated object. It must then remove the old envelopes and key material.
 
-The security ADR must define recovery-key presentation and backup, device enrollment, key revocation, parameter migration, and the maximum accepted KDF cost. An independent security reviewer must review the hierarchy, envelope encoding, authenticated data, nonce rules, recovery design, and error behavior.
+ADR 0006 defines the accepted V1 envelope format and parameter policy. Device
+enrollment, key revocation, and synchronization remain Post-V1 design work. An
+independent security reviewer must review the hierarchy, envelope encoding,
+authenticated data, nonce rules, recovery design, and error behavior.
 
 V1 has no automatic parameter migration. The key-lifecycle module rejects an
 envelope when its Argon2id memory, iteration, lane, format, or cipher values do

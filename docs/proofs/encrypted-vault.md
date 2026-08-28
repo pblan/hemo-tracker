@@ -2,13 +2,13 @@
 
 Date: 2026-08-27
 
-Status: Proposed input for the security ADR
+Status: Supporting proof for accepted ADR 0006; specialist review pending
 
 ## Purpose
 
-This proof tests a narrow account vault that uses SQLCipher. It tests the storage and failure paths before the application stores health data.
-
-The proof is not production storage. A security review must approve the design before the application uses it for real data.
+This proof tests the SQLCipher storage and failure paths used by the local
+account vault. It is evidence for the implementation, not a substitute for the
+independent specialist review required before real medical use.
 
 ## Proposed integration
 
@@ -101,4 +101,8 @@ cargo clippy --manifest-path proofs/encrypted-vault/Cargo.toml --all-targets -- 
 
 The proof uses one small schema and one process. It does not prove multi-process use, large migrations, disk-full behavior, operating-system backup tools, swap behavior, hibernation, crash dumps, forensic deletion, or file-system snapshots.
 
-The security ADR must decide the supported CPU architectures, database-key generation policy, migration recovery process, backup retention policy, and atomic restore process. An independent security reviewer must review SQLCipher settings, build provenance, key handling, sidecar behavior, backup behavior, and failure errors.
+The accepted V1 ADRs define the supported local format, database-key
+generation, and atomic restore policy. Migration recovery and long-term backup
+retention remain release-gate evidence. An independent security reviewer must
+review SQLCipher settings, build provenance, key handling, sidecar behavior,
+backup behavior, and failure errors.
