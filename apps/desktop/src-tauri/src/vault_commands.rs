@@ -1,6 +1,6 @@
 use crate::account_vault::{
     CreateLabReportDraft, CreateLocalAccount, LocalAccountVault, NewAnalyte, NewMeasurement,
-    NewSourceFile, VaultStatus,
+    NewPersonalTargetRange, NewSourceFile, VaultStatus,
 };
 use serde::Serialize;
 use std::fs::File;
@@ -63,7 +63,19 @@ pub struct AnalyteRequest {
     pub method: Option<String>,
     pub aliases: Vec<String>,
     pub loinc_code: Option<String>,
-    pub healthy_range: Option<String>,
+    pub personal_target_ranges: Vec<PersonalTargetRangeRequest>,
+}
+
+#[derive(serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PersonalTargetRangeRequest {
+    pub lower_bound: Option<String>,
+    pub upper_bound: Option<String>,
+    pub unit: String,
+    pub valid_from: Option<String>,
+    pub valid_to: Option<String>,
+    pub context: Option<String>,
+    pub notes: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -78,7 +90,20 @@ pub struct AnalyteResult {
     pub method: Option<String>,
     pub aliases: Vec<String>,
     pub loinc_code: Option<String>,
-    pub healthy_range: Option<String>,
+    pub personal_target_ranges: Vec<PersonalTargetRangeResult>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PersonalTargetRangeResult {
+    pub id: String,
+    pub lower_bound: Option<String>,
+    pub upper_bound: Option<String>,
+    pub unit: String,
+    pub valid_from: Option<String>,
+    pub valid_to: Option<String>,
+    pub context: Option<String>,
+    pub notes: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -299,7 +324,11 @@ pub fn add_analyte_definition(
             method: request.method,
             aliases: request.aliases,
             loinc_code: request.loinc_code,
-            healthy_range: request.healthy_range,
+            personal_target_ranges: request
+                .personal_target_ranges
+                .into_iter()
+                .map(new_personal_target_range)
+                .collect(),
         })
         .map_err(|_| safe_error())
 }
@@ -326,11 +355,50 @@ pub fn list_analyte_definitions(
                     method: item.method,
                     aliases: item.aliases,
                     loinc_code: item.loinc_code,
-                    healthy_range: item.healthy_range,
+                    personal_target_ranges: item
+                        .personal_target_ranges
+                        .into_iter()
+                        .map(|range| PersonalTargetRangeResult {
+                            id: range.id,
+                            lower_bound: range.lower_bound,
+                            upper_bound: range.upper_bound,
+                            unit: range.unit,
+                            valid_from: range.valid_from,
+                            valid_to: range.valid_to,
+                            context: range.context,
+                            notes: range.notes,
+                        })
+                        .collect(),
                 })
                 .collect()
         })
         .map_err(|_| safe_error())
+}
+
+#[tauri::command]
+pub fn add_personal_target_range(
+    state: State<'_, DesktopVaultState>,
+    analyte_id: String,
+    request: PersonalTargetRangeRequest,
+) -> Result<String, String> {
+    let mut guard = state.vault.lock().map_err(|_| safe_error())?;
+    guard
+        .as_mut()
+        .ok_or_else(safe_error)?
+        .add_personal_target_range(&analyte_id, new_personal_target_range(request))
+        .map_err(|_| safe_error())
+}
+
+fn new_personal_target_range(request: PersonalTargetRangeRequest) -> NewPersonalTargetRange {
+    NewPersonalTargetRange {
+        lower_bound: request.lower_bound,
+        upper_bound: request.upper_bound,
+        unit: request.unit,
+        valid_from: request.valid_from,
+        valid_to: request.valid_to,
+        context: request.context,
+        notes: request.notes,
+    }
 }
 
 #[tauri::command]

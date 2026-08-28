@@ -11,7 +11,7 @@ use std::{
 use thiserror::Error;
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
-const SCHEMA_VERSION: i64 = 6;
+const SCHEMA_VERSION: i64 = 7;
 const KEY_BYTES: usize = 32;
 
 #[derive(Clone, Zeroize, ZeroizeOnDrop)]
@@ -102,7 +102,19 @@ pub struct AnalyteDefinition {
     pub method: Option<String>,
     pub aliases: Vec<String>,
     pub loinc_code: Option<String>,
-    pub healthy_range: Option<String>,
+    pub personal_target_ranges: Vec<PersonalTargetRange>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct PersonalTargetRange {
+    pub id: String,
+    pub lower_bound: Option<String>,
+    pub upper_bound: Option<String>,
+    pub unit: String,
+    pub valid_from: Option<String>,
+    pub valid_to: Option<String>,
+    pub context: Option<String>,
+    pub notes: Option<String>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -150,13 +162,29 @@ impl AccountVault {
     }
     pub fn upsert_analyte(&self, analyte: &AnalyteDefinition) -> Result<(), VaultError> {
         let aliases = serde_json::to_string(&analyte.aliases).map_err(|_| VaultError::Operation)?;
-        self.connection.execute("INSERT INTO analyte_definitions (id,name,component,property,specimen,scale,method,aliases_json,loinc_code,healthy_range) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10) ON CONFLICT(id) DO UPDATE SET name=excluded.name,component=excluded.component,property=excluded.property,specimen=excluded.specimen,scale=excluded.scale,method=excluded.method,aliases_json=excluded.aliases_json,loinc_code=excluded.loinc_code,healthy_range=excluded.healthy_range", params![analyte.id, analyte.name, analyte.component, analyte.property, analyte.specimen, analyte.scale, analyte.method, aliases, analyte.loinc_code, analyte.healthy_range]).map_err(|_| VaultError::Operation)?;
+        let transaction = self.connection.unchecked_transaction().map_err(|_| VaultError::Operation)?;
+        transaction.execute("INSERT INTO analyte_definitions (id,name,component,property,specimen,scale,method,aliases_json,loinc_code) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9) ON CONFLICT(id) DO UPDATE SET name=excluded.name,component=excluded.component,property=excluded.property,specimen=excluded.specimen,scale=excluded.scale,method=excluded.method,aliases_json=excluded.aliases_json,loinc_code=excluded.loinc_code", params![analyte.id, analyte.name, analyte.component, analyte.property, analyte.specimen, analyte.scale, analyte.method, aliases, analyte.loinc_code]).map_err(|_| VaultError::Operation)?;
+        transaction.execute("DELETE FROM personal_target_ranges WHERE analyte_id = ?1", [&analyte.id]).map_err(|_| VaultError::Operation)?;
+        for range in &analyte.personal_target_ranges {
+            transaction.execute("INSERT INTO personal_target_ranges (id,analyte_id,lower_bound,upper_bound,unit,valid_from,valid_to,context,notes) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9)", params![range.id, analyte.id, range.lower_bound, range.upper_bound, range.unit, range.valid_from, range.valid_to, range.context, range.notes]).map_err(|_| VaultError::Operation)?;
+        }
+        transaction.commit().map_err(|_| VaultError::Operation)?;
+        Ok(())
+    }
+
+    pub fn add_personal_target_range(&self, analyte_id: &str, range: &PersonalTargetRange) -> Result<(), VaultError> {
+        self.connection.execute("INSERT INTO personal_target_ranges (id,analyte_id,lower_bound,upper_bound,unit,valid_from,valid_to,context,notes) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9)", params![range.id, analyte_id, range.lower_bound, range.upper_bound, range.unit, range.valid_from, range.valid_to, range.context, range.notes]).map_err(|_| VaultError::Operation)?;
         Ok(())
     }
 
     pub fn list_analytes(&self) -> Result<Vec<AnalyteDefinition>, VaultError> {
-        let mut statement = self.connection.prepare("SELECT id,name,component,property,specimen,scale,method,aliases_json,loinc_code,healthy_range FROM analyte_definitions ORDER BY name").map_err(|_| VaultError::Operation)?;
-        statement.query_map([], |row| Ok(AnalyteDefinition { id: row.get(0)?, name: row.get(1)?, component: row.get(2)?, property: row.get(3)?, specimen: row.get(4)?, scale: row.get(5)?, method: row.get(6)?, aliases: serde_json::from_str(&row.get::<_, String>(7)?).unwrap_or_default(), loinc_code: row.get(8)?, healthy_range: row.get(9)? })).map_err(|_| VaultError::Operation)?.collect::<Result<Vec<_>, _>>().map_err(|_| VaultError::Operation)
+        let mut statement = self.connection.prepare("SELECT id,name,component,property,specimen,scale,method,aliases_json,loinc_code FROM analyte_definitions ORDER BY name").map_err(|_| VaultError::Operation)?;
+        let mut analytes = statement.query_map([], |row| Ok(AnalyteDefinition { id: row.get(0)?, name: row.get(1)?, component: row.get(2)?, property: row.get(3)?, specimen: row.get(4)?, scale: row.get(5)?, method: row.get(6)?, aliases: serde_json::from_str(&row.get::<_, String>(7)?).unwrap_or_default(), loinc_code: row.get(8)?, personal_target_ranges: Vec::new() })).map_err(|_| VaultError::Operation)?.collect::<Result<Vec<_>, _>>().map_err(|_| VaultError::Operation)?;
+        for analyte in &mut analytes {
+            let mut ranges = self.connection.prepare("SELECT id,lower_bound,upper_bound,unit,valid_from,valid_to,context,notes FROM personal_target_ranges WHERE analyte_id = ?1 ORDER BY valid_from, rowid").map_err(|_| VaultError::Operation)?;
+            analyte.personal_target_ranges = ranges.query_map([&analyte.id], |row| Ok(PersonalTargetRange { id: row.get(0)?, lower_bound: row.get(1)?, upper_bound: row.get(2)?, unit: row.get(3)?, valid_from: row.get(4)?, valid_to: row.get(5)?, context: row.get(6)?, notes: row.get(7)? })).map_err(|_| VaultError::Operation)?.collect::<Result<Vec<_>, _>>().map_err(|_| VaultError::Operation)?;
+        }
+        Ok(analytes)
     }
 
     fn open(path: impl AsRef<Path>, key: &VaultKey) -> Result<Self, VaultError> {
@@ -665,6 +693,17 @@ fn migrate(connection: &Connection) -> Result<(), VaultError> {
                      property TEXT NOT NULL, specimen TEXT NOT NULL, scale TEXT NOT NULL,
                      method TEXT, aliases_json TEXT NOT NULL, loinc_code TEXT, healthy_range TEXT
                  );
+                 CREATE TABLE personal_target_ranges (
+                     id TEXT PRIMARY KEY,
+                     analyte_id TEXT NOT NULL REFERENCES analyte_definitions(id) ON DELETE CASCADE,
+                     lower_bound TEXT,
+                     upper_bound TEXT,
+                     unit TEXT NOT NULL,
+                     valid_from TEXT,
+                     valid_to TEXT,
+                     context TEXT,
+                     notes TEXT
+                 );
                  CREATE TABLE measurements (
                      id TEXT PRIMARY KEY,
                      report_id TEXT NOT NULL REFERENCES reports(id) ON DELETE CASCADE,
@@ -676,7 +715,7 @@ fn migrate(connection: &Connection) -> Result<(), VaultError> {
                      analyte_id TEXT, updated_at TEXT NOT NULL, updated_by TEXT NOT NULL
                  );
                  CREATE TABLE archived_reports (report_id TEXT PRIMARY KEY REFERENCES reports(id) ON DELETE CASCADE, archived_at TEXT NOT NULL);
-                 PRAGMA user_version = 6;
+                 PRAGMA user_version = 7;
                  COMMIT;",
             )
             .map_err(|_| VaultError::InvalidKeyOrVault)?;
@@ -708,6 +747,17 @@ fn migrate(connection: &Connection) -> Result<(), VaultError> {
                      property TEXT NOT NULL, specimen TEXT NOT NULL, scale TEXT NOT NULL,
                      method TEXT, aliases_json TEXT NOT NULL, loinc_code TEXT, healthy_range TEXT
                  );
+                 CREATE TABLE personal_target_ranges (
+                     id TEXT PRIMARY KEY,
+                     analyte_id TEXT NOT NULL REFERENCES analyte_definitions(id) ON DELETE CASCADE,
+                     lower_bound TEXT,
+                     upper_bound TEXT,
+                     unit TEXT NOT NULL,
+                     valid_from TEXT,
+                     valid_to TEXT,
+                     context TEXT,
+                     notes TEXT
+                 );
                  CREATE TABLE measurements (
                      id TEXT PRIMARY KEY,
                      report_id TEXT NOT NULL REFERENCES reports(id) ON DELETE CASCADE,
@@ -719,7 +769,7 @@ fn migrate(connection: &Connection) -> Result<(), VaultError> {
                      analyte_id TEXT, updated_at TEXT NOT NULL, updated_by TEXT NOT NULL
                  );
                  CREATE TABLE archived_reports (report_id TEXT PRIMARY KEY REFERENCES reports(id) ON DELETE CASCADE, archived_at TEXT NOT NULL);
-                 PRAGMA user_version = 6;
+                 PRAGMA user_version = 7;
                  COMMIT;",
             )
             .map_err(|_| VaultError::InvalidKeyOrVault)?;
@@ -727,12 +777,18 @@ fn migrate(connection: &Connection) -> Result<(), VaultError> {
         connection
             .execute_batch("BEGIN IMMEDIATE; ALTER TABLE measurements ADD COLUMN analyte_id TEXT; CREATE TABLE analyte_definitions (id TEXT PRIMARY KEY, name TEXT NOT NULL, component TEXT NOT NULL, property TEXT NOT NULL, specimen TEXT NOT NULL, scale TEXT NOT NULL, method TEXT, aliases_json TEXT NOT NULL, loinc_code TEXT); PRAGMA user_version = 3; COMMIT;")
             .map_err(|_| VaultError::InvalidKeyOrVault)?;
+        migrate(connection)?;
     } else if version == 3 {
         connection.execute_batch("BEGIN IMMEDIATE; CREATE TABLE archived_reports (report_id TEXT PRIMARY KEY REFERENCES reports(id) ON DELETE CASCADE, archived_at TEXT NOT NULL); PRAGMA user_version = 4; COMMIT;").map_err(|_| VaultError::InvalidKeyOrVault)?;
+        migrate(connection)?;
     } else if version == 4 {
         connection.execute_batch("BEGIN IMMEDIATE; ALTER TABLE measurements ADD COLUMN updated_at TEXT NOT NULL DEFAULT ''; ALTER TABLE measurements ADD COLUMN updated_by TEXT NOT NULL DEFAULT 'local-user'; PRAGMA user_version = 5; COMMIT;").map_err(|_| VaultError::InvalidKeyOrVault)?;
+        migrate(connection)?;
     } else if version == 5 {
         connection.execute_batch("BEGIN IMMEDIATE; ALTER TABLE analyte_definitions ADD COLUMN healthy_range TEXT; PRAGMA user_version = 6; COMMIT;").map_err(|_| VaultError::InvalidKeyOrVault)?;
+        migrate(connection)?;
+    } else if version == 6 {
+        connection.execute_batch("BEGIN IMMEDIATE; CREATE TABLE personal_target_ranges (id TEXT PRIMARY KEY, analyte_id TEXT NOT NULL REFERENCES analyte_definitions(id) ON DELETE CASCADE, lower_bound TEXT, upper_bound TEXT, unit TEXT NOT NULL, valid_from TEXT, valid_to TEXT, context TEXT, notes TEXT); INSERT INTO personal_target_ranges (id,analyte_id,unit,context,notes) SELECT lower(hex(randomblob(16))),id,'','Imported legacy range',healthy_range FROM analyte_definitions WHERE healthy_range IS NOT NULL AND trim(healthy_range) <> ''; PRAGMA user_version = 7; COMMIT;").map_err(|_| VaultError::InvalidKeyOrVault)?;
     } else if version != SCHEMA_VERSION {
         return Err(VaultError::InvalidKeyOrVault);
     }
@@ -747,4 +803,47 @@ fn random_identifier() -> Result<String, VaultError> {
     let mut bytes = [0_u8; 16];
     getrandom::fill(&mut bytes).map_err(|_| VaultError::SecureRandom)?;
     Ok(encode_hex(&bytes))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn version_six_free_text_range_migrates_without_numeric_inference() {
+        let path = std::env::temp_dir().join(format!(
+            "hemo-target-range-migration-{}.db",
+            random_identifier().unwrap()
+        ));
+        let key = VaultKey::generate().unwrap();
+        let connection = Connection::open(&path).unwrap();
+        apply_key(&connection, &key).unwrap();
+        configure(&connection).unwrap();
+        connection
+            .execute_batch(
+                "CREATE TABLE analyte_definitions (
+                    id TEXT PRIMARY KEY, name TEXT NOT NULL, component TEXT NOT NULL,
+                    property TEXT NOT NULL, specimen TEXT NOT NULL, scale TEXT NOT NULL,
+                    method TEXT, aliases_json TEXT NOT NULL, loinc_code TEXT, healthy_range TEXT
+                 );
+                 INSERT INTO analyte_definitions VALUES (
+                    'hb','Hemoglobin','Hemoglobin','MCnc','Blood','Quantitative',
+                    NULL,'[]','718-7','120-180 g/L (legacy text)'
+                 );
+                 PRAGMA user_version = 6;",
+            )
+            .unwrap();
+        drop(connection);
+
+        let vault = AccountVault::open(&path, &key).unwrap();
+        let analyte = vault.list_analytes().unwrap().remove(0);
+        let range = &analyte.personal_target_ranges[0];
+        assert_eq!(range.lower_bound, None);
+        assert_eq!(range.upper_bound, None);
+        assert_eq!(range.unit, "");
+        assert_eq!(range.context.as_deref(), Some("Imported legacy range"));
+        assert_eq!(range.notes.as_deref(), Some("120-180 g/L (legacy text)"));
+        drop(vault);
+        fs::remove_file(path).unwrap();
+    }
 }

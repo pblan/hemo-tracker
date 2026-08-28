@@ -13,6 +13,7 @@ import { type FormEvent, useEffect, useState } from "react";
 import {
   addAnalyteDefinition,
   addLabMeasurement,
+  addPersonalTargetRange,
   chooseAndRestoreLocalVault,
   chooseAndExportPlaintextZip,
   completeLabReport,
@@ -33,6 +34,7 @@ import {
 } from "./vault-client";
 import { parseMeasurementInput } from "./measurement-parser";
 import { validateMeasurementRow } from "./measurement-validation";
+import { validatePersonalTargetRange } from "./personal-target-range-validation";
 import { TrendPlot } from "./components/TrendPlot";
 
 function App() {
@@ -310,7 +312,6 @@ function UnlockedVault({
   const [analyteName, setAnalyteName] = useState("");
   const [analyteComponent, setAnalyteComponent] = useState("");
   const [analyteProperty, setAnalyteProperty] = useState("");
-  const [healthyRange, setHealthyRange] = useState("");
   const [analytes, setAnalytes] = useState<
     Awaited<ReturnType<typeof listAnalyteDefinitions>>
   >([]);
@@ -327,6 +328,15 @@ function UnlockedVault({
   const [correctionValue, setCorrectionValue] = useState("");
   const [trendAnalyteId, setTrendAnalyteId] = useState("");
   const [compareAnalyteId, setCompareAnalyteId] = useState("");
+  const [rangeAnalyteId, setRangeAnalyteId] = useState("");
+  const [rangeLower, setRangeLower] = useState("");
+  const [rangeUpper, setRangeUpper] = useState("");
+  const [rangeUnit, setRangeUnit] = useState("");
+  const [rangeValidFrom, setRangeValidFrom] = useState("");
+  const [rangeValidTo, setRangeValidTo] = useState("");
+  const [rangeContext, setRangeContext] = useState("");
+  const [rangeNotes, setRangeNotes] = useState("");
+  const [rangeMessage, setRangeMessage] = useState("");
   const [restorePassphrase, setRestorePassphrase] = useState("");
 
   useEffect(() => {
@@ -343,6 +353,7 @@ function UnlockedVault({
 
   async function saveReport(event: FormEvent) {
     event.preventDefault();
+    setRangeMessage("");
     const validationErrors = validateMeasurementRow({
       sourceLabel,
       sourceValue,
@@ -391,7 +402,7 @@ function UnlockedVault({
           specimen: "Blood",
           scale: "Quantitative",
           aliases: [],
-          healthyRange: healthyRange || undefined,
+          personalTargetRanges: [],
         }));
       await addLabMeasurement(reportId, {
         sourceLabel,
@@ -412,6 +423,7 @@ function UnlockedVault({
         });
       }
       await completeLabReport(reportId);
+      setAnalytes(await listAnalyteDefinitions());
       setCollectionTime("");
       setLaboratory("");
       setSourceLabel("");
@@ -423,6 +435,45 @@ function UnlockedVault({
       onError("Hemo Tracker could not save the lab report.");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function savePersonalTargetRange(event: FormEvent) {
+    event.preventDefault();
+    const validationErrors = validatePersonalTargetRange({
+      analyteId: rangeAnalyteId,
+      lowerBound: rangeLower,
+      upperBound: rangeUpper,
+      unit: rangeUnit,
+      validFrom: rangeValidFrom,
+      validTo: rangeValidTo,
+    });
+    if (validationErrors.length) {
+      onError(validationErrors[0] ?? "Complete the personal target range.");
+      return;
+    }
+    onError("");
+    try {
+      await addPersonalTargetRange(rangeAnalyteId, {
+        lowerBound: rangeLower || undefined,
+        upperBound: rangeUpper || undefined,
+        unit: rangeUnit,
+        validFrom: rangeValidFrom || undefined,
+        validTo: rangeValidTo || undefined,
+        context: rangeContext || undefined,
+        notes: rangeNotes || undefined,
+      });
+      setAnalytes(await listAnalyteDefinitions());
+      setRangeLower("");
+      setRangeUpper("");
+      setRangeUnit("");
+      setRangeValidFrom("");
+      setRangeValidTo("");
+      setRangeContext("");
+      setRangeNotes("");
+      setRangeMessage("Personal target range added.");
+    } catch {
+      onError("Hemo Tracker could not save the personal target range.");
     }
   }
 
@@ -574,6 +625,122 @@ function UnlockedVault({
               Select an analyte to view recorded numeric values.
             </Text>
           )}
+        </Stack>
+      </Box>
+      <Box
+        as="form"
+        bg="bg.panel"
+        borderWidth="1px"
+        borderColor="border"
+        borderRadius="2xl"
+        p={{ base: "5", md: "6" }}
+        onSubmit={savePersonalTargetRange}
+      >
+        <Stack gap="4">
+          <Stack gap="1">
+            <Heading as="h2" size="lg">
+              Personal target ranges
+            </Heading>
+            <Text color="fg.muted" fontSize="sm">
+              These ranges are informational. They do not replace the source
+              laboratory interval or medical advice.
+            </Text>
+          </Stack>
+          <Field.Root required>
+            <Field.Label>Analyte</Field.Label>
+            <select
+              aria-label="Target range analyte"
+              value={rangeAnalyteId}
+              onChange={(event) => setRangeAnalyteId(event.target.value)}
+            >
+              <option value="">Select an analyte</option>
+              {analytes.map((analyte) => (
+                <option key={analyte.id} value={analyte.id}>
+                  {analyte.name}
+                </option>
+              ))}
+            </select>
+          </Field.Root>
+          <Stack direction={{ base: "column", sm: "row" }} gap="3">
+            <Field.Root>
+              <Field.Label>Lower limit</Field.Label>
+              <Input
+                inputMode="decimal"
+                value={rangeLower}
+                onChange={(event) => setRangeLower(event.target.value)}
+              />
+            </Field.Root>
+            <Field.Root>
+              <Field.Label>Upper limit</Field.Label>
+              <Input
+                inputMode="decimal"
+                value={rangeUpper}
+                onChange={(event) => setRangeUpper(event.target.value)}
+              />
+            </Field.Root>
+            <Field.Root required>
+              <Field.Label>Unit</Field.Label>
+              <Input
+                value={rangeUnit}
+                onChange={(event) => setRangeUnit(event.target.value)}
+              />
+            </Field.Root>
+          </Stack>
+          <Stack direction={{ base: "column", sm: "row" }} gap="3">
+            <Field.Root>
+              <Field.Label>Valid from</Field.Label>
+              <Input
+                type="date"
+                value={rangeValidFrom}
+                onChange={(event) => setRangeValidFrom(event.target.value)}
+              />
+            </Field.Root>
+            <Field.Root>
+              <Field.Label>Valid to</Field.Label>
+              <Input
+                type="date"
+                value={rangeValidTo}
+                onChange={(event) => setRangeValidTo(event.target.value)}
+              />
+            </Field.Root>
+          </Stack>
+          <Stack direction={{ base: "column", sm: "row" }} gap="3">
+            <Field.Root>
+              <Field.Label>Applicability note</Field.Label>
+              <Input
+                placeholder="For example, fasting"
+                value={rangeContext}
+                onChange={(event) => setRangeContext(event.target.value)}
+              />
+            </Field.Root>
+            <Field.Root>
+              <Field.Label>Personal note</Field.Label>
+              <Input
+                value={rangeNotes}
+                onChange={(event) => setRangeNotes(event.target.value)}
+              />
+            </Field.Root>
+          </Stack>
+          <Button type="submit" alignSelf="start" colorPalette="teal">
+            Add personal target range
+          </Button>
+          {rangeMessage ? <Text role="status">{rangeMessage}</Text> : null}
+          {rangeAnalyteId ? (
+            <Stack gap="2" aria-label="Saved personal target ranges">
+              {analytes
+                .find((analyte) => analyte.id === rangeAnalyteId)
+                ?.personalTargetRanges.map((range) => (
+                  <Text key={range.id} fontSize="sm">
+                    {range.lowerBound || "No lower limit"} to{" "}
+                    {range.upperBound || "no upper limit"} {range.unit}
+                    {range.validFrom ? ` from ${range.validFrom}` : ""}
+                    {range.validTo ? ` to ${range.validTo}` : ""}
+                    {range.context ? ` · ${range.context}` : ""}
+                    {range.notes ? ` · ${range.notes}` : ""}
+                  </Text>
+                ))}
+            </Stack>
+          ) : null}
         </Stack>
       </Box>
       <Box
@@ -805,11 +972,6 @@ function UnlockedVault({
               placeholder="Property, for example concentration"
               value={analyteProperty}
               onChange={(event) => setAnalyteProperty(event.target.value)}
-            />
-            <Input
-              placeholder="Healthy range (informational, for example 120–180 g/L)"
-              value={healthyRange}
-              onChange={(event) => setHealthyRange(event.target.value)}
             />
           </Stack>
           <Field.Root required>

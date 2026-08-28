@@ -24,6 +24,7 @@ test("capture unlocked overview", async ({ page }) => {
   await mockTauri(page, "unlocked");
   await page.goto("/");
   await page.getByLabel("Trend analyte").selectOption("hb");
+  await page.getByLabel("Target range analyte").selectOption("hb");
   await expect(page.getByText("Fictional Central Laboratory")).toBeVisible();
   await page.screenshot({
     path: path.join(screenshotDirectory, "desktop-unlocked-overview.png"),
@@ -46,7 +47,16 @@ async function mockTauri(
         scale: "Quantitative",
         aliases: ["Hb"],
         loincCode: "718-7",
-        healthyRange: "12.0–16.0 g/dL",
+        personalTargetRanges: [
+          {
+            id: "range-1",
+            lowerBound: "12.0",
+            upperBound: "16.0",
+            unit: "g/dL",
+            validFrom: "2026-01-01",
+            context: "Fictional personal example",
+          },
+        ],
       };
       const report = {
         id: "report-1",

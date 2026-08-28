@@ -48,7 +48,7 @@ Hemo Tracker encrypts the backup. The backup does not contain the passphrase or 
 
 ## Read a trend
 
-![Hemo Tracker unlocked overview with a hemoglobin trend, report history, report entry form, backup, restore, and plaintext export controls.](../assets/screenshots/v1/desktop-unlocked-overview.png)
+![Hemo Tracker unlocked overview with a hemoglobin trend, personal target ranges, report history, report entry, and local data controls.](../assets/screenshots/v1/desktop-unlocked-overview.png)
 
 1. Select an analyte in **Analyte trend**.
 2. Review the plot for recorded numeric values.
@@ -57,6 +57,19 @@ Hemo Tracker encrypts the backup. The backup does not contain the passphrase or 
 The table also shows missing and flagged results. A plot does not give medical advice. Results with different units are not comparable until Hemo Tracker confirms a safe normalization rule.
 
 Select **Compare with another analyte** to show a second local series. Use the source units and flags to check that the two series are meaningful to compare. Hemo Tracker does not convert incompatible units.
+
+## Add a personal target range
+
+Use a personal target range only as personal information. It does not replace the interval from the source laboratory. It is not medical advice.
+
+1. Select an analyte in **Personal target ranges**.
+2. Enter a lower limit, an upper limit, or both limits.
+3. Enter the unit.
+4. If necessary, enter the start date and end date.
+5. If necessary, enter an applicability note or a personal note.
+6. Select **Add personal target range**.
+
+Result: Hemo Tracker adds the range to the analyte. Existing measurements and source reference intervals do not change. You can add more ranges for other dates, units, or contexts.
 
 ## Safety limits
 

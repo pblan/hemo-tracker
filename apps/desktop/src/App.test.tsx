@@ -10,6 +10,7 @@ vi.mock("./vault-client", () => ({
   createLocalAccount: vi.fn(),
   getVaultState: vi.fn(),
   lockVault: vi.fn(),
+  addPersonalTargetRange: vi.fn(),
   listAnalyteDefinitions: vi.fn(),
   listLabReports: vi.fn(),
   getLabReport: vi.fn(),
@@ -145,5 +146,56 @@ describe("desktop application shell", () => {
       await screen.findByText("The passphrase or local vault is invalid."),
     ).toBeVisible();
     expect(passphrase).toHaveValue("");
+  });
+
+  it("adds a dated personal target range for a saved analyte", async () => {
+    vi.mocked(vaultClient.getVaultState).mockResolvedValue({
+      accountExists: true,
+      status: "unlocked",
+    });
+    vi.mocked(vaultClient.listAnalyteDefinitions).mockResolvedValue([
+      {
+        id: "hemoglobin",
+        name: "Hemoglobin",
+        component: "Hemoglobin",
+        property: "MCnc",
+        specimen: "Blood",
+        scale: "Quantitative",
+        aliases: [],
+        personalTargetRanges: [],
+      },
+    ]);
+    vi.mocked(vaultClient.addPersonalTargetRange).mockResolvedValue("range-1");
+    const user = userEvent.setup();
+    render(
+      <Provider>
+        <App />
+      </Provider>,
+    );
+
+    await user.selectOptions(
+      await screen.findByLabelText("Target range analyte"),
+      "hemoglobin",
+    );
+    await user.type(screen.getByLabelText("Lower limit"), "120");
+    await user.type(screen.getByLabelText("Upper limit"), "180");
+    await user.type(screen.getByLabelText("Unit"), "g/L");
+    await user.type(screen.getByLabelText("Valid from"), "2026-01-01");
+    await user.click(
+      screen.getByRole("button", { name: "Add personal target range" }),
+    );
+
+    expect(vaultClient.addPersonalTargetRange).toHaveBeenCalledWith(
+      "hemoglobin",
+      expect.objectContaining({
+        lowerBound: "120",
+        upperBound: "180",
+        unit: "g/L",
+        validFrom: "2026-01-01",
+      }),
+    );
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      "Personal target range added.",
+    );
   });
 });

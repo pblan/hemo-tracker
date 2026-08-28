@@ -1,6 +1,6 @@
 use hemo_encrypted_vault::{
     AccountVault, AnalyteDefinition, CreateReport, MeasurementRecord, NativeVaultManager,
-    ReportState, SourceFileRecord, VaultKey,
+    PersonalTargetRange, ReportState, SourceFileRecord, VaultKey,
 };
 use hemo_key_lifecycle::{
     AccountKeyBundle, KeyEnvelope, Passphrase, Purpose, PurposeKey, RecoveryCode, RecoveryKey,
@@ -74,7 +74,18 @@ pub struct NewAnalyte {
     pub method: Option<String>,
     pub aliases: Vec<String>,
     pub loinc_code: Option<String>,
-    pub healthy_range: Option<String>,
+    pub personal_target_ranges: Vec<NewPersonalTargetRange>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct NewPersonalTargetRange {
+    pub lower_bound: Option<String>,
+    pub upper_bound: Option<String>,
+    pub unit: String,
+    pub valid_from: Option<String>,
+    pub valid_to: Option<String>,
+    pub context: Option<String>,
+    pub notes: Option<String>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
@@ -320,6 +331,11 @@ impl LocalAccountVault {
             return Err(LocalAccountError::Operation);
         }
         let id = random_identifier()?;
+        let personal_target_ranges = analyte
+            .personal_target_ranges
+            .into_iter()
+            .map(new_personal_target_range)
+            .collect::<Result<Vec<_>, _>>()?;
         self.unlocked_mut()?
             ._vault
             .upsert_analyte(&AnalyteDefinition {
@@ -332,8 +348,22 @@ impl LocalAccountVault {
                 method: analyte.method,
                 aliases: analyte.aliases,
                 loinc_code: analyte.loinc_code,
-                healthy_range: analyte.healthy_range,
+                personal_target_ranges,
             })
+            .map_err(|_| LocalAccountError::Operation)?;
+        Ok(id)
+    }
+
+    pub fn add_personal_target_range(
+        &mut self,
+        analyte_id: &str,
+        range: NewPersonalTargetRange,
+    ) -> Result<String, LocalAccountError> {
+        let range = new_personal_target_range(range)?;
+        let id = range.id.clone();
+        self.unlocked_mut()?
+            ._vault
+            .add_personal_target_range(analyte_id, &range)
             .map_err(|_| LocalAccountError::Operation)?;
         Ok(id)
     }
@@ -733,7 +763,7 @@ impl LocalAccountVault {
                 method: None,
                 aliases: Vec::new(),
                 loinc_code: loinc.map(str::to_owned),
-                healthy_range: None,
+                personal_target_ranges: Vec::new(),
             })?;
         }
         Ok(())
@@ -750,6 +780,58 @@ impl LocalAccountVault {
             .as_mut()
             .ok_or(LocalAccountError::InvalidCredentials)
     }
+}
+
+fn new_personal_target_range(
+    range: NewPersonalTargetRange,
+) -> Result<PersonalTargetRange, LocalAccountError> {
+    let lower_bound = nonempty(range.lower_bound);
+    let upper_bound = nonempty(range.upper_bound);
+    let notes = nonempty(range.notes);
+    if lower_bound.is_none() && upper_bound.is_none() && notes.is_none() {
+        return Err(LocalAccountError::Operation);
+    }
+    if (lower_bound.is_some() || upper_bound.is_some()) && range.unit.trim().is_empty() {
+        return Err(LocalAccountError::Operation);
+    }
+    let lower_numeric = lower_bound.as_deref().map(parse_decimal).transpose()?;
+    let upper_numeric = upper_bound.as_deref().map(parse_decimal).transpose()?;
+    if let (Some(lower), Some(upper)) = (lower_numeric, upper_numeric)
+        && lower > upper
+    {
+        return Err(LocalAccountError::Operation);
+    }
+    if let (Some(from), Some(to)) = (&range.valid_from, &range.valid_to)
+        && from > to
+    {
+        return Err(LocalAccountError::Operation);
+    }
+    Ok(PersonalTargetRange {
+        id: random_identifier()?,
+        lower_bound,
+        upper_bound,
+        unit: range.unit.trim().to_owned(),
+        valid_from: nonempty(range.valid_from),
+        valid_to: nonempty(range.valid_to),
+        context: nonempty(range.context),
+        notes,
+    })
+}
+
+fn parse_decimal(value: &str) -> Result<f64, LocalAccountError> {
+    value
+        .replace(',', ".")
+        .parse::<f64>()
+        .ok()
+        .filter(|value| value.is_finite())
+        .ok_or(LocalAccountError::Operation)
+}
+
+fn nonempty(value: Option<String>) -> Option<String> {
+    value.and_then(|value| {
+        let value = value.trim().to_owned();
+        (!value.is_empty()).then_some(value)
+    })
 }
 
 fn unlock_account(

@@ -16,6 +16,7 @@ pub fn run() {
             vault_commands::select_and_attach_source_file,
             vault_commands::add_lab_measurement,
             vault_commands::add_analyte_definition,
+            vault_commands::add_personal_target_range,
             vault_commands::list_analyte_definitions,
             vault_commands::get_lab_report,
             vault_commands::list_lab_reports,

@@ -62,8 +62,18 @@ export const addAnalyteDefinition = (request: {
   method?: string;
   aliases: string[];
   loincCode?: string;
-  healthyRange?: string;
+  personalTargetRanges: PersonalTargetRangeInput[];
 }) => invoke<string>("add_analyte_definition", { request });
+export type PersonalTargetRangeInput = {
+  lowerBound?: string;
+  upperBound?: string;
+  unit: string;
+  validFrom?: string;
+  validTo?: string;
+  context?: string;
+  notes?: string;
+};
+export type PersonalTargetRange = PersonalTargetRangeInput & { id: string };
 export type AnalyteDefinition = {
   id: string;
   name: string;
@@ -74,10 +84,14 @@ export type AnalyteDefinition = {
   method?: string;
   aliases: string[];
   loincCode?: string;
-  healthyRange?: string;
+  personalTargetRanges: PersonalTargetRange[];
 };
 export const listAnalyteDefinitions = () =>
   invoke<AnalyteDefinition[]>("list_analyte_definitions");
+export const addPersonalTargetRange = (
+  analyteId: string,
+  request: PersonalTargetRangeInput,
+) => invoke<string>("add_personal_target_range", { analyteId, request });
 export type ReportSummary = {
   id: string;
   collectionTime: string;

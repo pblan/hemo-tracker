@@ -15,7 +15,7 @@ This directory stores screenshots for the unsigned local V1 release.
 ## Current entries
 
 - `desktop-locked-vault.png`: Hemo Tracker 0.1.0, browser-rendered desktop webview, 1280 x 900 viewport, light theme, fictional locked-vault fixture, Playwright controlled Tauri API mock. Alternative text: "Hemo Tracker locked-vault screen with passphrase and recovery-key unlock forms."
-- `desktop-unlocked-overview.png`: Hemo Tracker 0.1.0, browser-rendered desktop webview, 1280 x 900 viewport, light theme, fictional hemoglobin report fixture, Playwright controlled Tauri API mock. Alternative text: "Hemo Tracker unlocked overview with a hemoglobin trend, report history, report entry form, backup, restore, and plaintext export controls."
+- `desktop-unlocked-overview.png`: Hemo Tracker 0.1.0, browser-rendered desktop webview, 1280 x 900 viewport, light theme, fictional hemoglobin report and personal target range fixture, Playwright controlled Tauri API mock. Alternative text: "Hemo Tracker unlocked overview with a hemoglobin trend, personal target ranges, report history, report entry, and local data controls."
 
 ## Naming and alternative text
 

@@ -1,6 +1,6 @@
 use hemo_tracker_desktop_lib::account_vault::{
     CreateLabReportDraft, CreateLocalAccount, LocalAccountVault, NewAnalyte, NewMeasurement,
-    NewSourceFile, ReportStatus, VaultStatus,
+    NewPersonalTargetRange, NewSourceFile, ReportStatus, VaultStatus,
 };
 use std::fs;
 use tempfile::tempdir;
@@ -151,7 +151,15 @@ fn user_records_and_reopens_one_complete_lab_report_with_encrypted_evidence() {
             method: None,
             aliases: vec!["Hb".to_owned()],
             loinc_code: Some("718-7".to_owned()),
-            healthy_range: Some("120-180 g/L (example only)".to_owned()),
+            personal_target_ranges: vec![NewPersonalTargetRange {
+                lower_bound: Some("120".to_owned()),
+                upper_bound: Some("180".to_owned()),
+                unit: "g/L".to_owned(),
+                valid_from: Some("2026-01-01".to_owned()),
+                valid_to: None,
+                context: Some("Personal example".to_owned()),
+                notes: Some("Informational only".to_owned()),
+            }],
         })
         .unwrap();
     assert!(vault.list_analytes().unwrap().len() >= 5);
@@ -161,8 +169,43 @@ fn user_records_and_reopens_one_complete_lab_report_with_encrypted_evidence() {
             .unwrap()
             .into_iter()
             .find(|analyte| analyte.id == hemoglobin_id)
-            .and_then(|analyte| analyte.healthy_range),
-        Some("120-180 g/L (example only)".to_owned())
+            .and_then(|analyte| analyte.personal_target_ranges.into_iter().next())
+            .map(|range| (range.lower_bound, range.upper_bound, range.unit)),
+        Some((
+            Some("120".to_owned()),
+            Some("180".to_owned()),
+            "g/L".to_owned()
+        ))
+    );
+    vault
+        .add_personal_target_range(
+            &hemoglobin_id,
+            NewPersonalTargetRange {
+                lower_bound: Some("125".to_owned()),
+                upper_bound: Some("175".to_owned()),
+                unit: "g/L".to_owned(),
+                valid_from: Some("2027-01-01".to_owned()),
+                valid_to: None,
+                context: Some("Fasting".to_owned()),
+                notes: None,
+            },
+        )
+        .unwrap();
+    assert!(
+        vault
+            .add_personal_target_range(
+                &hemoglobin_id,
+                NewPersonalTargetRange {
+                    lower_bound: Some("180".to_owned()),
+                    upper_bound: Some("120".to_owned()),
+                    unit: "g/L".to_owned(),
+                    valid_from: None,
+                    valid_to: None,
+                    context: None,
+                    notes: None,
+                },
+            )
+            .is_err()
     );
 
     let report_id = vault
@@ -275,6 +318,17 @@ fn user_records_and_reopens_one_complete_lab_report_with_encrypted_evidence() {
     reopened
         .unlock_with_passphrase("valid passphrase".to_owned())
         .unwrap();
+    assert_eq!(
+        reopened
+            .list_analytes()
+            .unwrap()
+            .into_iter()
+            .find(|analyte| analyte.id == hemoglobin_id)
+            .unwrap()
+            .personal_target_ranges
+            .len(),
+        2
+    );
     let report = reopened.get_lab_report(&report_id).unwrap();
     assert_eq!(report.status, ReportStatus::Complete);
     assert_eq!(
