@@ -11,6 +11,8 @@ vi.mock("./vault-client", () => ({
   getVaultState: vi.fn(),
   lockVault: vi.fn(),
   listAnalyteDefinitions: vi.fn(),
+  listLabReports: vi.fn(),
+  getLabReport: vi.fn(),
   unlockWithPassphrase: vi.fn(),
   unlockWithRecovery: vi.fn(),
 }));
@@ -23,6 +25,7 @@ describe("desktop application shell", () => {
       status: "missing",
     });
     vi.mocked(vaultClient.listAnalyteDefinitions).mockResolvedValue([]);
+    vi.mocked(vaultClient.listLabReports).mockResolvedValue([]);
   });
 
   it("identifies the private local-first application", async () => {

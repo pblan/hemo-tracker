@@ -18,6 +18,9 @@ import {
   createLocalAccount,
   getVaultState,
   listAnalyteDefinitions,
+  listLabReports,
+  getLabReport,
+  type ReportSummary,
   lockVault,
   selectAndAttachSourceFile,
   unlockWithPassphrase,
@@ -308,12 +311,20 @@ function UnlockedVault({
   const [sourceFilename, setSourceFilename] = useState<string | null>(null);
   const [sourceRole, setSourceRole] = useState("primary");
   const [saving, setSaving] = useState(false);
+  const [reports, setReports] = useState<ReportSummary[]>([]);
+  const [reportSearch, setReportSearch] = useState("");
 
   useEffect(() => {
     void listAnalyteDefinitions()
       .then(setAnalytes)
       .catch(() => undefined);
   }, []);
+  useEffect(() => {
+    void listLabReports()
+      .then((ids) => Promise.all(ids.map((id) => getLabReport(id))))
+      .then(setReports)
+      .catch(() => undefined);
+  }, [saving]);
 
   async function saveReport(event: FormEvent) {
     event.preventDefault();
@@ -384,6 +395,76 @@ function UnlockedVault({
   }
   return (
     <Stack gap="6">
+      <Box
+        bg="bg.panel"
+        borderWidth="1px"
+        borderColor="border"
+        borderRadius="2xl"
+        p={{ base: "5", md: "6" }}
+        shadow="sm"
+      >
+        <Stack gap="4">
+          <Stack
+            direction={{ base: "column", sm: "row" }}
+            justify="space-between"
+            align={{ base: "stretch", sm: "center" }}
+          >
+            <Stack gap="0">
+              <Heading as="h2" size="lg">
+                Report history
+              </Heading>
+              <Text color="fg.muted" fontSize="sm">
+                Stored only in this encrypted vault.
+              </Text>
+            </Stack>
+            <Input
+              aria-label="Search reports"
+              placeholder="Search laboratory"
+              maxW="sm"
+              value={reportSearch}
+              onChange={(event) => setReportSearch(event.target.value)}
+            />
+          </Stack>
+          {reports
+            .filter(
+              (report) =>
+                !reportSearch ||
+                report.laboratory
+                  ?.toLowerCase()
+                  .includes(reportSearch.toLowerCase()),
+            )
+            .slice(0, 5)
+            .map((report) => (
+              <Box
+                key={report.id}
+                borderWidth="1px"
+                borderColor="border"
+                borderRadius="lg"
+                px="4"
+                py="3"
+              >
+                <Stack direction="row" justify="space-between" align="center">
+                  <Stack gap="0">
+                    <Text fontWeight="semibold">
+                      {report.laboratory || "Laboratory report"}
+                    </Text>
+                    <Text color="fg.muted" fontSize="sm">
+                      {report.collectionTime}
+                    </Text>
+                  </Stack>
+                  <Text fontSize="sm" textTransform="capitalize">
+                    {report.status}
+                  </Text>
+                </Stack>
+              </Box>
+            ))}
+          {!reports.length ? (
+            <Text color="fg.muted" fontSize="sm">
+              No reports recorded yet.
+            </Text>
+          ) : null}
+        </Stack>
+      </Box>
       <Box
         bgGradient="to-r"
         gradientFrom="teal.700"
