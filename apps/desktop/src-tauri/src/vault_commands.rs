@@ -49,6 +49,7 @@ pub struct MeasurementRequest {
     pub source_unit: String,
     pub source_reference_interval: String,
     pub source_flag: String,
+    pub parsed_numeric_value: Option<String>,
     pub analyte_id: Option<String>,
 }
 
@@ -63,6 +64,7 @@ pub struct AnalyteRequest {
     pub method: Option<String>,
     pub aliases: Vec<String>,
     pub loinc_code: Option<String>,
+    pub canonical_unit: Option<String>,
     pub personal_target_ranges: Vec<PersonalTargetRangeRequest>,
 }
 
@@ -90,6 +92,7 @@ pub struct AnalyteResult {
     pub method: Option<String>,
     pub aliases: Vec<String>,
     pub loinc_code: Option<String>,
+    pub canonical_unit: Option<String>,
     pub personal_target_ranges: Vec<PersonalTargetRangeResult>,
 }
 
@@ -135,6 +138,7 @@ pub struct MeasurementPreviewResult {
     pub source_unit: String,
     pub source_reference_interval: String,
     pub source_flag: String,
+    pub parsed_numeric_value: Option<String>,
     pub analyte_id: Option<String>,
     pub updated_at: String,
     pub updated_by: String,
@@ -300,6 +304,7 @@ pub fn add_lab_measurement(
                 source_unit: request.source_unit,
                 source_reference_interval: request.source_reference_interval,
                 source_flag: request.source_flag,
+                parsed_numeric_value: request.parsed_numeric_value,
                 analyte_id: request.analyte_id,
             },
         )
@@ -324,6 +329,7 @@ pub fn add_analyte_definition(
             method: request.method,
             aliases: request.aliases,
             loinc_code: request.loinc_code,
+            canonical_unit: request.canonical_unit,
             personal_target_ranges: request
                 .personal_target_ranges
                 .into_iter()
@@ -355,6 +361,7 @@ pub fn list_analyte_definitions(
                     method: item.method,
                     aliases: item.aliases,
                     loinc_code: item.loinc_code,
+                    canonical_unit: item.canonical_unit,
                     personal_target_ranges: item
                         .personal_target_ranges
                         .into_iter()
@@ -443,6 +450,7 @@ pub fn get_lab_report(
                 source_unit: measurement.source_unit,
                 source_reference_interval: measurement.source_reference_interval,
                 source_flag: measurement.source_flag,
+                parsed_numeric_value: measurement.parsed_numeric_value,
                 analyte_id: measurement.analyte_id,
                 updated_at: measurement.updated_at,
                 updated_by: measurement.updated_by,
@@ -506,6 +514,7 @@ pub fn correct_lab_measurement(
                 source_unit: request.source_unit,
                 source_reference_interval: request.source_reference_interval,
                 source_flag: request.source_flag,
+                parsed_numeric_value: request.parsed_numeric_value,
                 analyte_id: request.analyte_id,
             },
             updated_by,

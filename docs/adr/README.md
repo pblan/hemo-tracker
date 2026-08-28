@@ -8,3 +8,5 @@ The accepted records explain decisions that constrain the Hemo Tracker architect
 - [ADR 0004: Use uPlot behind a plot adapter](0004-use-uplot-behind-a-plot-adapter.md)
 - [ADR 0005: Ship an unsigned local desktop V1](0005-ship-an-unsigned-local-desktop-v1.md)
 - [ADR 0006: Use versioned local cryptographic formats](0006-use-versioned-local-cryptographic-formats.md)
+- [ADR 0007: Keep source facts immutable and corrections explicit](0007-source-facts-and-corrections.md)
+- [ADR 0008: Use NLM UCUM for automatic normalization](0008-use-nlm-ucum-for-automatic-normalization.md)

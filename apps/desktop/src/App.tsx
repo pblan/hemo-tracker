@@ -35,6 +35,7 @@ import {
 import { parseMeasurementInput } from "./measurement-parser";
 import { validateMeasurementRow } from "./measurement-validation";
 import { validatePersonalTargetRange } from "./personal-target-range-validation";
+import { normalizeMeasurement } from "./measurement-normalization";
 import { TrendPlot } from "./components/TrendPlot";
 
 function App() {
@@ -402,23 +403,34 @@ function UnlockedVault({
           specimen: "Blood",
           scale: "Quantitative",
           aliases: [],
+          canonicalUnit: sourceUnit,
           personalTargetRanges: [],
         }));
+      const parsedSourceValue = parseMeasurementInput(sourceValue, "de-DE");
       await addLabMeasurement(reportId, {
         sourceLabel,
         sourceValue,
         sourceUnit,
         sourceReferenceInterval,
         sourceFlag,
+        parsedNumericValue:
+          parsedSourceValue.kind === "number"
+            ? parsedSourceValue.normalized
+            : undefined,
         analyteId,
       });
       if (extraMeasurement) {
+        const parsedSecondValue = parseMeasurementInput(secondValue, "de-DE");
         await addLabMeasurement(reportId, {
           sourceLabel: secondLabel,
           sourceValue: secondValue,
           sourceUnit: secondUnit,
           sourceReferenceInterval: secondInterval,
           sourceFlag: secondFlag,
+          parsedNumericValue:
+            parsedSecondValue.kind === "number"
+              ? parsedSecondValue.normalized
+              : undefined,
           analyteId,
         });
       }
@@ -521,12 +533,17 @@ function UnlockedVault({
     measurement: ReportSummary["measurements"][number],
   ) {
     try {
+      const parsedCorrection = parseMeasurementInput(correctionValue, "de-DE");
       await correctLabMeasurement(measurement.id, {
         sourceLabel: measurement.sourceLabel,
         sourceValue: correctionValue,
         sourceUnit: measurement.sourceUnit,
         sourceReferenceInterval: measurement.sourceReferenceInterval,
         sourceFlag: measurement.sourceFlag,
+        parsedNumericValue:
+          parsedCorrection.kind === "number"
+            ? parsedCorrection.normalized
+            : undefined,
         analyteId: measurement.analyteId,
       });
       setEditingMeasurement(null);
@@ -544,32 +561,31 @@ function UnlockedVault({
       onError("Hemo Tracker could not lock the local vault.");
     }
   }
-  const trendPoints = reports
-    .flatMap((report) =>
+  const buildTrend = (analyteId: string) => {
+    const analyte = analytes.find((item) => item.id === analyteId);
+    const candidates = reports.flatMap((report) =>
       report.measurements
-        .filter((measurement) => measurement.analyteId === trendAnalyteId)
-        .map((measurement) => ({
-          id: measurement.id,
-          date: report.collectionTime,
-          value: Number(measurement.sourceValue.replace(",", ".")),
-          unit: measurement.sourceUnit,
-          flag: measurement.sourceFlag,
-        })),
-    )
-    .filter((point) => Number.isFinite(point.value));
-  const comparePoints = reports
-    .flatMap((report) =>
-      report.measurements
-        .filter((measurement) => measurement.analyteId === compareAnalyteId)
-        .map((measurement) => ({
-          id: measurement.id,
-          date: report.collectionTime,
-          value: Number(measurement.sourceValue.replace(",", ".")),
-          unit: measurement.sourceUnit,
-          flag: measurement.sourceFlag,
-        })),
-    )
-    .filter((point) => Number.isFinite(point.value));
+        .filter((measurement) => measurement.analyteId === analyteId)
+        .map((measurement) => ({ report, measurement })),
+    );
+    const points = candidates.flatMap(({ report, measurement }) => {
+      const normalized = normalizeMeasurement(measurement, analyte);
+      return normalized.status === "normalized"
+        ? [
+            {
+              id: measurement.id,
+              date: report.collectionTime,
+              value: normalized.value,
+              unit: normalized.unit,
+              flag: measurement.sourceFlag,
+            },
+          ]
+        : [];
+    });
+    return { points, excluded: candidates.length - points.length };
+  };
+  const trend = buildTrend(trendAnalyteId);
+  const comparison = buildTrend(compareAnalyteId);
 
   return (
     <Stack gap="6">
@@ -612,12 +628,26 @@ function UnlockedVault({
           </select>
           {trendAnalyteId ? (
             <Stack gap="4">
-              <TrendPlot title="Local analyte trend" points={trendPoints} />
+              <TrendPlot title="Local analyte trend" points={trend.points} />
+              {trend.excluded ? (
+                <Text color="orange.700" fontSize="sm" role="status">
+                  {trend.excluded} result could not be normalized and is not
+                  connected to this series.
+                </Text>
+              ) : null}
               {compareAnalyteId ? (
-                <TrendPlot
-                  title="Compared analyte trend"
-                  points={comparePoints}
-                />
+                <Stack gap="2">
+                  <TrendPlot
+                    title="Compared analyte trend"
+                    points={comparison.points}
+                  />
+                  {comparison.excluded ? (
+                    <Text color="orange.700" fontSize="sm" role="status">
+                      {comparison.excluded} comparison result could not be
+                      normalized and is not connected to this series.
+                    </Text>
+                  ) : null}
+                </Stack>
               ) : null}
             </Stack>
           ) : (

@@ -61,6 +61,7 @@ pub struct NewMeasurement {
     pub source_unit: String,
     pub source_reference_interval: String,
     pub source_flag: String,
+    pub parsed_numeric_value: Option<String>,
     pub analyte_id: Option<String>,
 }
 
@@ -74,6 +75,7 @@ pub struct NewAnalyte {
     pub method: Option<String>,
     pub aliases: Vec<String>,
     pub loinc_code: Option<String>,
+    pub canonical_unit: Option<String>,
     pub personal_target_ranges: Vec<NewPersonalTargetRange>,
 }
 
@@ -112,6 +114,7 @@ pub struct LabReportMeasurement {
     pub source_unit: String,
     pub source_reference_interval: String,
     pub source_flag: String,
+    pub parsed_numeric_value: Option<String>,
     pub analyte_id: Option<String>,
     pub updated_at: String,
     pub updated_by: String,
@@ -348,6 +351,7 @@ impl LocalAccountVault {
                 method: analyte.method,
                 aliases: analyte.aliases,
                 loinc_code: analyte.loinc_code,
+                canonical_unit: nonempty(analyte.canonical_unit),
                 personal_target_ranges,
             })
             .map_err(|_| LocalAccountError::Operation)?;
@@ -554,6 +558,7 @@ impl LocalAccountVault {
         measurement: NewMeasurement,
     ) -> Result<String, LocalAccountError> {
         let id = random_identifier()?;
+        let parsed_numeric_value = validated_numeric(measurement.parsed_numeric_value)?;
         self.unlocked_mut()?
             ._vault
             .add_measurement_record(
@@ -565,6 +570,7 @@ impl LocalAccountVault {
                     source_unit: measurement.source_unit,
                     source_reference_interval: measurement.source_reference_interval,
                     source_flag: measurement.source_flag,
+                    parsed_numeric_value,
                     analyte_id: measurement.analyte_id,
                     updated_at: String::new(),
                     updated_by: "local-user".to_owned(),
@@ -594,6 +600,7 @@ impl LocalAccountVault {
         if updated_by.trim().is_empty() {
             return Err(LocalAccountError::Operation);
         }
+        let parsed_numeric_value = validated_numeric(measurement.parsed_numeric_value)?;
         self.unlocked_mut()?
             ._vault
             .correct_measurement(
@@ -605,6 +612,7 @@ impl LocalAccountVault {
                     source_unit: measurement.source_unit,
                     source_reference_interval: measurement.source_reference_interval,
                     source_flag: measurement.source_flag,
+                    parsed_numeric_value,
                     analyte_id: measurement.analyte_id,
                     updated_at: String::new(),
                     updated_by: updated_by.clone(),
@@ -686,6 +694,7 @@ impl LocalAccountVault {
                     source_unit: measurement.source_unit,
                     source_reference_interval: measurement.source_reference_interval,
                     source_flag: measurement.source_flag,
+                    parsed_numeric_value: measurement.parsed_numeric_value,
                     analyte_id: measurement.analyte_id,
                     updated_at: measurement.updated_at,
                     updated_by: measurement.updated_by,
@@ -748,11 +757,11 @@ impl LocalAccountVault {
         {
             return Ok(());
         }
-        for (name, component, property, loinc) in [
-            ("Hemoglobin", "Hemoglobin", "MCnc", Some("718-7")),
-            ("Glucose", "Glucose", "MCnc", Some("2345-7")),
-            ("Creatinine", "Creatinine", "MCnc", Some("2160-0")),
-            ("Platelet count", "Platelets", "N", Some("777-3")),
+        for (name, component, property, loinc, canonical_unit) in [
+            ("Hemoglobin", "Hemoglobin", "MCnc", Some("718-7"), "g/dL"),
+            ("Glucose", "Glucose", "MCnc", Some("2345-7"), "mg/dL"),
+            ("Creatinine", "Creatinine", "MCnc", Some("2160-0"), "mg/dL"),
+            ("Platelet count", "Platelets", "N", Some("777-3"), "10*3/uL"),
         ] {
             self.add_analyte(NewAnalyte {
                 name: name.to_owned(),
@@ -763,6 +772,7 @@ impl LocalAccountVault {
                 method: None,
                 aliases: Vec::new(),
                 loinc_code: loinc.map(str::to_owned),
+                canonical_unit: Some(canonical_unit.to_owned()),
                 personal_target_ranges: Vec::new(),
             })?;
         }
@@ -825,6 +835,15 @@ fn parse_decimal(value: &str) -> Result<f64, LocalAccountError> {
         .ok()
         .filter(|value| value.is_finite())
         .ok_or(LocalAccountError::Operation)
+}
+
+fn validated_numeric(value: Option<String>) -> Result<Option<String>, LocalAccountError> {
+    let value = nonempty(value);
+    value
+        .as_deref()
+        .map(parse_decimal)
+        .transpose()
+        .map(|_| value)
 }
 
 fn nonempty(value: Option<String>) -> Option<String> {

@@ -151,6 +151,7 @@ fn user_records_and_reopens_one_complete_lab_report_with_encrypted_evidence() {
             method: None,
             aliases: vec!["Hb".to_owned()],
             loinc_code: Some("718-7".to_owned()),
+            canonical_unit: Some("g/dL".to_owned()),
             personal_target_ranges: vec![NewPersonalTargetRange {
                 lower_bound: Some("120".to_owned()),
                 upper_bound: Some("180".to_owned()),
@@ -253,6 +254,7 @@ fn user_records_and_reopens_one_complete_lab_report_with_encrypted_evidence() {
                 source_unit: "g/dL".to_owned(),
                 source_reference_interval: "12,0–16,0".to_owned(),
                 source_flag: "within range".to_owned(),
+                parsed_numeric_value: Some("13.7".to_owned()),
                 analyte_id: Some(hemoglobin_id.clone()),
             },
         )
@@ -266,6 +268,7 @@ fn user_records_and_reopens_one_complete_lab_report_with_encrypted_evidence() {
                 source_unit: "g/dL".to_owned(),
                 source_reference_interval: "12,0–16,0".to_owned(),
                 source_flag: "within range".to_owned(),
+                parsed_numeric_value: Some("13.8".to_owned()),
                 analyte_id: Some(hemoglobin_id.clone()),
             },
             "local-user".to_owned(),
@@ -281,6 +284,7 @@ fn user_records_and_reopens_one_complete_lab_report_with_encrypted_evidence() {
                 source_unit: "mmol/L".to_owned(),
                 source_reference_interval: "3,9–5,5".to_owned(),
                 source_flag: "high".to_owned(),
+                parsed_numeric_value: Some("5.6".to_owned()),
                 analyte_id: None,
             },
         )
@@ -299,6 +303,10 @@ fn user_records_and_reopens_one_complete_lab_report_with_encrypted_evidence() {
     assert_eq!(report.tags, vec!["annual"]);
     assert_eq!(report.measurements.len(), 2);
     assert_eq!(report.measurements[0].source_value, "13.8");
+    assert_eq!(
+        report.measurements[0].parsed_numeric_value.as_deref(),
+        Some("13.8")
+    );
     assert_eq!(report.measurements[0].updated_by, "local-user");
     assert!(!report.measurements[0].updated_at.is_empty());
     assert_eq!(report.measurements[0].source_unit, "g/dL");

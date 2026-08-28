@@ -47,6 +47,7 @@ async function mockTauri(
         scale: "Quantitative",
         aliases: ["Hb"],
         loincCode: "718-7",
+        canonicalUnit: "g/dL",
         personalTargetRanges: [
           {
             id: "range-1",
@@ -80,6 +81,7 @@ async function mockTauri(
             sourceUnit: "g/dL",
             sourceReferenceInterval: "12.0–16.0",
             sourceFlag: "within range",
+            parsedNumericValue: "13.8",
             analyteId: "hb",
             updatedAt: "",
             updatedBy: "local-user",

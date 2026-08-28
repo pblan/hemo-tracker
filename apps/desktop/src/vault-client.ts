@@ -36,6 +36,7 @@ export const addLabMeasurement = (
     sourceUnit: string;
     sourceReferenceInterval: string;
     sourceFlag: string;
+    parsedNumericValue?: string;
     analyteId?: string;
   },
 ) => invoke<string>("add_lab_measurement", { reportId, request });
@@ -62,6 +63,7 @@ export const addAnalyteDefinition = (request: {
   method?: string;
   aliases: string[];
   loincCode?: string;
+  canonicalUnit?: string;
   personalTargetRanges: PersonalTargetRangeInput[];
 }) => invoke<string>("add_analyte_definition", { request });
 export type PersonalTargetRangeInput = {
@@ -84,6 +86,7 @@ export type AnalyteDefinition = {
   method?: string;
   aliases: string[];
   loincCode?: string;
+  canonicalUnit?: string;
   personalTargetRanges: PersonalTargetRange[];
 };
 export const listAnalyteDefinitions = () =>
@@ -107,6 +110,7 @@ export type ReportSummary = {
     sourceUnit: string;
     sourceReferenceInterval: string;
     sourceFlag: string;
+    parsedNumericValue?: string;
     analyteId?: string;
     updatedAt: string;
     updatedBy: string;

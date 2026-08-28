@@ -11,7 +11,7 @@ use std::{
 use thiserror::Error;
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
-const SCHEMA_VERSION: i64 = 7;
+const SCHEMA_VERSION: i64 = 8;
 const KEY_BYTES: usize = 32;
 
 #[derive(Clone, Zeroize, ZeroizeOnDrop)]
@@ -86,6 +86,7 @@ pub struct MeasurementRecord {
     pub source_unit: String,
     pub source_reference_interval: String,
     pub source_flag: String,
+    pub parsed_numeric_value: Option<String>,
     pub analyte_id: Option<String>,
     pub updated_at: String,
     pub updated_by: String,
@@ -102,6 +103,7 @@ pub struct AnalyteDefinition {
     pub method: Option<String>,
     pub aliases: Vec<String>,
     pub loinc_code: Option<String>,
+    pub canonical_unit: Option<String>,
     pub personal_target_ranges: Vec<PersonalTargetRange>,
 }
 
@@ -163,7 +165,7 @@ impl AccountVault {
     pub fn upsert_analyte(&self, analyte: &AnalyteDefinition) -> Result<(), VaultError> {
         let aliases = serde_json::to_string(&analyte.aliases).map_err(|_| VaultError::Operation)?;
         let transaction = self.connection.unchecked_transaction().map_err(|_| VaultError::Operation)?;
-        transaction.execute("INSERT INTO analyte_definitions (id,name,component,property,specimen,scale,method,aliases_json,loinc_code) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9) ON CONFLICT(id) DO UPDATE SET name=excluded.name,component=excluded.component,property=excluded.property,specimen=excluded.specimen,scale=excluded.scale,method=excluded.method,aliases_json=excluded.aliases_json,loinc_code=excluded.loinc_code", params![analyte.id, analyte.name, analyte.component, analyte.property, analyte.specimen, analyte.scale, analyte.method, aliases, analyte.loinc_code]).map_err(|_| VaultError::Operation)?;
+        transaction.execute("INSERT INTO analyte_definitions (id,name,component,property,specimen,scale,method,aliases_json,loinc_code,canonical_unit) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10) ON CONFLICT(id) DO UPDATE SET name=excluded.name,component=excluded.component,property=excluded.property,specimen=excluded.specimen,scale=excluded.scale,method=excluded.method,aliases_json=excluded.aliases_json,loinc_code=excluded.loinc_code,canonical_unit=excluded.canonical_unit", params![analyte.id, analyte.name, analyte.component, analyte.property, analyte.specimen, analyte.scale, analyte.method, aliases, analyte.loinc_code, analyte.canonical_unit]).map_err(|_| VaultError::Operation)?;
         transaction.execute("DELETE FROM personal_target_ranges WHERE analyte_id = ?1", [&analyte.id]).map_err(|_| VaultError::Operation)?;
         for range in &analyte.personal_target_ranges {
             transaction.execute("INSERT INTO personal_target_ranges (id,analyte_id,lower_bound,upper_bound,unit,valid_from,valid_to,context,notes) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9)", params![range.id, analyte.id, range.lower_bound, range.upper_bound, range.unit, range.valid_from, range.valid_to, range.context, range.notes]).map_err(|_| VaultError::Operation)?;
@@ -178,8 +180,8 @@ impl AccountVault {
     }
 
     pub fn list_analytes(&self) -> Result<Vec<AnalyteDefinition>, VaultError> {
-        let mut statement = self.connection.prepare("SELECT id,name,component,property,specimen,scale,method,aliases_json,loinc_code FROM analyte_definitions ORDER BY name").map_err(|_| VaultError::Operation)?;
-        let mut analytes = statement.query_map([], |row| Ok(AnalyteDefinition { id: row.get(0)?, name: row.get(1)?, component: row.get(2)?, property: row.get(3)?, specimen: row.get(4)?, scale: row.get(5)?, method: row.get(6)?, aliases: serde_json::from_str(&row.get::<_, String>(7)?).unwrap_or_default(), loinc_code: row.get(8)?, personal_target_ranges: Vec::new() })).map_err(|_| VaultError::Operation)?.collect::<Result<Vec<_>, _>>().map_err(|_| VaultError::Operation)?;
+        let mut statement = self.connection.prepare("SELECT id,name,component,property,specimen,scale,method,aliases_json,loinc_code,canonical_unit FROM analyte_definitions ORDER BY name").map_err(|_| VaultError::Operation)?;
+        let mut analytes = statement.query_map([], |row| Ok(AnalyteDefinition { id: row.get(0)?, name: row.get(1)?, component: row.get(2)?, property: row.get(3)?, specimen: row.get(4)?, scale: row.get(5)?, method: row.get(6)?, aliases: serde_json::from_str(&row.get::<_, String>(7)?).unwrap_or_default(), loinc_code: row.get(8)?, canonical_unit: row.get(9)?, personal_target_ranges: Vec::new() })).map_err(|_| VaultError::Operation)?.collect::<Result<Vec<_>, _>>().map_err(|_| VaultError::Operation)?;
         for analyte in &mut analytes {
             let mut ranges = self.connection.prepare("SELECT id,lower_bound,upper_bound,unit,valid_from,valid_to,context,notes FROM personal_target_ranges WHERE analyte_id = ?1 ORDER BY valid_from, rowid").map_err(|_| VaultError::Operation)?;
             analyte.personal_target_ranges = ranges.query_map([&analyte.id], |row| Ok(PersonalTargetRange { id: row.get(0)?, lower_bound: row.get(1)?, upper_bound: row.get(2)?, unit: row.get(3)?, valid_from: row.get(4)?, valid_to: row.get(5)?, context: row.get(6)?, notes: row.get(7)? })).map_err(|_| VaultError::Operation)?.collect::<Result<Vec<_>, _>>().map_err(|_| VaultError::Operation)?;
@@ -291,8 +293,9 @@ impl AccountVault {
             .execute(
                 "INSERT INTO measurements (
                     id, report_id, source_label, source_value, source_unit,
-                    source_reference_interval, source_flag, analyte_id, updated_at, updated_by
-                 ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, datetime('now'), 'local-user')",
+                    source_reference_interval, source_flag, parsed_numeric_value, analyte_id,
+                    updated_at, updated_by
+                 ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, datetime('now'), 'local-user')",
                 params![
                     measurement.id,
                     report_id,
@@ -301,6 +304,7 @@ impl AccountVault {
                     measurement.source_unit,
                     measurement.source_reference_interval,
                     measurement.source_flag,
+                    measurement.parsed_numeric_value,
                     measurement.analyte_id,
                 ],
             )
@@ -309,7 +313,7 @@ impl AccountVault {
     }
 
     pub fn correct_measurement(&self, measurement_id: &str, measurement: &MeasurementRecord, updated_by: &str) -> Result<(), VaultError> {
-        let changed = self.connection.execute("UPDATE measurements SET source_label=?1, source_value=?2, source_unit=?3, source_reference_interval=?4, source_flag=?5, analyte_id=?6, updated_at=datetime('now'), updated_by=?7 WHERE id=?8", params![measurement.source_label, measurement.source_value, measurement.source_unit, measurement.source_reference_interval, measurement.source_flag, measurement.analyte_id, updated_by, measurement_id]).map_err(|_| VaultError::Operation)?;
+        let changed = self.connection.execute("UPDATE measurements SET source_label=?1, source_value=?2, source_unit=?3, source_reference_interval=?4, source_flag=?5, parsed_numeric_value=?6, analyte_id=?7, updated_at=datetime('now'), updated_by=?8 WHERE id=?9", params![measurement.source_label, measurement.source_value, measurement.source_unit, measurement.source_reference_interval, measurement.source_flag, measurement.parsed_numeric_value, measurement.analyte_id, updated_by, measurement_id]).map_err(|_| VaultError::Operation)?;
         if changed == 1 { Ok(()) } else { Err(VaultError::Operation) }
     }
 
@@ -402,7 +406,8 @@ impl AccountVault {
             .connection
             .prepare(
                 "SELECT id, source_label, source_value, source_unit,
-                    source_reference_interval, source_flag, analyte_id, updated_at, updated_by
+                    source_reference_interval, source_flag, parsed_numeric_value, analyte_id,
+                    updated_at, updated_by
              FROM measurements WHERE report_id = ?1 ORDER BY rowid",
             )
             .map_err(|_| VaultError::Operation)?;
@@ -415,9 +420,10 @@ impl AccountVault {
                     source_unit: row.get(3)?,
                     source_reference_interval: row.get(4)?,
                     source_flag: row.get(5)?,
-                    analyte_id: row.get(6)?,
-                    updated_at: row.get(7)?,
-                    updated_by: row.get(8)?,
+                    parsed_numeric_value: row.get(6)?,
+                    analyte_id: row.get(7)?,
+                    updated_at: row.get(8)?,
+                    updated_by: row.get(9)?,
                 })
             })
             .map_err(|_| VaultError::Operation)?
@@ -691,7 +697,8 @@ fn migrate(connection: &Connection) -> Result<(), VaultError> {
                  CREATE TABLE analyte_definitions (
                      id TEXT PRIMARY KEY, name TEXT NOT NULL, component TEXT NOT NULL,
                      property TEXT NOT NULL, specimen TEXT NOT NULL, scale TEXT NOT NULL,
-                     method TEXT, aliases_json TEXT NOT NULL, loinc_code TEXT, healthy_range TEXT
+                     method TEXT, aliases_json TEXT NOT NULL, loinc_code TEXT, healthy_range TEXT,
+                     canonical_unit TEXT
                  );
                  CREATE TABLE personal_target_ranges (
                      id TEXT PRIMARY KEY,
@@ -712,10 +719,11 @@ fn migrate(connection: &Connection) -> Result<(), VaultError> {
                      source_unit TEXT NOT NULL,
                      source_reference_interval TEXT NOT NULL,
                      source_flag TEXT NOT NULL,
+                     parsed_numeric_value TEXT,
                      analyte_id TEXT, updated_at TEXT NOT NULL, updated_by TEXT NOT NULL
                  );
                  CREATE TABLE archived_reports (report_id TEXT PRIMARY KEY REFERENCES reports(id) ON DELETE CASCADE, archived_at TEXT NOT NULL);
-                 PRAGMA user_version = 7;
+                 PRAGMA user_version = 8;
                  COMMIT;",
             )
             .map_err(|_| VaultError::InvalidKeyOrVault)?;
@@ -745,7 +753,8 @@ fn migrate(connection: &Connection) -> Result<(), VaultError> {
                  CREATE TABLE analyte_definitions (
                      id TEXT PRIMARY KEY, name TEXT NOT NULL, component TEXT NOT NULL,
                      property TEXT NOT NULL, specimen TEXT NOT NULL, scale TEXT NOT NULL,
-                     method TEXT, aliases_json TEXT NOT NULL, loinc_code TEXT, healthy_range TEXT
+                     method TEXT, aliases_json TEXT NOT NULL, loinc_code TEXT, healthy_range TEXT,
+                     canonical_unit TEXT
                  );
                  CREATE TABLE personal_target_ranges (
                      id TEXT PRIMARY KEY,
@@ -766,10 +775,11 @@ fn migrate(connection: &Connection) -> Result<(), VaultError> {
                      source_unit TEXT NOT NULL,
                      source_reference_interval TEXT NOT NULL,
                      source_flag TEXT NOT NULL,
+                     parsed_numeric_value TEXT,
                      analyte_id TEXT, updated_at TEXT NOT NULL, updated_by TEXT NOT NULL
                  );
                  CREATE TABLE archived_reports (report_id TEXT PRIMARY KEY REFERENCES reports(id) ON DELETE CASCADE, archived_at TEXT NOT NULL);
-                 PRAGMA user_version = 7;
+                 PRAGMA user_version = 8;
                  COMMIT;",
             )
             .map_err(|_| VaultError::InvalidKeyOrVault)?;
@@ -789,6 +799,9 @@ fn migrate(connection: &Connection) -> Result<(), VaultError> {
         migrate(connection)?;
     } else if version == 6 {
         connection.execute_batch("BEGIN IMMEDIATE; CREATE TABLE personal_target_ranges (id TEXT PRIMARY KEY, analyte_id TEXT NOT NULL REFERENCES analyte_definitions(id) ON DELETE CASCADE, lower_bound TEXT, upper_bound TEXT, unit TEXT NOT NULL, valid_from TEXT, valid_to TEXT, context TEXT, notes TEXT); INSERT INTO personal_target_ranges (id,analyte_id,unit,context,notes) SELECT lower(hex(randomblob(16))),id,'','Imported legacy range',healthy_range FROM analyte_definitions WHERE healthy_range IS NOT NULL AND trim(healthy_range) <> ''; PRAGMA user_version = 7; COMMIT;").map_err(|_| VaultError::InvalidKeyOrVault)?;
+        migrate(connection)?;
+    } else if version == 7 {
+        connection.execute_batch("BEGIN IMMEDIATE; ALTER TABLE analyte_definitions ADD COLUMN canonical_unit TEXT; ALTER TABLE measurements ADD COLUMN parsed_numeric_value TEXT; PRAGMA user_version = 8; COMMIT;").map_err(|_| VaultError::InvalidKeyOrVault)?;
     } else if version != SCHEMA_VERSION {
         return Err(VaultError::InvalidKeyOrVault);
     }
@@ -825,6 +838,12 @@ mod tests {
                     id TEXT PRIMARY KEY, name TEXT NOT NULL, component TEXT NOT NULL,
                     property TEXT NOT NULL, specimen TEXT NOT NULL, scale TEXT NOT NULL,
                     method TEXT, aliases_json TEXT NOT NULL, loinc_code TEXT, healthy_range TEXT
+                 );
+                 CREATE TABLE measurements (
+                    id TEXT PRIMARY KEY, source_label TEXT NOT NULL, source_value TEXT NOT NULL,
+                    source_unit TEXT NOT NULL, source_reference_interval TEXT NOT NULL,
+                    source_flag TEXT NOT NULL, analyte_id TEXT, updated_at TEXT NOT NULL,
+                    updated_by TEXT NOT NULL
                  );
                  INSERT INTO analyte_definitions VALUES (
                     'hb','Hemoglobin','Hemoglobin','MCnc','Blood','Quantitative',
