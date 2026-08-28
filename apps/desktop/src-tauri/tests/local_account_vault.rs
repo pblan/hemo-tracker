@@ -319,7 +319,6 @@ fn user_records_and_reopens_one_complete_lab_report_with_encrypted_evidence() {
         "fictional-report.pdf"
     );
     assert_eq!(report.source_files.len(), 2);
-
     vault.lock();
     drop(vault);
     let mut reopened = LocalAccountVault::open(&account).unwrap();
@@ -338,6 +337,12 @@ fn user_records_and_reopens_one_complete_lab_report_with_encrypted_evidence() {
         2
     );
     let report = reopened.get_lab_report(&report_id).unwrap();
+    let (filename, media_type, preview_bytes) = reopened
+        .read_source_file(&report_id, &report.source_files[0].id)
+        .unwrap();
+    assert_eq!(filename, "fictional-report.pdf");
+    assert_eq!(media_type, "application/pdf");
+    assert_eq!(preview_bytes, b"fictional-pdf-source-marker".to_vec());
     assert_eq!(report.status, ReportStatus::Complete);
     assert_eq!(
         report.measurements[0].source_label,
