@@ -165,6 +165,10 @@ const reports = reportDates.map((collectionTime, reportIndex) => ({
             ? "12-16 g/dL"
             : "11.5-15.5 g/dL"
           : "Fictional interval",
+      parsedNumericValue:
+        isMissing || value === "not reported"
+          ? undefined
+          : value.replace(",", "."),
       sourceFlag: isMissing
         ? "not available"
         : analyte.id === "crp"

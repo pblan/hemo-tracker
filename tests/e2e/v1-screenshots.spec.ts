@@ -1,9 +1,16 @@
 import { expect, test } from "@playwright/test";
 import path from "node:path";
+import { readFileSync } from "node:fs";
 
 const screenshotDirectory = path.join(
   process.cwd(),
   "docs/assets/screenshots/v1",
+);
+const fixtureAnalytes = JSON.parse(
+  readFileSync(path.join(process.cwd(), "fixtures/v1/analytes.json"), "utf8"),
+);
+const fixtureReports = JSON.parse(
+  readFileSync(path.join(process.cwd(), "fixtures/v1/reports.json"), "utf8"),
 );
 
 test.use({ viewport: { width: 1280, height: 900 }, colorScheme: "light" });
@@ -23,8 +30,8 @@ test("capture locked vault", async ({ page }) => {
 test("capture unlocked overview", async ({ page }) => {
   await mockTauri(page, "unlocked");
   await page.goto("/");
-  await page.getByLabel("Trend analyte").selectOption("hb");
-  await page.getByLabel("Target range analyte").selectOption("hb");
+  await page.getByLabel("Trend analyte").selectOption("hemoglobin");
+  await page.getByLabel("Target range analyte").selectOption("hemoglobin");
   await expect(page.getByText("Fictional Central Laboratory")).toBeVisible();
   await page.screenshot({
     path: path.join(screenshotDirectory, "desktop-unlocked-overview.png"),
@@ -38,62 +45,18 @@ async function mockTauri(
 ) {
   await page.addInitScript(
     ({ vaultStatus }) => {
-      const analyte = {
-        id: "hb",
-        name: "Hemoglobin",
-        component: "Hemoglobin",
-        property: "MCnc",
-        specimen: "Blood",
-        scale: "Quantitative",
-        aliases: ["Hb"],
-        loincCode: "718-7",
-        canonicalUnit: "g/dL",
-        personalTargetRanges: [
-          {
-            id: "range-1",
-            lowerBound: "12.0",
-            upperBound: "16.0",
-            unit: "g/dL",
-            validFrom: "2026-01-01",
-            context: "Fictional personal example",
-          },
-        ],
-      };
-      const report = {
-        id: "report-1",
-        collectionTime: "2026-08-20T08:30:00+02:00",
-        laboratory: "Fictional Central Laboratory",
-        status: "complete",
-        sourceFileCount: 1,
-        measurementCount: 1,
-        sourceFiles: [
-          {
-            filename: "fictional-report.pdf",
-            mediaType: "application/pdf",
-            role: "primary",
-          },
-        ],
-        measurements: [
-          {
-            id: "m1",
-            sourceLabel: "Hemoglobin",
-            sourceValue: "13.8",
-            sourceUnit: "g/dL",
-            sourceReferenceInterval: "12.0–16.0",
-            sourceFlag: "within range",
-            parsedNumericValue: "13.8",
-            analyteId: "hb",
-            updatedAt: "",
-            updatedBy: "local-user",
-          },
-        ],
-      };
+      const analyte = fixtureAnalytes.analytes.find(
+        (item) => item.id === "hemoglobin",
+      );
+      const report = fixtureReports.reports[1];
+      if (!analyte || !report) throw new Error("V1 fixture is incomplete");
       Object.assign(window, {
         __TAURI_INTERNALS__: {
           invoke: async (command: string) => {
             if (command === "get_vault_state")
               return { accountExists: true, status: vaultStatus };
-            if (command === "list_analyte_definitions") return [analyte];
+            if (command === "list_analyte_definitions")
+              return fixtureAnalytes.analytes;
             if (command === "list_lab_reports") return [report.id];
             if (command === "get_lab_report") return report;
             throw new Error(`Unexpected screenshot command: ${command}`);
