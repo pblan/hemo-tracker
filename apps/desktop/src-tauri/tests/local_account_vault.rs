@@ -90,6 +90,7 @@ fn encrypted_backup_restores_and_plaintext_export_is_a_zip() {
     let parent = tempdir().unwrap();
     let account = parent.path().join("account");
     let backup = parent.path().join("backup");
+    let corrupt_backup = parent.path().join("corrupt-backup");
     let export = parent.path().join("export.zip");
     let created = LocalAccountVault::create(
         &account,
@@ -101,6 +102,14 @@ fn encrypted_backup_restores_and_plaintext_export_is_a_zip() {
     .unwrap();
     let mut vault = created.into_vault();
     vault.backup_to(&backup).unwrap();
+    fs::create_dir(&corrupt_backup).unwrap();
+    fs::write(corrupt_backup.join("account.json"), b"not-json").unwrap();
+    assert!(
+        vault
+            .restore_from_backup(&corrupt_backup, "valid passphrase".to_owned())
+            .is_err()
+    );
+    assert_eq!(vault.status(), VaultStatus::Unlocked);
     vault.export_plaintext_zip(&export).unwrap();
     let archive_file = fs::File::open(&export).unwrap();
     let mut archive = zip::ZipArchive::new(archive_file).unwrap();
