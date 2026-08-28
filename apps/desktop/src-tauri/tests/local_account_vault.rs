@@ -91,6 +91,7 @@ fn encrypted_backup_restores_and_plaintext_export_is_a_zip() {
     let account = parent.path().join("account");
     let backup = parent.path().join("backup");
     let corrupt_backup = parent.path().join("corrupt-backup");
+    let changed_backup = parent.path().join("changed-backup");
     let export = parent.path().join("export.zip");
     let created = LocalAccountVault::create(
         &account,
@@ -105,6 +106,23 @@ fn encrypted_backup_restores_and_plaintext_export_is_a_zip() {
     assert!(
         vault
             .restore_from_backup(&backup, "wrong passphrase".to_owned())
+            .is_err()
+    );
+    assert_eq!(vault.status(), VaultStatus::Unlocked);
+    assert!(
+        vault
+            .restore_from_backup(
+                parent.path().join("missing-backup"),
+                "valid passphrase".to_owned()
+            )
+            .is_err()
+    );
+    assert_eq!(vault.status(), VaultStatus::Unlocked);
+    vault.backup_to(&changed_backup).unwrap();
+    fs::write(changed_backup.join("vault.db"), b"changed backup bytes").unwrap();
+    assert!(
+        vault
+            .restore_from_backup(&changed_backup, "valid passphrase".to_owned())
             .is_err()
     );
     assert_eq!(vault.status(), VaultStatus::Unlocked);
