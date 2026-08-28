@@ -326,6 +326,7 @@ function UnlockedVault({
   );
   const [correctionValue, setCorrectionValue] = useState("");
   const [trendAnalyteId, setTrendAnalyteId] = useState("");
+  const [compareAnalyteId, setCompareAnalyteId] = useState("");
   const [restorePassphrase, setRestorePassphrase] = useState("");
 
   useEffect(() => {
@@ -505,6 +506,19 @@ function UnlockedVault({
         })),
     )
     .filter((point) => Number.isFinite(point.value));
+  const comparePoints = reports
+    .flatMap((report) =>
+      report.measurements
+        .filter((measurement) => measurement.analyteId === compareAnalyteId)
+        .map((measurement) => ({
+          id: measurement.id,
+          date: report.collectionTime,
+          value: Number(measurement.sourceValue.replace(",", ".")),
+          unit: measurement.sourceUnit,
+          flag: measurement.sourceFlag,
+        })),
+    )
+    .filter((point) => Number.isFinite(point.value));
 
   return (
     <Stack gap="6">
@@ -531,8 +545,30 @@ function UnlockedVault({
               </option>
             ))}
           </select>
+          <select
+            aria-label="Compare analyte"
+            value={compareAnalyteId}
+            onChange={(event) => setCompareAnalyteId(event.target.value)}
+          >
+            <option value="">Compare with another analyte (optional)</option>
+            {analytes
+              .filter((analyte) => analyte.id !== trendAnalyteId)
+              .map((analyte) => (
+                <option key={analyte.id} value={analyte.id}>
+                  {analyte.name}
+                </option>
+              ))}
+          </select>
           {trendAnalyteId ? (
-            <TrendPlot title="Local analyte trend" points={trendPoints} />
+            <Stack gap="4">
+              <TrendPlot title="Local analyte trend" points={trendPoints} />
+              {compareAnalyteId ? (
+                <TrendPlot
+                  title="Compared analyte trend"
+                  points={comparePoints}
+                />
+              ) : null}
+            </Stack>
           ) : (
             <Text color="fg.muted" fontSize="sm">
               Select an analyte to view recorded numeric values.
