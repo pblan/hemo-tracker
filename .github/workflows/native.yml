@@ -39,6 +39,7 @@ jobs:
             bundles: nsis
             executable: apps/desktop/src-tauri/target/release/hemo-tracker-desktop.exe
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v6
       - uses: oven-sh/setup-bun@v2
