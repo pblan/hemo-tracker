@@ -169,6 +169,22 @@ struct UnlockedAccount {
 }
 
 impl LocalAccountVault {
+    pub fn backup_to(&self, destination: impl AsRef<Path>) -> Result<(), LocalAccountError> {
+        let destination = destination.as_ref();
+        if destination.exists() {
+            return Err(LocalAccountError::AlreadyExists);
+        }
+        let parent = destination.parent().ok_or(LocalAccountError::Operation)?;
+        fs::create_dir_all(parent).map_err(|_| LocalAccountError::Operation)?;
+        let staging = destination.with_extension("backup-partial");
+        if staging.exists() {
+            let _ = fs::remove_dir_all(&staging);
+        }
+        copy_directory(&self.directory, &staging)?;
+        sync_directory(&staging)?;
+        fs::rename(&staging, destination).map_err(|_| LocalAccountError::Operation)?;
+        sync_directory(parent)
+    }
     pub fn add_analyte(&mut self, analyte: NewAnalyte) -> Result<String, LocalAccountError> {
         if analyte.name.trim().is_empty()
             || analyte.component.trim().is_empty()
@@ -637,6 +653,21 @@ fn staging_directory(directory: &Path) -> Result<PathBuf, LocalAccountError> {
         .ok_or(LocalAccountError::Operation)?
         .to_string_lossy();
     Ok(directory.with_file_name(format!(".{name}.creating-{suffix}")))
+}
+
+fn copy_directory(source: &Path, destination: &Path) -> Result<(), LocalAccountError> {
+    fs::create_dir_all(destination).map_err(|_| LocalAccountError::Operation)?;
+    for entry in fs::read_dir(source).map_err(|_| LocalAccountError::Operation)? {
+        let entry = entry.map_err(|_| LocalAccountError::Operation)?;
+        let from = entry.path();
+        let to = destination.join(entry.file_name());
+        if from.is_dir() {
+            copy_directory(&from, &to)?;
+        } else {
+            fs::copy(&from, &to).map_err(|_| LocalAccountError::Operation)?;
+        }
+    }
+    Ok(())
 }
 
 fn random_identifier() -> Result<String, LocalAccountError> {

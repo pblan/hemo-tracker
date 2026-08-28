@@ -441,6 +441,19 @@ fn result(vault: Option<&LocalAccountVault>) -> VaultStateResult {
     }
 }
 
+#[tauri::command]
+pub fn backup_local_vault(
+    state: State<'_, DesktopVaultState>,
+    destination: String,
+) -> Result<(), String> {
+    let guard = state.vault.lock().map_err(|_| safe_error())?;
+    guard
+        .as_ref()
+        .ok_or_else(safe_error)?
+        .backup_to(destination)
+        .map_err(|_| safe_error())
+}
+
 fn account_directory(app: &AppHandle) -> Result<PathBuf, String> {
     app.path()
         .app_data_dir()

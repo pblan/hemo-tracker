@@ -91,3 +91,5 @@ export const permanentlyDeleteLabReport = (
   reportId: string,
   confirmed: boolean,
 ) => invoke<void>("permanently_delete_lab_report", { reportId, confirmed });
+export const backupLocalVault = (destination: string) =>
+  invoke<void>("backup_local_vault", { destination });
