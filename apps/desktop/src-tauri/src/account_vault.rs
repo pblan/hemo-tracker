@@ -7,8 +7,8 @@ use hemo_key_lifecycle::{
     UnlockedKeys,
 };
 use hemo_source_file_encryption::{
-    SourceFileContext, SourceFileKey, SourceFileMetadata, encrypt_source_file,
-    generate_opaque_object_id,
+    OpaqueObjectId, SourceFileContext, SourceFileKey, SourceFileMetadata, decrypt_source_file,
+    encrypt_source_file, generate_opaque_object_id,
 };
 use serde::{Deserialize, Serialize};
 use std::{
@@ -188,6 +188,71 @@ impl LocalAccountVault {
         sync_directory(&staging)?;
         fs::rename(&staging, destination).map_err(|_| LocalAccountError::Operation)?;
         sync_directory(parent)
+    }
+
+    pub fn export_plaintext_zip(
+        &self,
+        destination: impl AsRef<Path>,
+    ) -> Result<(), LocalAccountError> {
+        let file = File::create(destination).map_err(|_| LocalAccountError::Operation)?;
+        let mut archive = zip::ZipWriter::new(file);
+        let options = zip::write::SimpleFileOptions::default()
+            .compression_method(zip::CompressionMethod::Deflated);
+        let reports = self.list_lab_report_ids()?;
+        let unlocked = self.unlocked_ref()?;
+        let source_key = SourceFileKey::from_bytes(*unlocked.source_file_key.bytes());
+        let mut csv = String::from(
+            "report_id,collection_time,laboratory,source_label,source_value,source_unit,source_reference_interval,source_flag\n",
+        );
+        for report_id in reports {
+            let report = self.get_lab_report(&report_id)?;
+            for measurement in &report.measurements {
+                csv.push_str(&format!(
+                    "{},{},{},{},{},{},{},{}\n",
+                    report.id,
+                    report.collection_time,
+                    report.laboratory.as_deref().unwrap_or(""),
+                    measurement.source_label,
+                    measurement.source_value,
+                    measurement.source_unit,
+                    measurement.source_reference_interval,
+                    measurement.source_flag
+                ));
+            }
+            archive
+                .start_file(format!("reports/{report_id}.json"), options)
+                .map_err(|_| LocalAccountError::Operation)?;
+            let json =
+                serde_json::to_vec_pretty(&report).map_err(|_| LocalAccountError::Operation)?;
+            archive
+                .write_all(&json)
+                .map_err(|_| LocalAccountError::Operation)?;
+            for source in report.source_files {
+                let object = self
+                    .directory
+                    .join("objects")
+                    .join(format!("{}.hemo", source.opaque_object_id));
+                let context = SourceFileContext::new(
+                    self.manifest.account_id.clone(),
+                    OpaqueObjectId::parse(source.opaque_object_id.clone())
+                        .map_err(|_| LocalAccountError::Operation)?,
+                );
+                let filename = source.original_filename.replace(['/', '\\'], "_");
+                archive
+                    .start_file(format!("sources/{report_id}-{filename}"), options)
+                    .map_err(|_| LocalAccountError::Operation)?;
+                decrypt_source_file(object, &mut archive, &context, &source_key)
+                    .map_err(|_| LocalAccountError::Operation)?;
+            }
+        }
+        archive
+            .start_file("measurements.csv", options)
+            .map_err(|_| LocalAccountError::Operation)?;
+        archive
+            .write_all(csv.as_bytes())
+            .map_err(|_| LocalAccountError::Operation)?;
+        archive.finish().map_err(|_| LocalAccountError::Operation)?;
+        Ok(())
     }
 
     pub fn restore_from_backup(

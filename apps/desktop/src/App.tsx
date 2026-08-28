@@ -14,7 +14,7 @@ import {
   addAnalyteDefinition,
   addLabMeasurement,
   chooseAndRestoreLocalVault,
-  chooseAndExportPlaintextJson,
+  chooseAndExportPlaintextZip,
   completeLabReport,
   chooseAndBackupLocalVault,
   createLabReport,
@@ -448,7 +448,7 @@ function UnlockedVault({
     )
       return;
     try {
-      const exported = await chooseAndExportPlaintextJson();
+      const exported = await chooseAndExportPlaintextZip();
       if (exported)
         onError(
           "The plaintext JSON export was saved. Protect or delete it when it is no longer needed.",
@@ -866,7 +866,7 @@ function UnlockedVault({
         variant="outline"
         onClick={() => void exportPlaintext()}
       >
-        Export plaintext JSON (review warning)
+        Export plaintext ZIP (review warning)
       </Button>
     </Stack>
   );
