@@ -127,6 +127,7 @@ fn user_records_and_reopens_one_complete_lab_report_with_encrypted_evidence() {
                 source_unit: "g/dL".to_owned(),
                 source_reference_interval: "12,0–16,0".to_owned(),
                 source_flag: "within range".to_owned(),
+                analyte_id: None,
             },
         )
         .unwrap();

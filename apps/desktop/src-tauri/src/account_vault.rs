@@ -61,6 +61,7 @@ pub struct NewMeasurement {
     pub source_unit: String,
     pub source_reference_interval: String,
     pub source_flag: String,
+    pub analyte_id: Option<String>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -340,6 +341,7 @@ impl LocalAccountVault {
                     source_unit: measurement.source_unit,
                     source_reference_interval: measurement.source_reference_interval,
                     source_flag: measurement.source_flag,
+                    analyte_id: measurement.analyte_id,
                 },
             )
             .map_err(|_| LocalAccountError::Operation)?;

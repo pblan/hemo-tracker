@@ -11,7 +11,7 @@ use std::{
 use thiserror::Error;
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
-const SCHEMA_VERSION: i64 = 2;
+const SCHEMA_VERSION: i64 = 3;
 const KEY_BYTES: usize = 32;
 
 #[derive(Clone, Zeroize, ZeroizeOnDrop)]
@@ -86,6 +86,20 @@ pub struct MeasurementRecord {
     pub source_unit: String,
     pub source_reference_interval: String,
     pub source_flag: String,
+    pub analyte_id: Option<String>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct AnalyteDefinition {
+    pub id: String,
+    pub name: String,
+    pub component: String,
+    pub property: String,
+    pub specimen: String,
+    pub scale: String,
+    pub method: Option<String>,
+    pub aliases: Vec<String>,
+    pub loinc_code: Option<String>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -117,6 +131,17 @@ pub struct AccountVault {
 }
 
 impl AccountVault {
+    pub fn upsert_analyte(&self, analyte: &AnalyteDefinition) -> Result<(), VaultError> {
+        let aliases = serde_json::to_string(&analyte.aliases).map_err(|_| VaultError::Operation)?;
+        self.connection.execute("INSERT INTO analyte_definitions (id,name,component,property,specimen,scale,method,aliases_json,loinc_code) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9) ON CONFLICT(id) DO UPDATE SET name=excluded.name,component=excluded.component,property=excluded.property,specimen=excluded.specimen,scale=excluded.scale,method=excluded.method,aliases_json=excluded.aliases_json,loinc_code=excluded.loinc_code", params![analyte.id, analyte.name, analyte.component, analyte.property, analyte.specimen, analyte.scale, analyte.method, aliases, analyte.loinc_code]).map_err(|_| VaultError::Operation)?;
+        Ok(())
+    }
+
+    pub fn list_analytes(&self) -> Result<Vec<AnalyteDefinition>, VaultError> {
+        let mut statement = self.connection.prepare("SELECT id,name,component,property,specimen,scale,method,aliases_json,loinc_code FROM analyte_definitions ORDER BY name").map_err(|_| VaultError::Operation)?;
+        statement.query_map([], |row| Ok(AnalyteDefinition { id: row.get(0)?, name: row.get(1)?, component: row.get(2)?, property: row.get(3)?, specimen: row.get(4)?, scale: row.get(5)?, method: row.get(6)?, aliases: serde_json::from_str(&row.get::<_, String>(7)?).unwrap_or_default(), loinc_code: row.get(8)? })).map_err(|_| VaultError::Operation)?.collect::<Result<Vec<_>, _>>().map_err(|_| VaultError::Operation)
+    }
+
     fn open(path: impl AsRef<Path>, key: &VaultKey) -> Result<Self, VaultError> {
         let path = path.as_ref().to_owned();
         let connection = Connection::open_with_flags(
@@ -221,8 +246,8 @@ impl AccountVault {
             .execute(
                 "INSERT INTO measurements (
                     id, report_id, source_label, source_value, source_unit,
-                    source_reference_interval, source_flag
-                 ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+                    source_reference_interval, source_flag, analyte_id
+                 ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
                 params![
                     measurement.id,
                     report_id,
@@ -231,6 +256,7 @@ impl AccountVault {
                     measurement.source_unit,
                     measurement.source_reference_interval,
                     measurement.source_flag,
+                    measurement.analyte_id,
                 ],
             )
             .map_err(|_| VaultError::Operation)?;
@@ -325,7 +351,7 @@ impl AccountVault {
             .connection
             .prepare(
                 "SELECT id, source_label, source_value, source_unit,
-                    source_reference_interval, source_flag
+                    source_reference_interval, source_flag, analyte_id
              FROM measurements WHERE report_id = ?1 ORDER BY rowid",
             )
             .map_err(|_| VaultError::Operation)?;
@@ -338,6 +364,7 @@ impl AccountVault {
                     source_unit: row.get(3)?,
                     source_reference_interval: row.get(4)?,
                     source_flag: row.get(5)?,
+                    analyte_id: row.get(6)?,
                 })
             })
             .map_err(|_| VaultError::Operation)?
@@ -608,6 +635,11 @@ fn migrate(connection: &Connection) -> Result<(), VaultError> {
                      role TEXT NOT NULL,
                      opaque_object_id TEXT NOT NULL UNIQUE
                  );
+                 CREATE TABLE analyte_definitions (
+                     id TEXT PRIMARY KEY, name TEXT NOT NULL, component TEXT NOT NULL,
+                     property TEXT NOT NULL, specimen TEXT NOT NULL, scale TEXT NOT NULL,
+                     method TEXT, aliases_json TEXT NOT NULL, loinc_code TEXT
+                 );
                  CREATE TABLE measurements (
                      id TEXT PRIMARY KEY,
                      report_id TEXT NOT NULL REFERENCES reports(id) ON DELETE CASCADE,
@@ -615,9 +647,10 @@ fn migrate(connection: &Connection) -> Result<(), VaultError> {
                      source_value TEXT NOT NULL,
                      source_unit TEXT NOT NULL,
                      source_reference_interval TEXT NOT NULL,
-                     source_flag TEXT NOT NULL
+                     source_flag TEXT NOT NULL,
+                     analyte_id TEXT
                  );
-                 PRAGMA user_version = 2;
+                 PRAGMA user_version = 3;
                  COMMIT;",
             )
             .map_err(|_| VaultError::InvalidKeyOrVault)?;
@@ -644,6 +677,11 @@ fn migrate(connection: &Connection) -> Result<(), VaultError> {
                      role TEXT NOT NULL,
                      opaque_object_id TEXT NOT NULL UNIQUE
                  );
+                 CREATE TABLE analyte_definitions (
+                     id TEXT PRIMARY KEY, name TEXT NOT NULL, component TEXT NOT NULL,
+                     property TEXT NOT NULL, specimen TEXT NOT NULL, scale TEXT NOT NULL,
+                     method TEXT, aliases_json TEXT NOT NULL, loinc_code TEXT
+                 );
                  CREATE TABLE measurements (
                      id TEXT PRIMARY KEY,
                      report_id TEXT NOT NULL REFERENCES reports(id) ON DELETE CASCADE,
@@ -651,11 +689,16 @@ fn migrate(connection: &Connection) -> Result<(), VaultError> {
                      source_value TEXT NOT NULL,
                      source_unit TEXT NOT NULL,
                      source_reference_interval TEXT NOT NULL,
-                     source_flag TEXT NOT NULL
+                     source_flag TEXT NOT NULL,
+                     analyte_id TEXT
                  );
-                 PRAGMA user_version = 2;
+                 PRAGMA user_version = 3;
                  COMMIT;",
             )
+            .map_err(|_| VaultError::InvalidKeyOrVault)?;
+    } else if version == 2 {
+        connection
+            .execute_batch("BEGIN IMMEDIATE; ALTER TABLE measurements ADD COLUMN analyte_id TEXT; CREATE TABLE analyte_definitions (id TEXT PRIMARY KEY, name TEXT NOT NULL, component TEXT NOT NULL, property TEXT NOT NULL, specimen TEXT NOT NULL, scale TEXT NOT NULL, method TEXT, aliases_json TEXT NOT NULL, loinc_code TEXT); PRAGMA user_version = 3; COMMIT;")
             .map_err(|_| VaultError::InvalidKeyOrVault)?;
     } else if version != SCHEMA_VERSION {
         return Err(VaultError::InvalidKeyOrVault);

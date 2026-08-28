@@ -49,6 +49,7 @@ pub struct MeasurementRequest {
     pub source_unit: String,
     pub source_reference_interval: String,
     pub source_flag: String,
+    pub analyte_id: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -209,6 +210,7 @@ pub fn add_lab_measurement(
                 source_unit: request.source_unit,
                 source_reference_interval: request.source_reference_interval,
                 source_flag: request.source_flag,
+                analyte_id: request.analyte_id,
             },
         )
         .map_err(|_| safe_error())
