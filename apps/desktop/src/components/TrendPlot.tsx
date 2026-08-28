@@ -1,6 +1,6 @@
 import { Box, Table, Text } from "@chakra-ui/react";
 import "uplot/dist/uPlot.min.css";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 export type TrendPoint = {
   date: string;
@@ -17,7 +17,10 @@ export function TrendPlot({
   title: string;
   points: TrendPoint[];
 }) {
-  const numeric = points.filter((point) => point.value !== null);
+  const numeric = useMemo(
+    () => points.filter((point) => point.value !== null),
+    [points],
+  );
   const values = numeric.map((point) => point.value as number);
   const min = values.length ? Math.min(...values) : 0;
   const max = values.length ? Math.max(...values) : 1;
