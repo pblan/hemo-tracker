@@ -67,6 +67,20 @@ pub struct AnalyteRequest {
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct AnalyteResult {
+    pub id: String,
+    pub name: String,
+    pub component: String,
+    pub property: String,
+    pub specimen: String,
+    pub scale: String,
+    pub method: Option<String>,
+    pub aliases: Vec<String>,
+    pub loinc_code: Option<String>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SourceFileResult {
     pub id: String,
     pub original_filename: String,
@@ -247,6 +261,34 @@ pub fn add_analyte_definition(
             method: request.method,
             aliases: request.aliases,
             loinc_code: request.loinc_code,
+        })
+        .map_err(|_| safe_error())
+}
+
+#[tauri::command]
+pub fn list_analyte_definitions(
+    state: State<'_, DesktopVaultState>,
+) -> Result<Vec<AnalyteResult>, String> {
+    let guard = state.vault.lock().map_err(|_| safe_error())?;
+    guard
+        .as_ref()
+        .ok_or_else(safe_error)?
+        .list_analytes()
+        .map(|items| {
+            items
+                .into_iter()
+                .map(|item| AnalyteResult {
+                    id: item.id,
+                    name: item.name,
+                    component: item.component,
+                    property: item.property,
+                    specimen: item.specimen,
+                    scale: item.scale,
+                    method: item.method,
+                    aliases: item.aliases,
+                    loinc_code: item.loinc_code,
+                })
+                .collect()
         })
         .map_err(|_| safe_error())
 }

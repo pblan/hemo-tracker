@@ -51,3 +51,16 @@ export const addAnalyteDefinition = (request: {
   aliases: string[];
   loincCode?: string;
 }) => invoke<string>("add_analyte_definition", { request });
+export type AnalyteDefinition = {
+  id: string;
+  name: string;
+  component: string;
+  property: string;
+  specimen: string;
+  scale: string;
+  method?: string;
+  aliases: string[];
+  loincCode?: string;
+};
+export const listAnalyteDefinitions = () =>
+  invoke<AnalyteDefinition[]>("list_analyte_definitions");
