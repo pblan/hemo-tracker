@@ -865,4 +865,26 @@ mod tests {
         drop(vault);
         fs::remove_file(path).unwrap();
     }
+
+    #[test]
+    fn unsupported_schema_version_is_rejected() {
+        let path = std::env::temp_dir().join(format!(
+            "hemo-unsupported-schema-{}.db",
+            random_identifier().unwrap()
+        ));
+        let key = VaultKey::generate().unwrap();
+        let connection = Connection::open(&path).unwrap();
+        apply_key(&connection, &key).unwrap();
+        configure(&connection).unwrap();
+        connection
+            .execute_batch("PRAGMA user_version = 99;")
+            .unwrap();
+        drop(connection);
+
+        assert!(matches!(
+            AccountVault::open(&path, &key),
+            Err(VaultError::InvalidKeyOrVault)
+        ));
+        fs::remove_file(path).unwrap();
+    }
 }
