@@ -3,6 +3,7 @@
 These time-specific notes record the primary sources that support product and architecture decisions.
 
 - [Blood-result visualizations](blood-result-visualizations.md)
+- [Desktop UX and chart guidance](desktop-ux-and-chart-guidance.md)
 - [Engineering authority guidance](engineering-authority-guidance.md)
 - [GitHub documentation practices](github-documentation.md)
 - [Lab-unit normalization](lab-unit-normalization.md)
