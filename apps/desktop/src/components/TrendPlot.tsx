@@ -1,4 +1,6 @@
 import { Box, Table, Text } from "@chakra-ui/react";
+import "uplot/dist/uPlot.min.css";
+import { useEffect, useRef, useState } from "react";
 
 export type TrendPoint = {
   date: string;
@@ -30,6 +32,47 @@ export function TrendPlot({
       return `${index ? "L" : "M"}${x.toFixed(1)} ${y.toFixed(1)}`;
     })
     .join(" ");
+  const plotHost = useRef<HTMLDivElement>(null);
+  const [plotReady, setPlotReady] = useState(false);
+  useEffect(() => {
+    const host = plotHost.current;
+    if (!host || numeric.length < 2) {
+      setPlotReady(false);
+      return;
+    }
+    const timestamps = numeric.map((point) => Date.parse(point.date) / 1000);
+    if (timestamps.some((timestamp) => !Number.isFinite(timestamp))) {
+      setPlotReady(false);
+      return;
+    }
+    let plot: { destroy: () => void } | undefined;
+    let cancelled = false;
+    void import("uplot")
+      .then(({ default: UPlot }) => {
+        if (cancelled) return;
+        plot = new UPlot(
+          {
+            width: host.clientWidth || 640,
+            height: 180,
+            scales: { x: { time: true } },
+            series: [{}, { label: title, stroke: "currentColor", width: 2 }],
+            axes: [{}, { label: "Value" }],
+          },
+          [timestamps, numeric.map((point) => point.value as number)],
+          host,
+        );
+        setPlotReady(true);
+      })
+      .catch(() => {
+        // Keep the SVG fallback when a restricted webview cannot create a canvas.
+        setPlotReady(false);
+      });
+    return () => {
+      cancelled = true;
+      plot?.destroy();
+      setPlotReady(false);
+    };
+  }, [numeric, title]);
   return (
     <Box
       borderWidth="1px"
@@ -41,23 +84,19 @@ export function TrendPlot({
       <Text fontWeight="semibold" mb="3">
         {title}
       </Text>
-      <svg
-        role="img"
-        aria-label={`${title} trend plot`}
-        viewBox={`0 0 ${width} ${height}`}
-        width="100%"
-        height="180px"
-        preserveAspectRatio="none"
-      >
-        <path
-          d={path}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
+      <Box ref={plotHost} aria-hidden="true" minH="180px" />
+      {!plotReady ? (
+        <svg
+          role="img"
+          aria-label={`${title} trend plot`}
+          viewBox={`0 0 ${width} ${height}`}
+          width="100%"
+          height="180px"
+          preserveAspectRatio="none"
+        >
+          <path d={path} fill="none" stroke="currentColor" strokeWidth="3" />
+        </svg>
+      ) : null}
       <Table.Root size="sm" variant="outline" mt="4">
         <Table.Caption>Accessible data table for {title}</Table.Caption>
         <Table.Header>

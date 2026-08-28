@@ -703,6 +703,38 @@ impl LocalAccountVault {
         })
     }
 
+    pub fn read_source_file(
+        &self,
+        report_id: &str,
+        source_file_id: &str,
+    ) -> Result<(String, String, Vec<u8>), LocalAccountError> {
+        let report = self.get_lab_report(report_id)?;
+        let source = report
+            .source_files
+            .iter()
+            .find(|source| source.id == source_file_id)
+            .ok_or(LocalAccountError::Operation)?;
+        let object = self
+            .directory
+            .join("objects")
+            .join(format!("{}.hemo", source.opaque_object_id));
+        let context = SourceFileContext::new(
+            self.manifest.account_id.clone(),
+            OpaqueObjectId::parse(source.opaque_object_id.clone())
+                .map_err(|_| LocalAccountError::Operation)?,
+        );
+        let unlocked = self.unlocked_ref()?;
+        let source_key = SourceFileKey::from_bytes(*unlocked.source_file_key.bytes());
+        let mut bytes = Vec::new();
+        decrypt_source_file(object, &mut bytes, &context, &source_key)
+            .map_err(|_| LocalAccountError::Operation)?;
+        Ok((
+            source.original_filename.clone(),
+            source.media_type.clone(),
+            bytes,
+        ))
+    }
+
     pub fn list_lab_report_ids(&self) -> Result<Vec<String>, LocalAccountError> {
         self.unlocked_ref()?
             ._vault

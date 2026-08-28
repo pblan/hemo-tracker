@@ -62,6 +62,14 @@ The table can classify a result as below target, in target, or above target. Hem
 
 Select **Compare with another analyte** to show a second local series. Use the source units and flags to check that the two series are meaningful to compare. Hemo Tracker does not convert incompatible units.
 
+## Preview a source file
+
+1. Expand a report in **Report history**.
+2. Select **Preview** next to a source file.
+3. Review the PDF or image in the report view. Use the accessible measurement table for exact values.
+
+Hemo Tracker decrypts the selected file in memory for the local webview. It does not create a plaintext preview file. PDF, PNG, JPEG, and browser-supported image files can render in the view. Other files remain encrypted and stored as opaque source files.
+
 ## Add a personal target range
 
 Use a personal target range only as personal information. It does not replace the interval from the source laboratory. It is not medical advice.

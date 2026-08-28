@@ -147,9 +147,18 @@ pub struct MeasurementPreviewResult {
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SourcePreviewResult {
+    pub id: String,
     pub filename: String,
     pub media_type: String,
     pub role: String,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SourceFileContentResult {
+    pub filename: String,
+    pub media_type: String,
+    pub bytes: Vec<u8>,
 }
 
 #[tauri::command]
@@ -435,6 +444,7 @@ pub fn get_lab_report(
             .source_files
             .into_iter()
             .map(|source| SourcePreviewResult {
+                id: source.id,
                 filename: source.original_filename,
                 media_type: source.media_type,
                 role: source.role,
@@ -456,6 +466,25 @@ pub fn get_lab_report(
                 updated_by: measurement.updated_by,
             })
             .collect(),
+    })
+}
+
+#[tauri::command]
+pub fn read_source_file(
+    state: State<'_, DesktopVaultState>,
+    report_id: String,
+    source_file_id: String,
+) -> Result<SourceFileContentResult, String> {
+    let guard = state.vault.lock().map_err(|_| safe_error())?;
+    let (filename, media_type, bytes) = guard
+        .as_ref()
+        .ok_or_else(safe_error)?
+        .read_source_file(&report_id, &source_file_id)
+        .map_err(|_| safe_error())?;
+    Ok(SourceFileContentResult {
+        filename,
+        media_type,
+        bytes,
     })
 }
 

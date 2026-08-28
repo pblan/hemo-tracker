@@ -102,7 +102,12 @@ export type ReportSummary = {
   status: "draft" | "complete" | "archived";
   sourceFileCount: number;
   measurementCount: number;
-  sourceFiles: { filename: string; mediaType: string; role: string }[];
+  sourceFiles: {
+    id: string;
+    filename: string;
+    mediaType: string;
+    role: string;
+  }[];
   measurements: {
     id: string;
     sourceLabel: string;
@@ -118,6 +123,11 @@ export type ReportSummary = {
 };
 export const getLabReport = (reportId: string) =>
   invoke<ReportSummary>("get_lab_report", { reportId });
+export const readSourceFile = (reportId: string, sourceFileId: string) =>
+  invoke<{ filename: string; mediaType: string; bytes: number[] }>(
+    "read_source_file",
+    { reportId, sourceFileId },
+  );
 export const listLabReports = () => invoke<string[]>("list_lab_reports");
 export const permanentlyDeleteLabReport = (
   reportId: string,

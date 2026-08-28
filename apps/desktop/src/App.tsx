@@ -25,6 +25,7 @@ import {
   listAnalyteDefinitions,
   listLabReports,
   getLabReport,
+  readSourceFile,
   type ReportSummary,
   lockVault,
   selectAndAttachSourceFile,
@@ -342,6 +343,11 @@ function UnlockedVault({
   const [rangeNotes, setRangeNotes] = useState("");
   const [rangeMessage, setRangeMessage] = useState("");
   const [restorePassphrase, setRestorePassphrase] = useState("");
+  const [sourcePreview, setSourcePreview] = useState<{
+    filename: string;
+    mediaType: string;
+    url: string;
+  } | null>(null);
 
   useEffect(() => {
     void listAnalyteDefinitions()
@@ -562,6 +568,24 @@ function UnlockedVault({
       onLocked(await lockVault());
     } catch {
       onError("Hemo Tracker could not lock the local vault.");
+    }
+  }
+  async function previewSource(reportId: string, sourceFileId: string) {
+    try {
+      const content = await readSourceFile(reportId, sourceFileId);
+      const url = URL.createObjectURL(
+        new Blob([new Uint8Array(content.bytes)], { type: content.mediaType }),
+      );
+      setSourcePreview((current) => {
+        if (current) URL.revokeObjectURL(current.url);
+        return {
+          filename: content.filename,
+          mediaType: content.mediaType,
+          url,
+        };
+      });
+    } catch {
+      onError("Hemo Tracker could not open the encrypted source file.");
     }
   }
   const buildTrend = (analyteId: string) => {
@@ -872,6 +896,20 @@ function UnlockedVault({
                     borderTopWidth="1px"
                     borderColor="border"
                   >
+                    {report.sourceFiles.map((source) => (
+                      <Button
+                        key={source.id}
+                        size="xs"
+                        variant="outline"
+                        alignSelf="start"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          void previewSource(report.id, source.id);
+                        }}
+                      >
+                        Preview {source.filename}
+                      </Button>
+                    ))}
                     {report.measurements.map((measurement) => (
                       <Stack key={measurement.id} gap="1">
                         {editingMeasurement === measurement.id ? (
@@ -944,6 +982,34 @@ function UnlockedVault({
             <Text color="fg.muted" fontSize="sm">
               No reports recorded yet.
             </Text>
+          ) : null}
+          {sourcePreview ? (
+            <Box borderWidth="1px" borderRadius="lg" p="3">
+              <Text fontWeight="semibold" mb="2">
+                Source preview: {sourcePreview.filename}
+              </Text>
+              {sourcePreview.mediaType === "application/pdf" ? (
+                <iframe
+                  title={`Preview of ${sourcePreview.filename}`}
+                  src={sourcePreview.url}
+                  width="100%"
+                  height="480"
+                />
+              ) : sourcePreview.mediaType.startsWith("image/") &&
+                sourcePreview.mediaType !== "image/heic" ? (
+                <img
+                  src={sourcePreview.url}
+                  alt={`Preview of ${sourcePreview.filename}`}
+                  style={{ maxWidth: "100%", maxHeight: 480 }}
+                />
+              ) : (
+                <Text color="fg.muted" fontSize="sm">
+                  This file is encrypted and stored safely, but this webview
+                  cannot render its format. Use the original file in the
+                  report&apos;s source list.
+                </Text>
+              )}
+            </Box>
           ) : null}
         </Stack>
       </Box>
