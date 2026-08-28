@@ -94,7 +94,7 @@ const values: Record<string, [string, string]> = {
   hematocrit: ["42", "%"],
   wbc: ["6.4", "10*3/uL"],
   platelets: ["245", "10*3/uL"],
-  glucose: ["95", "mg/dL"],
+  glucose: ["90", "mg/dL"],
   creatinine: ["1.0", "mg/dL"],
   egfr: ["92", "mL/min/{1.73_m2}"],
   alt: ["24", "U/L"],
@@ -154,7 +154,7 @@ const reports = reportDates.map((collectionTime, reportIndex) => ({
     const unit =
       analyte.id === "glucose" && reportIndex % 2 ? "mmol/L" : baseUnit;
     const alternateValue =
-      analyte.id === "glucose" && unit === "mmol/L" ? "5.27" : baseValue;
+      analyte.id === "glucose" && unit === "mmol/L" ? "4.99567" : baseValue;
     const value = isMissing ? "" : isCorrected ? "14.1" : alternateValue;
     return {
       id: `fixture-measurement-${reportIndex + 1}-${String(analyteIndex + 1).padStart(2, "0")}`,
