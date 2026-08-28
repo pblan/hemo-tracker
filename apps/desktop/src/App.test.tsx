@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -173,10 +173,9 @@ describe("desktop application shell", () => {
       </Provider>,
     );
 
-    await user.selectOptions(
-      await screen.findByLabelText("Target range analyte"),
-      "hemoglobin",
-    );
+    const analyteSelect = await screen.findByLabelText("Target range analyte");
+    await within(analyteSelect).findByRole("option", { name: "Hemoglobin" });
+    await user.selectOptions(analyteSelect, "hemoglobin");
     await user.type(screen.getByLabelText("Lower limit"), "120");
     await user.type(screen.getByLabelText("Upper limit"), "180");
     await user.type(screen.getByLabelText("Unit"), "g/L");

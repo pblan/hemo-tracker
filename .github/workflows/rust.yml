@@ -26,6 +26,14 @@ jobs:
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v6
+      - name: Install Tauri Linux prerequisites
+        timeout-minutes: 2
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y \
+            libwebkit2gtk-4.1-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
