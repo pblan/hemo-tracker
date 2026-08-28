@@ -35,7 +35,7 @@ jobs:
       matrix:
         include:
           - os: macos-latest
-            bundles: app
+            bundles: dmg
             artifact: macos
           - os: windows-latest
             bundles: nsis
@@ -57,12 +57,18 @@ jobs:
       - name: Package unsigned artifacts
         shell: bash
         run: |
+          set -euo pipefail
           mkdir release-${{ matrix.artifact }}
-          find apps/desktop/src-tauri/target/release/bundle -type f \( -name '*.app' -o -name '*.exe' -o -name '*.msi' -o -name '*.dmg' \) -exec cp -R {} release-${{ matrix.artifact }}/ \; || true
+          mapfile -t packages < <(find "apps/desktop/src-tauri/target/release/bundle" -type f \( -name '*.dmg' -o -name '*.exe' -o -name '*.msi' \) -print)
+          if (( ${#packages[@]} == 0 )); then
+            echo "No installable package was produced" >&2
+            exit 1
+          fi
+          cp "${packages[@]}" "release-${{ matrix.artifact }}/"
           printf 'Hemo Tracker %s is unsigned. The operating system may show an unverified-publisher warning.\n' "$GITHUB_REF_NAME" > release-${{ matrix.artifact }}/UNSIGNED-BUILD.txt
-          shasum -a 256 release-${{ matrix.artifact }}/* > release-${{ matrix.artifact }}/SHA256SUMS.txt
+          find "release-${{ matrix.artifact }}" -maxdepth 1 -type f \( -name '*.dmg' -o -name '*.exe' -o -name '*.msi' \) -print0 | xargs -0 shasum -a 256 > "release-${{ matrix.artifact }}/SHA256SUMS.txt"
           printf 'Component inventory for Hemo Tracker %s (%s)\n' "$GITHUB_REF_NAME" "${{ matrix.artifact }}" > release-${{ matrix.artifact }}/SBOM.txt
-          find release-${{ matrix.artifact }} -maxdepth 1 -type f -printf '%f\n' | sort >> release-${{ matrix.artifact }}/SBOM.txt
+          find "release-${{ matrix.artifact }}" -maxdepth 1 -type f -print0 | xargs -0 -n1 basename | sort >> "release-${{ matrix.artifact }}/SBOM.txt"
       - uses: actions/upload-artifact@v4
         with:
           name: unsigned-${{ matrix.artifact }}
@@ -79,7 +85,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set -euo pipefail
           mapfile -t files < <(find release-artifacts -type f)
+          if (( ${#files[@]} == 0 )); then
+            echo "No release assets were downloaded" >&2
+            exit 1
+          fi
           gh release create "$GITHUB_REF_NAME" "${files[@]}" \
             --repo "$GITHUB_REPOSITORY" \
             --draft \

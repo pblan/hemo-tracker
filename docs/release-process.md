@@ -27,7 +27,7 @@ Create a release tag only from a reviewed commit on `main`. The application vers
 - Permit only one release workflow at a time.
 - Use minimum GitHub token permissions.
 - Pin third-party release actions to an immutable release or commit.
-- Build unsigned macOS and Windows artifacts from the tag commit.
+- Build an unsigned macOS DMG and Windows installer from the tag commit.
 - Generate SHA-256 checksums and a software bill of materials.
 - Create a draft GitHub release with a clear unsigned-build warning.
 - Require a maintainer to inspect and publish the draft.
