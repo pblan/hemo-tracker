@@ -1,0 +1,199 @@
+{
+  "fixtureVersion": "v1.0.0",
+  "generatedAt": "2026-08-28T00:00:00Z",
+  "analytes": [
+    {
+      "id": "hemoglobin",
+      "name": "Hemoglobin",
+      "component": "Hemoglobin",
+      "property": "MCnc",
+      "specimen": "Blood",
+      "scale": "Quantitative",
+      "canonicalUnit": "g/dL",
+      "loincCode": "718-7",
+      "aliases": [],
+      "personalTargetRanges": [
+        {
+          "id": "fixture-range-hgb-1",
+          "lowerBound": "12",
+          "upperBound": "16",
+          "unit": "g/dL",
+          "validFrom": "2025-01-01",
+          "validTo": "2026-06-30",
+          "notes": "Fictional personal target."
+        },
+        {
+          "id": "fixture-range-hgb-2",
+          "lowerBound": "120",
+          "upperBound": "160",
+          "unit": "g/L",
+          "validFrom": "2026-07-01",
+          "context": "Fasting; manual review required."
+        }
+      ]
+    },
+    {
+      "id": "hematocrit",
+      "name": "Hematocrit",
+      "component": "Hematocrit",
+      "property": "VFr",
+      "specimen": "Blood",
+      "scale": "Quantitative",
+      "canonicalUnit": "%",
+      "loincCode": "4544-3",
+      "aliases": [],
+      "personalTargetRanges": []
+    },
+    {
+      "id": "wbc",
+      "name": "Leukocytes",
+      "component": "Leukocytes",
+      "property": "NCnc",
+      "specimen": "Blood",
+      "scale": "Quantitative",
+      "canonicalUnit": "10*3/uL",
+      "loincCode": "6690-2",
+      "aliases": [],
+      "personalTargetRanges": []
+    },
+    {
+      "id": "platelets",
+      "name": "Platelets",
+      "component": "Platelets",
+      "property": "NCnc",
+      "specimen": "Blood",
+      "scale": "Quantitative",
+      "canonicalUnit": "10*3/uL",
+      "loincCode": "777-3",
+      "aliases": [],
+      "personalTargetRanges": []
+    },
+    {
+      "id": "glucose",
+      "name": "Glucose",
+      "component": "Glucose",
+      "property": "MCnc",
+      "specimen": "Serum or plasma",
+      "scale": "Quantitative",
+      "canonicalUnit": "mmol/L",
+      "loincCode": "2345-7",
+      "aliases": [],
+      "personalTargetRanges": [
+        {
+          "id": "fixture-range-glucose-1",
+          "lowerBound": "4.0",
+          "upperBound": "6.0",
+          "unit": "mmol/L",
+          "notes": "Fictional personal target."
+        }
+      ]
+    },
+    {
+      "id": "creatinine",
+      "name": "Creatinine",
+      "component": "Creatinine",
+      "property": "MCnc",
+      "specimen": "Serum or plasma",
+      "scale": "Quantitative",
+      "canonicalUnit": "umol/L",
+      "loincCode": "2160-0",
+      "aliases": [],
+      "personalTargetRanges": []
+    },
+    {
+      "id": "egfr",
+      "name": "eGFR",
+      "component": "eGFR",
+      "property": "ArVRat",
+      "specimen": "Serum or plasma",
+      "scale": "Quantitative",
+      "canonicalUnit": "mL/min/{1.73_m2}",
+      "loincCode": "62238-1",
+      "aliases": [],
+      "personalTargetRanges": []
+    },
+    {
+      "id": "alt",
+      "name": "Alanine aminotransferase",
+      "component": "Alanine aminotransferase",
+      "property": "CCat",
+      "specimen": "Serum or plasma",
+      "scale": "Quantitative",
+      "canonicalUnit": "U/L",
+      "loincCode": "1742-6",
+      "aliases": [],
+      "personalTargetRanges": []
+    },
+    {
+      "id": "ast",
+      "name": "Aspartate aminotransferase",
+      "component": "Aspartate aminotransferase",
+      "property": "CCat",
+      "specimen": "Serum or plasma",
+      "scale": "Quantitative",
+      "canonicalUnit": "U/L",
+      "loincCode": "1920-8",
+      "aliases": [],
+      "personalTargetRanges": []
+    },
+    {
+      "id": "ferritin",
+      "name": "Ferritin",
+      "component": "Ferritin",
+      "property": "MCnc",
+      "specimen": "Serum or plasma",
+      "scale": "Quantitative",
+      "canonicalUnit": "ug/L",
+      "loincCode": "2276-4",
+      "aliases": [],
+      "personalTargetRanges": []
+    },
+    {
+      "id": "tsh",
+      "name": "Thyrotropin",
+      "component": "Thyrotropin",
+      "property": "MCnc",
+      "specimen": "Serum or plasma",
+      "scale": "Quantitative",
+      "canonicalUnit": "mIU/L",
+      "loincCode": "3016-3",
+      "aliases": [],
+      "personalTargetRanges": []
+    },
+    {
+      "id": "crp",
+      "name": "C reactive protein",
+      "component": "C reactive protein",
+      "property": "MCnc",
+      "specimen": "Serum or plasma",
+      "scale": "Quantitative",
+      "canonicalUnit": "mg/L",
+      "loincCode": "1988-5",
+      "aliases": [],
+      "personalTargetRanges": []
+    },
+    {
+      "id": "cholesterol",
+      "name": "Cholesterol",
+      "component": "Cholesterol",
+      "property": "MCnc",
+      "specimen": "Serum or plasma",
+      "scale": "Quantitative",
+      "canonicalUnit": "mmol/L",
+      "loincCode": "2093-3",
+      "aliases": [],
+      "personalTargetRanges": []
+    },
+    {
+      "id": "custom-marker",
+      "name": "Example marker",
+      "component": "Example marker",
+      "property": "Arb",
+      "specimen": "Blood",
+      "scale": "Ordinal",
+      "canonicalUnit": "arb",
+      "aliases": [],
+      "personalTargetRanges": []
+    }
+  ]
+}

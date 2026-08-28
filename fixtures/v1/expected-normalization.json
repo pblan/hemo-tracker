@@ -1,0 +1,8 @@
+{
+  "glucoseMgDlToMmolL": 4.99567,
+  "creatinineMgDlToUmolL": 88.4,
+  "ruleIds": [
+    "curated:2345-7->14749-6:nist-srd-69:50-99-7",
+    "curated:2160-0->14682-9:nist-srd-69:60-27-5"
+  ]
+}

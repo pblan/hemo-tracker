@@ -1,0 +1,1768 @@
+{
+  "fixtureVersion": "v1.0.0",
+  "generatedAt": "2026-08-28T00:00:00Z",
+  "reports": [
+    {
+      "id": "fixture-report-001",
+      "collectionTime": "2025-01-14T08:10:00Z",
+      "reportDate": "2025-01-14",
+      "laboratory": "Fictional Specialist Laboratory",
+      "orderingClinician": "Dr. Example",
+      "fastingState": "fasting",
+      "status": "complete",
+      "notes": "Fictional test data. Do not use for clinical decisions.",
+      "tags": ["routine"],
+      "sourceFiles": [
+        {
+          "id": "fixture-source-1-primary",
+          "filename": "demo-report-2025-01-14.pdf",
+          "mediaType": "application/pdf",
+          "role": "primary"
+        }
+      ],
+      "measurements": [
+        {
+          "id": "fixture-measurement-1-01",
+          "analyteId": "hemoglobin",
+          "sourceLabel": "Hemoglobin",
+          "sourceValue": "13.8",
+          "sourceUnit": "g/dL",
+          "sourceReferenceInterval": "12-16 g/dL",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-1-02",
+          "analyteId": "hematocrit",
+          "sourceLabel": "Hematocrit",
+          "sourceValue": "42",
+          "sourceUnit": "%",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-1-03",
+          "analyteId": "wbc",
+          "sourceLabel": "Leukocytes",
+          "sourceValue": "6.4",
+          "sourceUnit": "10*3/uL",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-1-04",
+          "analyteId": "platelets",
+          "sourceLabel": "Platelets",
+          "sourceValue": "245",
+          "sourceUnit": "10*3/uL",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-1-05",
+          "analyteId": "glucose",
+          "sourceLabel": "Glucose",
+          "sourceValue": "95",
+          "sourceUnit": "mg/dL",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-1-06",
+          "analyteId": "creatinine",
+          "sourceLabel": "Creatinine",
+          "sourceValue": "1.0",
+          "sourceUnit": "mg/dL",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-1-07",
+          "analyteId": "egfr",
+          "sourceLabel": "eGFR",
+          "sourceValue": "92",
+          "sourceUnit": "mL/min/{1.73_m2}",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "low",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-1-08",
+          "analyteId": "alt",
+          "sourceLabel": "Alanine aminotransferase",
+          "sourceValue": "24",
+          "sourceUnit": "U/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-1-09",
+          "analyteId": "ast",
+          "sourceLabel": "Aspartate aminotransferase",
+          "sourceValue": "22",
+          "sourceUnit": "U/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-1-10",
+          "analyteId": "ferritin",
+          "sourceLabel": "Ferritin",
+          "sourceValue": "85",
+          "sourceUnit": "ug/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-1-11",
+          "analyteId": "tsh",
+          "sourceLabel": "Thyrotropin",
+          "sourceValue": "2.1",
+          "sourceUnit": "mIU/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-1-12",
+          "analyteId": "crp",
+          "sourceLabel": "C reactive protein",
+          "sourceValue": "1.8",
+          "sourceUnit": "mg/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "high",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-1-13",
+          "analyteId": "cholesterol",
+          "sourceLabel": "Cholesterol",
+          "sourceValue": "5.2",
+          "sourceUnit": "mmol/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-1-14",
+          "analyteId": "custom-marker",
+          "sourceLabel": "Example marker",
+          "sourceValue": "not reported",
+          "sourceUnit": "not applicable",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        }
+      ]
+    },
+    {
+      "id": "fixture-report-002",
+      "collectionTime": "2025-03-29T07:45:00Z",
+      "reportDate": "2025-03-29",
+      "laboratory": "Fictional Central Laboratory",
+      "orderingClinician": "Dr. Example",
+      "fastingState": "unknown",
+      "status": "complete",
+      "notes": "Fictional test data. Do not use for clinical decisions.",
+      "tags": ["follow-up"],
+      "sourceFiles": [
+        {
+          "id": "fixture-source-2-primary",
+          "filename": "demo-report-2025-03-29.pdf",
+          "mediaType": "application/pdf",
+          "role": "primary"
+        }
+      ],
+      "measurements": [
+        {
+          "id": "fixture-measurement-2-01",
+          "analyteId": "hemoglobin",
+          "sourceLabel": "Hemoglobin",
+          "sourceValue": "13.8",
+          "sourceUnit": "g/dL",
+          "sourceReferenceInterval": "12-16 g/dL",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-2-02",
+          "analyteId": "hematocrit",
+          "sourceLabel": "Hematocrit",
+          "sourceValue": "42",
+          "sourceUnit": "%",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-2-03",
+          "analyteId": "wbc",
+          "sourceLabel": "Leukocytes",
+          "sourceValue": "6.4",
+          "sourceUnit": "10*3/uL",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-2-04",
+          "analyteId": "platelets",
+          "sourceLabel": "Platelets",
+          "sourceValue": "245",
+          "sourceUnit": "10*3/uL",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-2-05",
+          "analyteId": "glucose",
+          "sourceLabel": "Glucose",
+          "sourceValue": "95",
+          "sourceUnit": "mmol/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-2-06",
+          "analyteId": "creatinine",
+          "sourceLabel": "Creatinine",
+          "sourceValue": "1.0",
+          "sourceUnit": "mg/dL",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-2-07",
+          "analyteId": "egfr",
+          "sourceLabel": "eGFR",
+          "sourceValue": "92",
+          "sourceUnit": "mL/min/{1.73_m2}",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "low",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-2-08",
+          "analyteId": "alt",
+          "sourceLabel": "Alanine aminotransferase",
+          "sourceValue": "24",
+          "sourceUnit": "U/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-2-09",
+          "analyteId": "ast",
+          "sourceLabel": "Aspartate aminotransferase",
+          "sourceValue": "22",
+          "sourceUnit": "U/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-2-10",
+          "analyteId": "ferritin",
+          "sourceLabel": "Ferritin",
+          "sourceValue": "85",
+          "sourceUnit": "ug/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-2-11",
+          "analyteId": "tsh",
+          "sourceLabel": "Thyrotropin",
+          "sourceValue": "2.1",
+          "sourceUnit": "mIU/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-2-12",
+          "analyteId": "crp",
+          "sourceLabel": "C reactive protein",
+          "sourceValue": "1.8",
+          "sourceUnit": "mg/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "high",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-2-13",
+          "analyteId": "cholesterol",
+          "sourceLabel": "Cholesterol",
+          "sourceValue": "5.2",
+          "sourceUnit": "mmol/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-2-14",
+          "analyteId": "custom-marker",
+          "sourceLabel": "Example marker",
+          "sourceValue": "not reported",
+          "sourceUnit": "not applicable",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        }
+      ]
+    },
+    {
+      "id": "fixture-report-003",
+      "collectionTime": "2025-06-02T09:20:00Z",
+      "reportDate": "2025-06-02",
+      "laboratory": "Fictional Central Laboratory",
+      "orderingClinician": "Dr. Example",
+      "fastingState": "fasting",
+      "status": "complete",
+      "notes": "Fictional test data. Do not use for clinical decisions.",
+      "tags": ["routine"],
+      "sourceFiles": [
+        {
+          "id": "fixture-source-3-primary",
+          "filename": "demo-report-2025-06-02.pdf",
+          "mediaType": "application/pdf",
+          "role": "primary"
+        }
+      ],
+      "measurements": [
+        {
+          "id": "fixture-measurement-3-01",
+          "analyteId": "hemoglobin",
+          "sourceLabel": "Hemoglobin",
+          "sourceValue": "13.8",
+          "sourceUnit": "g/dL",
+          "sourceReferenceInterval": "12-16 g/dL",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-3-02",
+          "analyteId": "hematocrit",
+          "sourceLabel": "Hematocrit",
+          "sourceValue": "42",
+          "sourceUnit": "%",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-3-03",
+          "analyteId": "wbc",
+          "sourceLabel": "Leukocytes",
+          "sourceValue": "6.4",
+          "sourceUnit": "10*3/uL",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-3-04",
+          "analyteId": "platelets",
+          "sourceLabel": "Platelets",
+          "sourceValue": "245",
+          "sourceUnit": "10*3/uL",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-3-05",
+          "analyteId": "glucose",
+          "sourceLabel": "Glucose",
+          "sourceValue": "95",
+          "sourceUnit": "mg/dL",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-3-06",
+          "analyteId": "creatinine",
+          "sourceLabel": "Creatinine",
+          "sourceValue": "1.0",
+          "sourceUnit": "mg/dL",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-3-07",
+          "analyteId": "egfr",
+          "sourceLabel": "eGFR",
+          "sourceValue": "92",
+          "sourceUnit": "mL/min/{1.73_m2}",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "low",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-3-08",
+          "analyteId": "alt",
+          "sourceLabel": "Alanine aminotransferase",
+          "sourceValue": "24",
+          "sourceUnit": "U/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-3-09",
+          "analyteId": "ast",
+          "sourceLabel": "Aspartate aminotransferase",
+          "sourceValue": "22",
+          "sourceUnit": "U/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-3-10",
+          "analyteId": "ferritin",
+          "sourceLabel": "Ferritin",
+          "sourceValue": "85",
+          "sourceUnit": "ug/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-3-11",
+          "analyteId": "tsh",
+          "sourceLabel": "Thyrotropin",
+          "sourceValue": "2.1",
+          "sourceUnit": "mIU/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-3-12",
+          "analyteId": "crp",
+          "sourceLabel": "C reactive protein",
+          "sourceValue": "1.8",
+          "sourceUnit": "mg/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "high",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-3-13",
+          "analyteId": "cholesterol",
+          "sourceLabel": "Cholesterol",
+          "sourceValue": "5.2",
+          "sourceUnit": "mmol/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-3-14",
+          "analyteId": "custom-marker",
+          "sourceLabel": "Example marker",
+          "sourceValue": "not reported",
+          "sourceUnit": "not applicable",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        }
+      ]
+    },
+    {
+      "id": "fixture-report-004",
+      "collectionTime": "2025-08-18T08:05:00Z",
+      "reportDate": "2025-08-18",
+      "laboratory": "Fictional Specialist Laboratory",
+      "orderingClinician": "Dr. Example",
+      "fastingState": "unknown",
+      "status": "complete",
+      "notes": "Fictional test data. Do not use for clinical decisions.",
+      "tags": ["follow-up"],
+      "sourceFiles": [
+        {
+          "id": "fixture-source-4-primary",
+          "filename": "demo-report-2025-08-18.pdf",
+          "mediaType": "application/pdf",
+          "role": "primary"
+        }
+      ],
+      "measurements": [
+        {
+          "id": "fixture-measurement-4-01",
+          "analyteId": "hemoglobin",
+          "sourceLabel": "Hemoglobin",
+          "sourceValue": "13.8",
+          "sourceUnit": "g/dL",
+          "sourceReferenceInterval": "12-16 g/dL",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-4-02",
+          "analyteId": "hematocrit",
+          "sourceLabel": "Hematocrit",
+          "sourceValue": "42",
+          "sourceUnit": "%",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-4-03",
+          "analyteId": "wbc",
+          "sourceLabel": "Leukocytes",
+          "sourceValue": "6.4",
+          "sourceUnit": "10*3/uL",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-4-04",
+          "analyteId": "platelets",
+          "sourceLabel": "Platelets",
+          "sourceValue": "245",
+          "sourceUnit": "10*3/uL",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-4-05",
+          "analyteId": "glucose",
+          "sourceLabel": "Glucose",
+          "sourceValue": "95",
+          "sourceUnit": "mmol/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-4-06",
+          "analyteId": "creatinine",
+          "sourceLabel": "Creatinine",
+          "sourceValue": "1.0",
+          "sourceUnit": "mg/dL",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-4-07",
+          "analyteId": "egfr",
+          "sourceLabel": "eGFR",
+          "sourceValue": "92",
+          "sourceUnit": "mL/min/{1.73_m2}",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "low",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-4-08",
+          "analyteId": "alt",
+          "sourceLabel": "Alanine aminotransferase",
+          "sourceValue": "24",
+          "sourceUnit": "U/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-4-09",
+          "analyteId": "ast",
+          "sourceLabel": "Aspartate aminotransferase",
+          "sourceValue": "22",
+          "sourceUnit": "U/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-4-10",
+          "analyteId": "ferritin",
+          "sourceLabel": "Ferritin",
+          "sourceValue": "85",
+          "sourceUnit": "ug/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-4-11",
+          "analyteId": "tsh",
+          "sourceLabel": "Thyrotropin",
+          "sourceValue": "2.1",
+          "sourceUnit": "mIU/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-4-12",
+          "analyteId": "crp",
+          "sourceLabel": "C reactive protein",
+          "sourceValue": "1.8",
+          "sourceUnit": "mg/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "high",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-4-13",
+          "analyteId": "cholesterol",
+          "sourceLabel": "Cholesterol",
+          "sourceValue": "5.2",
+          "sourceUnit": "mmol/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-4-14",
+          "analyteId": "custom-marker",
+          "sourceLabel": "Example marker",
+          "sourceValue": "not reported",
+          "sourceUnit": "not applicable",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        }
+      ]
+    },
+    {
+      "id": "fixture-report-005",
+      "collectionTime": "2025-11-30T10:15:00Z",
+      "reportDate": "2025-11-30",
+      "laboratory": "Fictional Central Laboratory",
+      "orderingClinician": "Dr. Example",
+      "fastingState": "fasting",
+      "status": "archived",
+      "notes": "Fictional test data. Do not use for clinical decisions.",
+      "tags": ["routine"],
+      "sourceFiles": [
+        {
+          "id": "fixture-source-5-primary",
+          "filename": "demo-report-2025-11-30.pdf",
+          "mediaType": "application/pdf",
+          "role": "primary"
+        }
+      ],
+      "measurements": [
+        {
+          "id": "fixture-measurement-5-01",
+          "analyteId": "hemoglobin",
+          "sourceLabel": "Hemoglobin",
+          "sourceValue": "13.8",
+          "sourceUnit": "g/dL",
+          "sourceReferenceInterval": "12-16 g/dL",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-5-02",
+          "analyteId": "hematocrit",
+          "sourceLabel": "Hematocrit",
+          "sourceValue": "42",
+          "sourceUnit": "%",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-5-03",
+          "analyteId": "wbc",
+          "sourceLabel": "Leukocytes",
+          "sourceValue": "6.4",
+          "sourceUnit": "10*3/uL",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-5-04",
+          "analyteId": "platelets",
+          "sourceLabel": "Platelets",
+          "sourceValue": "245",
+          "sourceUnit": "10*3/uL",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-5-05",
+          "analyteId": "glucose",
+          "sourceLabel": "Glucose",
+          "sourceValue": "95",
+          "sourceUnit": "mg/dL",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-5-06",
+          "analyteId": "creatinine",
+          "sourceLabel": "Creatinine",
+          "sourceValue": "1.0",
+          "sourceUnit": "mg/dL",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-5-07",
+          "analyteId": "egfr",
+          "sourceLabel": "eGFR",
+          "sourceValue": "92",
+          "sourceUnit": "mL/min/{1.73_m2}",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "low",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-5-08",
+          "analyteId": "alt",
+          "sourceLabel": "Alanine aminotransferase",
+          "sourceValue": "24",
+          "sourceUnit": "U/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-5-09",
+          "analyteId": "ast",
+          "sourceLabel": "Aspartate aminotransferase",
+          "sourceValue": "22",
+          "sourceUnit": "U/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-5-10",
+          "analyteId": "ferritin",
+          "sourceLabel": "Ferritin",
+          "sourceValue": "85",
+          "sourceUnit": "ug/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-5-11",
+          "analyteId": "tsh",
+          "sourceLabel": "Thyrotropin",
+          "sourceValue": "2.1",
+          "sourceUnit": "mIU/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-5-12",
+          "analyteId": "crp",
+          "sourceLabel": "C reactive protein",
+          "sourceValue": "1.8",
+          "sourceUnit": "mg/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "high",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-5-13",
+          "analyteId": "cholesterol",
+          "sourceLabel": "Cholesterol",
+          "sourceValue": "5.2",
+          "sourceUnit": "mmol/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-5-14",
+          "analyteId": "custom-marker",
+          "sourceLabel": "Example marker",
+          "sourceValue": "not reported",
+          "sourceUnit": "not applicable",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        }
+      ]
+    },
+    {
+      "id": "fixture-report-006",
+      "collectionTime": "2026-01-09T07:55:00Z",
+      "reportDate": "2026-01-09",
+      "laboratory": "Fictional Central Laboratory",
+      "orderingClinician": "Dr. Example",
+      "fastingState": "unknown",
+      "status": "complete",
+      "notes": "Fictional test data. Do not use for clinical decisions.",
+      "tags": ["follow-up"],
+      "sourceFiles": [
+        {
+          "id": "fixture-source-6-primary",
+          "filename": "demo-report-2026-01-09.pdf",
+          "mediaType": "application/pdf",
+          "role": "primary"
+        }
+      ],
+      "measurements": [
+        {
+          "id": "fixture-measurement-6-01",
+          "analyteId": "hemoglobin",
+          "sourceLabel": "Hemoglobin",
+          "sourceValue": "13.8",
+          "sourceUnit": "g/dL",
+          "sourceReferenceInterval": "11.5-15.5 g/dL",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-6-02",
+          "analyteId": "hematocrit",
+          "sourceLabel": "Hematocrit",
+          "sourceValue": "42",
+          "sourceUnit": "%",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-6-03",
+          "analyteId": "wbc",
+          "sourceLabel": "Leukocytes",
+          "sourceValue": "6.4",
+          "sourceUnit": "10*3/uL",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-6-04",
+          "analyteId": "platelets",
+          "sourceLabel": "Platelets",
+          "sourceValue": "245",
+          "sourceUnit": "10*3/uL",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-6-05",
+          "analyteId": "glucose",
+          "sourceLabel": "Glucose",
+          "sourceValue": "95",
+          "sourceUnit": "mmol/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-6-06",
+          "analyteId": "creatinine",
+          "sourceLabel": "Creatinine",
+          "sourceValue": "1.0",
+          "sourceUnit": "mg/dL",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-6-07",
+          "analyteId": "egfr",
+          "sourceLabel": "eGFR",
+          "sourceValue": "92",
+          "sourceUnit": "mL/min/{1.73_m2}",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "low",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-6-08",
+          "analyteId": "alt",
+          "sourceLabel": "Alanine aminotransferase",
+          "sourceValue": "24",
+          "sourceUnit": "U/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-6-09",
+          "analyteId": "ast",
+          "sourceLabel": "Aspartate aminotransferase",
+          "sourceValue": "22",
+          "sourceUnit": "U/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-6-10",
+          "analyteId": "ferritin",
+          "sourceLabel": "Ferritin",
+          "sourceValue": "85",
+          "sourceUnit": "ug/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-6-11",
+          "analyteId": "tsh",
+          "sourceLabel": "Thyrotropin",
+          "sourceValue": "2.1",
+          "sourceUnit": "mIU/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-6-12",
+          "analyteId": "crp",
+          "sourceLabel": "C reactive protein",
+          "sourceValue": "1.8",
+          "sourceUnit": "mg/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "high",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-6-13",
+          "analyteId": "cholesterol",
+          "sourceLabel": "Cholesterol",
+          "sourceValue": "5.2",
+          "sourceUnit": "mmol/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-6-14",
+          "analyteId": "custom-marker",
+          "sourceLabel": "Example marker",
+          "sourceValue": "not reported",
+          "sourceUnit": "not applicable",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        }
+      ]
+    },
+    {
+      "id": "fixture-report-007",
+      "collectionTime": "2026-03-21T09:40:00Z",
+      "reportDate": "2026-03-21",
+      "laboratory": "Fictional Specialist Laboratory",
+      "orderingClinician": "Dr. Example",
+      "fastingState": "fasting",
+      "status": "complete",
+      "notes": "Fictional test data. Do not use for clinical decisions.",
+      "tags": ["routine"],
+      "sourceFiles": [
+        {
+          "id": "fixture-source-7-primary",
+          "filename": "demo-report-2026-03-21.pdf",
+          "mediaType": "application/pdf",
+          "role": "primary"
+        }
+      ],
+      "measurements": [
+        {
+          "id": "fixture-measurement-7-01",
+          "analyteId": "hemoglobin",
+          "sourceLabel": "Hemoglobin",
+          "sourceValue": "13.8",
+          "sourceUnit": "g/dL",
+          "sourceReferenceInterval": "11.5-15.5 g/dL",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-7-02",
+          "analyteId": "hematocrit",
+          "sourceLabel": "Hematocrit",
+          "sourceValue": "42",
+          "sourceUnit": "%",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-7-03",
+          "analyteId": "wbc",
+          "sourceLabel": "Leukocytes",
+          "sourceValue": "6.4",
+          "sourceUnit": "10*3/uL",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-7-04",
+          "analyteId": "platelets",
+          "sourceLabel": "Platelets",
+          "sourceValue": "245",
+          "sourceUnit": "10*3/uL",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-7-05",
+          "analyteId": "glucose",
+          "sourceLabel": "Glucose",
+          "sourceValue": "95",
+          "sourceUnit": "mg/dL",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-7-06",
+          "analyteId": "creatinine",
+          "sourceLabel": "Creatinine",
+          "sourceValue": "1.0",
+          "sourceUnit": "mg/dL",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-7-07",
+          "analyteId": "egfr",
+          "sourceLabel": "eGFR",
+          "sourceValue": "92",
+          "sourceUnit": "mL/min/{1.73_m2}",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "low",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-7-08",
+          "analyteId": "alt",
+          "sourceLabel": "Alanine aminotransferase",
+          "sourceValue": "24",
+          "sourceUnit": "U/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-7-09",
+          "analyteId": "ast",
+          "sourceLabel": "Aspartate aminotransferase",
+          "sourceValue": "22",
+          "sourceUnit": "U/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-7-10",
+          "analyteId": "ferritin",
+          "sourceLabel": "Ferritin",
+          "sourceValue": "",
+          "sourceUnit": "",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "not available",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-7-11",
+          "analyteId": "tsh",
+          "sourceLabel": "Thyrotropin",
+          "sourceValue": "2.1",
+          "sourceUnit": "mIU/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-7-12",
+          "analyteId": "crp",
+          "sourceLabel": "C reactive protein",
+          "sourceValue": "1.8",
+          "sourceUnit": "mg/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "high",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-7-13",
+          "analyteId": "cholesterol",
+          "sourceLabel": "Cholesterol",
+          "sourceValue": "5.2",
+          "sourceUnit": "mmol/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-7-14",
+          "analyteId": "custom-marker",
+          "sourceLabel": "Example marker",
+          "sourceValue": "not reported",
+          "sourceUnit": "not applicable",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        }
+      ]
+    },
+    {
+      "id": "fixture-report-008",
+      "collectionTime": "2026-06-30T08:25:00Z",
+      "reportDate": "2026-06-30",
+      "laboratory": "Fictional Central Laboratory",
+      "orderingClinician": "Dr. Example",
+      "fastingState": "unknown",
+      "status": "complete",
+      "notes": "Fictional test data. Do not use for clinical decisions.",
+      "tags": ["follow-up"],
+      "sourceFiles": [
+        {
+          "id": "fixture-source-8-primary",
+          "filename": "demo-report-2026-06-30.pdf",
+          "mediaType": "application/pdf",
+          "role": "primary"
+        }
+      ],
+      "measurements": [
+        {
+          "id": "fixture-measurement-8-01",
+          "analyteId": "hemoglobin",
+          "sourceLabel": "Hemoglobin",
+          "sourceValue": "13.8",
+          "sourceUnit": "g/dL",
+          "sourceReferenceInterval": "11.5-15.5 g/dL",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-8-02",
+          "analyteId": "hematocrit",
+          "sourceLabel": "Hematocrit",
+          "sourceValue": "42",
+          "sourceUnit": "%",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-8-03",
+          "analyteId": "wbc",
+          "sourceLabel": "Leukocytes",
+          "sourceValue": "6.4",
+          "sourceUnit": "10*3/uL",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-8-04",
+          "analyteId": "platelets",
+          "sourceLabel": "Platelets",
+          "sourceValue": "245",
+          "sourceUnit": "10*3/uL",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-8-05",
+          "analyteId": "glucose",
+          "sourceLabel": "Glucose",
+          "sourceValue": "95",
+          "sourceUnit": "mmol/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-8-06",
+          "analyteId": "creatinine",
+          "sourceLabel": "Creatinine",
+          "sourceValue": "1.0",
+          "sourceUnit": "mg/dL",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-8-07",
+          "analyteId": "egfr",
+          "sourceLabel": "eGFR",
+          "sourceValue": "92",
+          "sourceUnit": "mL/min/{1.73_m2}",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "low",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-8-08",
+          "analyteId": "alt",
+          "sourceLabel": "Alanine aminotransferase",
+          "sourceValue": "24",
+          "sourceUnit": "U/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-8-09",
+          "analyteId": "ast",
+          "sourceLabel": "Aspartate aminotransferase",
+          "sourceValue": "22",
+          "sourceUnit": "U/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-8-10",
+          "analyteId": "ferritin",
+          "sourceLabel": "Ferritin",
+          "sourceValue": "85",
+          "sourceUnit": "ug/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-8-11",
+          "analyteId": "tsh",
+          "sourceLabel": "Thyrotropin",
+          "sourceValue": "2.1",
+          "sourceUnit": "mIU/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-8-12",
+          "analyteId": "crp",
+          "sourceLabel": "C reactive protein",
+          "sourceValue": "1.8",
+          "sourceUnit": "mg/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "high",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-8-13",
+          "analyteId": "cholesterol",
+          "sourceLabel": "Cholesterol",
+          "sourceValue": "5.2",
+          "sourceUnit": "mmol/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-8-14",
+          "analyteId": "custom-marker",
+          "sourceLabel": "Example marker",
+          "sourceValue": "not reported",
+          "sourceUnit": "not applicable",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        }
+      ]
+    },
+    {
+      "id": "fixture-report-009",
+      "collectionTime": "2026-07-18T08:35:00Z",
+      "reportDate": "2026-07-18",
+      "laboratory": "Fictional Central Laboratory",
+      "orderingClinician": "Dr. Example",
+      "fastingState": "fasting",
+      "status": "complete",
+      "notes": "Fictional test data. Do not use for clinical decisions.",
+      "tags": ["routine"],
+      "sourceFiles": [
+        {
+          "id": "fixture-source-9-primary",
+          "filename": "demo-report-2026-07-18.pdf",
+          "mediaType": "application/pdf",
+          "role": "primary"
+        }
+      ],
+      "measurements": [
+        {
+          "id": "fixture-measurement-9-01",
+          "analyteId": "hemoglobin",
+          "sourceLabel": "Hemoglobin",
+          "sourceValue": "13.8",
+          "sourceUnit": "g/dL",
+          "sourceReferenceInterval": "11.5-15.5 g/dL",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-9-02",
+          "analyteId": "hematocrit",
+          "sourceLabel": "Hematocrit",
+          "sourceValue": "42",
+          "sourceUnit": "%",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-9-03",
+          "analyteId": "wbc",
+          "sourceLabel": "Leukocytes",
+          "sourceValue": "6.4",
+          "sourceUnit": "10*3/uL",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-9-04",
+          "analyteId": "platelets",
+          "sourceLabel": "Platelets",
+          "sourceValue": "245",
+          "sourceUnit": "10*3/uL",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-9-05",
+          "analyteId": "glucose",
+          "sourceLabel": "Glucose",
+          "sourceValue": "95",
+          "sourceUnit": "mg/dL",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-9-06",
+          "analyteId": "creatinine",
+          "sourceLabel": "Creatinine",
+          "sourceValue": "1.0",
+          "sourceUnit": "mg/dL",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-9-07",
+          "analyteId": "egfr",
+          "sourceLabel": "eGFR",
+          "sourceValue": "92",
+          "sourceUnit": "mL/min/{1.73_m2}",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "low",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-9-08",
+          "analyteId": "alt",
+          "sourceLabel": "Alanine aminotransferase",
+          "sourceValue": "24",
+          "sourceUnit": "U/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-9-09",
+          "analyteId": "ast",
+          "sourceLabel": "Aspartate aminotransferase",
+          "sourceValue": "22",
+          "sourceUnit": "U/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-9-10",
+          "analyteId": "ferritin",
+          "sourceLabel": "Ferritin",
+          "sourceValue": "85",
+          "sourceUnit": "ug/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-9-11",
+          "analyteId": "tsh",
+          "sourceLabel": "Thyrotropin",
+          "sourceValue": "2.1",
+          "sourceUnit": "mIU/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-9-12",
+          "analyteId": "crp",
+          "sourceLabel": "C reactive protein",
+          "sourceValue": "1.8",
+          "sourceUnit": "mg/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "high",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-9-13",
+          "analyteId": "cholesterol",
+          "sourceLabel": "Cholesterol",
+          "sourceValue": "5.2",
+          "sourceUnit": "mmol/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-9-14",
+          "analyteId": "custom-marker",
+          "sourceLabel": "Example marker",
+          "sourceValue": "not reported",
+          "sourceUnit": "not applicable",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        }
+      ]
+    },
+    {
+      "id": "fixture-report-010",
+      "collectionTime": "2026-08-20T09:05:00Z",
+      "reportDate": "2026-08-20",
+      "laboratory": "Fictional Specialist Laboratory",
+      "orderingClinician": "Dr. Example",
+      "fastingState": "unknown",
+      "status": "draft",
+      "notes": "Fictional test data. Do not use for clinical decisions.",
+      "tags": ["follow-up"],
+      "sourceFiles": [
+        {
+          "id": "fixture-source-10-primary",
+          "filename": "demo-report-2026-08-20.pdf",
+          "mediaType": "application/pdf",
+          "role": "primary"
+        },
+        {
+          "id": "fixture-source-10-supplement",
+          "filename": "demo-report-2026-08-20-supplement.png",
+          "mediaType": "image/png",
+          "role": "supplement"
+        },
+        {
+          "id": "fixture-source-10-correction",
+          "filename": "demo-report-2026-08-20-correction.heic",
+          "mediaType": "image/heic",
+          "role": "correction"
+        }
+      ],
+      "measurements": [
+        {
+          "id": "fixture-measurement-10-01",
+          "analyteId": "hemoglobin",
+          "sourceLabel": "Hemoglobin",
+          "sourceValue": "14.1",
+          "sourceUnit": "g/dL",
+          "sourceReferenceInterval": "11.5-15.5 g/dL",
+          "sourceFlag": "",
+          "updatedAt": "2026-08-28T00:00:00Z",
+          "updatedBy": "fixture-reviewer"
+        },
+        {
+          "id": "fixture-measurement-10-02",
+          "analyteId": "hematocrit",
+          "sourceLabel": "Hematocrit",
+          "sourceValue": "42",
+          "sourceUnit": "%",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-10-03",
+          "analyteId": "wbc",
+          "sourceLabel": "Leukocytes",
+          "sourceValue": "6.4",
+          "sourceUnit": "10*3/uL",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-10-04",
+          "analyteId": "platelets",
+          "sourceLabel": "Platelets",
+          "sourceValue": "245",
+          "sourceUnit": "10*3/uL",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-10-05",
+          "analyteId": "glucose",
+          "sourceLabel": "Glucose",
+          "sourceValue": "95",
+          "sourceUnit": "mmol/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-10-06",
+          "analyteId": "creatinine",
+          "sourceLabel": "Creatinine",
+          "sourceValue": "1.0",
+          "sourceUnit": "mg/dL",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-10-07",
+          "analyteId": "egfr",
+          "sourceLabel": "eGFR",
+          "sourceValue": "92",
+          "sourceUnit": "mL/min/{1.73_m2}",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "low",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-10-08",
+          "analyteId": "alt",
+          "sourceLabel": "Alanine aminotransferase",
+          "sourceValue": "24",
+          "sourceUnit": "U/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-10-09",
+          "analyteId": "ast",
+          "sourceLabel": "Aspartate aminotransferase",
+          "sourceValue": "22",
+          "sourceUnit": "U/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-10-10",
+          "analyteId": "ferritin",
+          "sourceLabel": "Ferritin",
+          "sourceValue": "85",
+          "sourceUnit": "ug/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-10-11",
+          "analyteId": "tsh",
+          "sourceLabel": "Thyrotropin",
+          "sourceValue": "2.1",
+          "sourceUnit": "mIU/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-10-12",
+          "analyteId": "crp",
+          "sourceLabel": "C reactive protein",
+          "sourceValue": "1.8",
+          "sourceUnit": "mg/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "high",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-10-13",
+          "analyteId": "cholesterol",
+          "sourceLabel": "Cholesterol",
+          "sourceValue": "5.2",
+          "sourceUnit": "mmol/L",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        },
+        {
+          "id": "fixture-measurement-10-14",
+          "analyteId": "custom-marker",
+          "sourceLabel": "Example marker",
+          "sourceValue": "not reported",
+          "sourceUnit": "not applicable",
+          "sourceReferenceInterval": "Fictional interval",
+          "sourceFlag": "",
+          "updatedAt": "",
+          "updatedBy": ""
+        }
+      ]
+    }
+  ]
+}
