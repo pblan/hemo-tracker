@@ -29,6 +29,14 @@ Use the correction action for a value that was entered incorrectly. Review the s
 
 The correction changes the current value. The source file remains immutable. Hemo Tracker records the update time and local user identity.
 
+## Find a report
+
+Use **Report history** after you unlock the vault. Enter a laboratory name in **Search reports** to filter the list. The list shows the collection time and report state.
+
+## Read a trend
+
+A trend plot shows the change for one analyte. Read the data table below the plot when you need exact values. The table also shows missing and flagged results. A plot does not give medical advice.
+
 ## Safety limits
 
 Hemo Tracker is a record-keeping tool. It does not diagnose conditions or give medical advice. Check laboratory results with a qualified health professional.
