@@ -77,14 +77,14 @@ pub struct NewAnalyte {
     pub healthy_range: Option<String>,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
 pub enum ReportStatus {
     Draft,
     Complete,
     Archived,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub struct LabReportSourceFile {
     pub id: String,
     pub original_filename: String,
@@ -93,7 +93,7 @@ pub struct LabReportSourceFile {
     pub opaque_object_id: String,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub struct LabReportMeasurement {
     pub id: String,
     pub source_label: String,
@@ -106,7 +106,7 @@ pub struct LabReportMeasurement {
     pub updated_by: String,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub struct LabReportDetails {
     pub id: String,
     pub collection_time: String,

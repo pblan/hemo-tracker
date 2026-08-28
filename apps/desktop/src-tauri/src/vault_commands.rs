@@ -567,6 +567,34 @@ pub fn choose_and_restore_local_vault(
     Ok(true)
 }
 
+#[tauri::command]
+pub fn choose_and_export_plaintext_json(
+    app: AppHandle,
+    state: State<'_, DesktopVaultState>,
+) -> Result<bool, String> {
+    let Some(path) = app
+        .dialog()
+        .file()
+        .set_title("Save plaintext Hemo Tracker export")
+        .set_file_name("hemo-tracker-export.json")
+        .blocking_save_file()
+    else {
+        return Ok(false);
+    };
+    let destination = path.into_path().map_err(|_| safe_error())?;
+    let guard = state.vault.lock().map_err(|_| safe_error())?;
+    let vault = guard.as_ref().ok_or_else(safe_error)?;
+    let reports = vault
+        .list_lab_report_ids()
+        .map_err(|_| safe_error())?
+        .into_iter()
+        .map(|id| vault.get_lab_report(&id).map_err(|_| safe_error()))
+        .collect::<Result<Vec<_>, _>>()?;
+    let bytes = serde_json::to_vec_pretty(&reports).map_err(|_| safe_error())?;
+    std::fs::write(destination, bytes).map_err(|_| safe_error())?;
+    Ok(true)
+}
+
 fn account_directory(app: &AppHandle) -> Result<PathBuf, String> {
     app.path()
         .app_data_dir()

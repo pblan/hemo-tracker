@@ -14,6 +14,7 @@ import {
   addAnalyteDefinition,
   addLabMeasurement,
   chooseAndRestoreLocalVault,
+  chooseAndExportPlaintextJson,
   completeLabReport,
   chooseAndBackupLocalVault,
   createLabReport,
@@ -439,6 +440,24 @@ function UnlockedVault({
     }
   }
 
+  async function exportPlaintext() {
+    if (
+      !window.confirm(
+        "This creates a plaintext copy of your health data. Continue?",
+      )
+    )
+      return;
+    try {
+      const exported = await chooseAndExportPlaintextJson();
+      if (exported)
+        onError(
+          "The plaintext JSON export was saved. Protect or delete it when it is no longer needed.",
+        );
+    } catch {
+      onError("Hemo Tracker could not create the plaintext export.");
+    }
+  }
+
   async function lock() {
     try {
       onLocked(await lockVault());
@@ -842,6 +861,13 @@ function UnlockedVault({
           </Button>
         </Stack>
       </Box>
+      <Button
+        alignSelf="start"
+        variant="outline"
+        onClick={() => void exportPlaintext()}
+      >
+        Export plaintext JSON (review warning)
+      </Button>
     </Stack>
   );
 }

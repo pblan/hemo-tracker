@@ -113,3 +113,5 @@ export const restoreLocalVault = (backup: string, passphrase: string) =>
   invoke<void>("restore_local_vault", { backup, passphrase });
 export const chooseAndRestoreLocalVault = (passphrase: string) =>
   invoke<boolean>("choose_and_restore_local_vault", { passphrase });
+export const chooseAndExportPlaintextJson = () =>
+  invoke<boolean>("choose_and_export_plaintext_json");
