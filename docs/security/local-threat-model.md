@@ -48,3 +48,7 @@ V1 does not protect clinical content against these threats:
 - Verify encrypted backups before atomic restore.
 - State the unsigned publisher limit in installation and release documentation.
 - Complete an independent specialist review before use with real medical data.
+
+## Current verification
+
+The repository runs `bun audit` in the main CI workflow. On 2026-08-28, the audit found no known JavaScript dependency vulnerabilities after the Drizzle ORM update. Rust formatting, clippy, and tests run in a separate path-filtered workflow. These checks do not replace an independent specialist review.
