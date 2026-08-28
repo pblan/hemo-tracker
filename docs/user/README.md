@@ -29,9 +29,9 @@ Result: The report is stored in the encrypted local vault. The original source f
 
 ## Correct a measurement
 
-Use the correction action for a value that was entered incorrectly. Review the source file before you confirm the correction.
+Use the correction action for a value that was entered incorrectly. Review the source file before you confirm the correction. You can also select a different saved analyte to relink an existing result to a newer definition.
 
-The correction changes the current value. The source file remains immutable. Hemo Tracker records the update time and local user identity.
+The correction changes the current value or analyte link. The source file remains immutable. Hemo Tracker records the update time and local user identity.
 
 ## Add data to an existing report
 
