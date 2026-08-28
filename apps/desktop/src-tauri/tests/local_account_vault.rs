@@ -197,6 +197,20 @@ fn user_records_and_reopens_one_complete_lab_report_with_encrypted_evidence() {
         "fictional-report.pdf"
     );
 
+    reopened.archive_lab_report(&report_id).unwrap();
+    let archived = reopened.get_lab_report(&report_id).unwrap();
+    assert_eq!(archived.status, ReportStatus::Archived);
+    assert_eq!(archived.measurements.len(), 1);
+    reopened.lock();
+    let mut reopened_again = LocalAccountVault::open(&account).unwrap();
+    reopened_again
+        .unlock_with_passphrase("valid passphrase".to_owned())
+        .unwrap();
+    assert_eq!(
+        reopened_again.get_lab_report(&report_id).unwrap().status,
+        ReportStatus::Archived
+    );
+
     assert_eq!(fs::read(&source_path).unwrap(), source_marker);
 
     assert_directory_does_not_contain(&account, source_marker);
