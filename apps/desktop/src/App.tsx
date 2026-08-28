@@ -288,6 +288,7 @@ function UnlockedVault({
   const [sourceLabel, setSourceLabel] = useState("");
   const [sourceValue, setSourceValue] = useState("");
   const [valueHint, setValueHint] = useState<string | null>(null);
+  const [formatConfirmed, setFormatConfirmed] = useState(false);
   const [sourceUnit, setSourceUnit] = useState("");
   const [sourceReferenceInterval, setSourceReferenceInterval] = useState("");
   const [sourceFlag, setSourceFlag] = useState("");
@@ -315,6 +316,10 @@ function UnlockedVault({
 
   async function saveReport(event: FormEvent) {
     event.preventDefault();
+    if (valueHint?.startsWith("This value") && !formatConfirmed) {
+      onError("Confirm the measurement format before saving.");
+      return;
+    }
     setSaving(true);
     onError("");
     try {
@@ -538,6 +543,7 @@ function UnlockedVault({
               onChange={(event) => {
                 const next = event.target.value;
                 setSourceValue(next);
+                setFormatConfirmed(false);
                 const parsed = parseMeasurementInput(next, "de-DE");
                 setValueHint(
                   parsed.kind === "ambiguous"
@@ -556,6 +562,17 @@ function UnlockedVault({
             >
               {valueHint}
             </Text>
+          ) : null}
+          {valueHint?.startsWith("This value") && !formatConfirmed ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              alignSelf="start"
+              onClick={() => setFormatConfirmed(true)}
+            >
+              Confirm this format
+            </Button>
           ) : null}
           <Field.Root required>
             <Field.Label>Source unit</Field.Label>
