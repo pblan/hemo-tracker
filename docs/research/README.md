@@ -10,3 +10,4 @@ These time-specific notes record the primary sources that support product and ar
 - [Private-data encryption](private-data-encryption.md)
 - [Source-file encryption](source-file-encryption.md)
 - [Tauri security tooling](tauri-security-tooling.md)
+- [Local application UI and UX practices](ui-ux-practices.md)

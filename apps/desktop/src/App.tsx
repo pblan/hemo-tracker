@@ -335,21 +335,47 @@ function UnlockedVault({
   return (
     <Stack gap="6">
       <Box
+        bgGradient="to-r"
+        gradientFrom="teal.700"
+        gradientTo="cyan.600"
+        color="white"
+        borderRadius="2xl"
+        px={{ base: "6", md: "8" }}
+        py={{ base: "6", md: "8" }}
+        shadow="lg"
+      >
+        <Stack gap="2">
+          <Text
+            fontSize="sm"
+            opacity="0.85"
+            fontWeight="semibold"
+            textTransform="uppercase"
+            letterSpacing="wide"
+          >
+            Your private health record
+          </Text>
+          <Heading size="xl">Record a lab report</Heading>
+          <Text opacity="0.9">
+            Keep the original document and record values exactly as printed.
+          </Text>
+        </Stack>
+      </Box>
+      <Box
         as="form"
+        bg="bg.panel"
         borderWidth="1px"
-        borderRadius="xl"
-        p="7"
+        borderColor="border"
+        borderRadius="2xl"
+        p={{ base: "5", md: "8" }}
+        shadow="sm"
         onSubmit={saveReport}
       >
         <Stack gap="5">
-          <Stack gap="2">
-            <Heading as="h2" size="xl">
-              Record a lab report
-            </Heading>
-            <Text color="fg.muted">
-              Use the original source file and keep the source text exact.
-            </Text>
-          </Stack>
+          <SectionHeading
+            number="1"
+            title="Report details"
+            description="When and where was the sample collected?"
+          />
           <Field.Root required>
             <Field.Label>Collection date and time</Field.Label>
             <Input
@@ -365,9 +391,11 @@ function UnlockedVault({
               onChange={(event) => setLaboratory(event.target.value)}
             />
           </Field.Root>
-          <Heading as="h3" size="md">
-            First measurement
-          </Heading>
+          <SectionHeading
+            number="2"
+            title="First measurement"
+            description="Enter the result as shown on the source document."
+          />
           <Field.Root required>
             <Field.Label>Source label</Field.Label>
             <Input
@@ -406,7 +434,21 @@ function UnlockedVault({
             />
           </Field.Root>
           {sourceFilename ? (
-            <Text>Attached source file: {sourceFilename}</Text>
+            <Box
+              bg="teal.50"
+              _dark={{ bg: "teal.950" }}
+              borderRadius="lg"
+              px="4"
+              py="3"
+            >
+              <Text
+                fontSize="sm"
+                color="teal.800"
+                _dark={{ color: "teal.100" }}
+              >
+                Attached source file: {sourceFilename}
+              </Text>
+            </Box>
           ) : null}
           <Button
             type="submit"
@@ -421,6 +463,42 @@ function UnlockedVault({
       <Button alignSelf="start" variant="outline" onClick={() => void lock()}>
         Lock vault
       </Button>
+    </Stack>
+  );
+}
+
+function SectionHeading({
+  number,
+  title,
+  description,
+}: {
+  number: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <Stack direction="row" gap="3" align="start" pt="2">
+      <Box
+        borderRadius="full"
+        bg="teal.600"
+        color="white"
+        minW="8"
+        h="8"
+        display="grid"
+        placeItems="center"
+        fontWeight="bold"
+        fontSize="sm"
+      >
+        {number}
+      </Box>
+      <Stack gap="0">
+        <Heading as="h3" size="md">
+          {title}
+        </Heading>
+        <Text color="fg.muted" fontSize="sm">
+          {description}
+        </Text>
+      </Stack>
     </Stack>
   );
 }

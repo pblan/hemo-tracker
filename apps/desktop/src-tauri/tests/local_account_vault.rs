@@ -1,6 +1,6 @@
 use hemo_tracker_desktop_lib::account_vault::{
-    CreateLabReportDraft, CreateLocalAccount, LocalAccountVault, NewMeasurement, NewSourceFile,
-    ReportStatus, VaultStatus,
+    CreateLabReportDraft, CreateLocalAccount, LocalAccountVault, NewAnalyte, NewMeasurement,
+    NewSourceFile, ReportStatus, VaultStatus,
 };
 use std::fs;
 use tempfile::tempdir;
@@ -93,6 +93,20 @@ fn user_records_and_reopens_one_complete_lab_report_with_encrypted_evidence() {
     .unwrap();
     let mut vault = created.into_vault();
 
+    let hemoglobin_id = vault
+        .add_analyte(NewAnalyte {
+            name: "Hemoglobin".to_owned(),
+            component: "Hemoglobin".to_owned(),
+            property: "MCnc".to_owned(),
+            specimen: "Blood".to_owned(),
+            scale: "Quantitative".to_owned(),
+            method: None,
+            aliases: vec!["Hb".to_owned()],
+            loinc_code: Some("718-7".to_owned()),
+        })
+        .unwrap();
+    assert_eq!(vault.list_analytes().unwrap().len(), 1);
+
     let report_id = vault
         .create_lab_report_draft(CreateLabReportDraft {
             collection_time: "2026-08-20T08:30:00+02:00".to_owned(),
@@ -127,7 +141,7 @@ fn user_records_and_reopens_one_complete_lab_report_with_encrypted_evidence() {
                 source_unit: "g/dL".to_owned(),
                 source_reference_interval: "12,0–16,0".to_owned(),
                 source_flag: "within range".to_owned(),
-                analyte_id: None,
+                analyte_id: Some(hemoglobin_id.clone()),
             },
         )
         .unwrap();
@@ -174,6 +188,10 @@ fn user_records_and_reopens_one_complete_lab_report_with_encrypted_evidence() {
         "12,0–16,0"
     );
     assert_eq!(report.measurements[0].source_flag, "within range");
+    assert_eq!(
+        report.measurements[0].analyte_id.as_deref(),
+        Some(hemoglobin_id.as_str())
+    );
     assert_eq!(
         report.source_files[0].original_filename,
         "fictional-report.pdf"
