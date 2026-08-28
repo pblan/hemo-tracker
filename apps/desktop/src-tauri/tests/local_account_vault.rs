@@ -2,7 +2,7 @@ use hemo_tracker_desktop_lib::account_vault::{
     CreateLabReportDraft, CreateLocalAccount, LocalAccountVault, NewAnalyte, NewMeasurement,
     NewPersonalTargetRange, NewSourceFile, ReportStatus, VaultStatus,
 };
-use std::fs;
+use std::{fs, io::Read};
 use tempfile::tempdir;
 
 #[test]
@@ -102,6 +102,31 @@ fn encrypted_backup_restores_and_plaintext_export_is_a_zip() {
     )
     .unwrap();
     let mut vault = created.into_vault();
+    let report_id = vault
+        .create_lab_report_draft(CreateLabReportDraft {
+            collection_time: "2026-08-20T08:30:00Z".to_owned(),
+            report_date: None,
+            laboratory: Some("Fictional Lab, West".to_owned()),
+            ordering_clinician: None,
+            fasting_state: None,
+            notes: None,
+            tags: vec![],
+        })
+        .unwrap();
+    vault
+        .add_measurement(
+            &report_id,
+            NewMeasurement {
+                source_label: "Marker, \"special\"".to_owned(),
+                source_value: "1,2".to_owned(),
+                source_unit: "unit".to_owned(),
+                source_reference_interval: "0-2".to_owned(),
+                source_flag: "line\nflag".to_owned(),
+                parsed_numeric_value: Some("1.2".to_owned()),
+                analyte_id: None,
+            },
+        )
+        .unwrap();
     vault.backup_to(&backup).unwrap();
     assert!(
         vault
@@ -138,6 +163,17 @@ fn encrypted_backup_restores_and_plaintext_export_is_a_zip() {
     let archive_file = fs::File::open(&export).unwrap();
     let mut archive = zip::ZipArchive::new(archive_file).unwrap();
     assert!(archive.by_name("measurements.csv").is_ok());
+    let mut csv = String::new();
+    archive
+        .by_name("measurements.csv")
+        .unwrap()
+        .read_to_string(&mut csv)
+        .unwrap();
+    assert!(csv.contains("\"Fictional Lab, West\""));
+    assert!(csv.contains("\"Marker, \"\"special\"\"\""));
+    assert!(csv.contains("\"line\nflag\""));
+    assert!(vault.export_plaintext_zip(&export).is_err());
+    assert!(!parent.path().join("export.zip-partial").exists());
     vault.lock();
     vault
         .restore_from_backup(&backup, "valid passphrase".to_owned())
