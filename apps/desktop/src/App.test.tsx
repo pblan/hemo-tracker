@@ -1,11 +1,29 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import App from "./App";
 import { Provider } from "./components/ui/provider";
+import * as vaultClient from "./vault-client";
+
+vi.mock("./vault-client", () => ({
+  createLocalAccount: vi.fn(),
+  getVaultState: vi.fn(),
+  lockVault: vi.fn(),
+  unlockWithPassphrase: vi.fn(),
+  unlockWithRecovery: vi.fn(),
+}));
 
 describe("desktop application shell", () => {
-  it("identifies the private local-first application", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(vaultClient.getVaultState).mockResolvedValue({
+      accountExists: false,
+      status: "missing",
+    });
+  });
+
+  it("identifies the private local-first application", async () => {
     render(
       <Provider>
         <App />
@@ -15,6 +33,66 @@ describe("desktop application shell", () => {
     expect(
       screen.getByRole("heading", { level: 1, name: "Hemo Tracker" }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/local-first laboratory results/i)).toBeVisible();
+    expect(await screen.findByText(/create your local vault/i)).toBeVisible();
+  });
+
+  it("creates a local vault and presents its recovery key", async () => {
+    vi.mocked(vaultClient.createLocalAccount).mockResolvedValue({
+      recoveryCode: "HTRK1-example-recovery-code",
+    });
+    const user = userEvent.setup();
+    render(
+      <Provider>
+        <App />
+      </Provider>,
+    );
+
+    await user.type(
+      await screen.findByLabelText("Passphrase"),
+      "correct horse battery staple",
+    );
+    await user.type(
+      screen.getByLabelText("Confirm passphrase"),
+      "correct horse battery staple",
+    );
+    await user.click(screen.getByRole("button", { name: "Create vault" }));
+
+    expect(vaultClient.createLocalAccount).toHaveBeenCalledWith(
+      "correct horse battery staple",
+    );
+    expect(
+      await screen.findByText("HTRK1-example-recovery-code"),
+    ).toBeVisible();
+    expect(screen.getByText(/store this recovery key/i)).toBeVisible();
+  });
+
+  it("unlocks an existing vault with its passphrase", async () => {
+    vi.mocked(vaultClient.getVaultState).mockResolvedValue({
+      accountExists: true,
+      status: "locked",
+    });
+    vi.mocked(vaultClient.unlockWithPassphrase).mockResolvedValue({
+      accountExists: true,
+      status: "unlocked",
+    });
+    const user = userEvent.setup();
+    render(
+      <Provider>
+        <App />
+      </Provider>,
+    );
+
+    await user.type(
+      await screen.findByLabelText("Passphrase"),
+      "valid passphrase",
+    );
+    await user.click(screen.getByRole("button", { name: "Unlock vault" }));
+
+    expect(vaultClient.unlockWithPassphrase).toHaveBeenCalledWith(
+      "valid passphrase",
+    );
+    expect(
+      await screen.findByRole("heading", { name: "Your vault is unlocked" }),
+    ).toBeVisible();
   });
 });

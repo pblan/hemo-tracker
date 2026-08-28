@@ -6,5 +6,5 @@ test("desktop webview identifies Hemo Tracker", async ({ page }) => {
   await expect(
     page.getByRole("heading", { level: 1, name: "Hemo Tracker" }),
   ).toBeVisible();
-  await expect(page.getByText(/local-first laboratory results/i)).toBeVisible();
+  await expect(page.getByText(/laboratory data stays/i)).toBeVisible();
 });

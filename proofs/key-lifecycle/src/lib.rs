@@ -94,6 +94,10 @@ impl PurposeKey {
     pub fn matches(&self, other: &Self) -> bool {
         bool::from(self.0.ct_eq(&other.0))
     }
+
+    pub fn bytes(&self) -> &[u8; KEY_BYTES] {
+        &self.0
+    }
 }
 
 #[derive(Clone, Zeroize, ZeroizeOnDrop)]
