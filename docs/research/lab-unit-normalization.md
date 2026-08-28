@@ -95,6 +95,12 @@ Use a LOINC code when a confident mapping exists. Keep a local definition when n
 2. **Curated**: The conversion crosses from mass concentration to substance concentration. A reviewed rule specifies the exact component, molar mass, source property, target property, and provenance.
 3. **Blocked**: The system cannot prove equivalence. Keep the source result and show it in its original unit.
 
+### Review candidates for curated conversion
+
+Glucose and creatinine are representative candidates for reviewed mass-to-substance concentration rules. NIST gives a molecular weight of 180.1559 for glucose and 113.1179 for creatinine. [NIST glucose record](https://webbook.nist.gov/cgi/cbook.cgi?ID=C50997) [NIST creatinine record](https://webbook.nist.gov/cgi/cbook.cgi?ID=C60275)
+
+These values are necessary but not sufficient for a product rule. Before approval, bind each rule to exact source and target properties, specimen, method relevance, LOINC identities, UCUM units, formula, rounding behavior, and provenance. Keep the conversion blocked until that review is complete.
+
 Use a tested UCUM implementation. Do not implement unit parsing with a list of regular expressions.
 
 ### Block these automatic conversions
