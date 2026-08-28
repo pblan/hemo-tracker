@@ -14,6 +14,7 @@ import {
   addAnalyteDefinition,
   addLabMeasurement,
   addPersonalTargetRange,
+  archiveLabReport,
   chooseAndRestoreLocalVault,
   chooseAndExportPlaintextZip,
   completeLabReport,
@@ -627,6 +628,14 @@ function UnlockedVault({
       onError("Hemo Tracker could not save the measurement.");
     }
   }
+  async function archiveReport(reportId: string) {
+    try {
+      await archiveLabReport(reportId);
+      setSaving((value) => !value);
+    } catch {
+      onError("Hemo Tracker could not archive the report.");
+    }
+  }
   const buildTrend = (analyteId: string) => {
     const analyte = analytes.find((item) => item.id === analyteId);
     const candidates = reports.flatMap((report) =>
@@ -970,6 +979,18 @@ function UnlockedVault({
                       >
                         Add measurement
                       </Button>
+                      {report.status === "complete" ? (
+                        <Button
+                          size="xs"
+                          variant="ghost"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            void archiveReport(report.id);
+                          }}
+                        >
+                          Archive report
+                        </Button>
+                      ) : null}
                     </Stack>
                     {addingMeasurementReportId === report.id ? (
                       <Stack direction={{ base: "column", sm: "row" }} gap="2">
