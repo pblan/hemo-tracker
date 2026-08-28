@@ -20,8 +20,8 @@ intervals, corrections, personal target ranges, compatible unit variants, and
 blocked normalization cases. This gives the interface enough variation to show
 normal data, incomplete data, and data that must not be compared.
 
-The runtime seed is intentionally smaller. A new vault contains three complete
-fictional reports with encrypted source text and three representative
+The runtime seed is intentionally smaller. A new vault contains six complete
+fictional reports with encrypted source text and eight representative
 measurements per report. The runtime seed is a quickstart sample, not the full
 benchmark fixture. The UI marks the records as demo data.
 

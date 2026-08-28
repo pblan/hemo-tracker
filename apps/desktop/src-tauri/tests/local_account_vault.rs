@@ -22,12 +22,12 @@ fn user_can_create_lock_and_reopen_a_local_account_vault() {
 
     assert_eq!(vault.status(), VaultStatus::Unlocked);
     let demo_report_ids = vault.list_lab_report_ids().unwrap();
-    assert_eq!(demo_report_ids.len(), 3);
+    assert_eq!(demo_report_ids.len(), 6);
     let demo_report = vault.get_lab_report(&demo_report_ids[0]).unwrap();
     assert_eq!(demo_report.status, ReportStatus::Complete);
     assert_eq!(demo_report.tags, vec!["demo"]);
     assert_eq!(demo_report.source_files.len(), 1);
-    assert_eq!(demo_report.measurements.len(), 3);
+    assert_eq!(demo_report.measurements.len(), 8);
     assert!(
         demo_report
             .notes
@@ -50,7 +50,7 @@ fn user_can_create_lock_and_reopen_a_local_account_vault() {
         .unlock_with_passphrase("correct horse battery staple".to_owned())
         .unwrap();
     assert_eq!(reopened.status(), VaultStatus::Unlocked);
-    assert_eq!(reopened.list_lab_report_ids().unwrap().len(), 3);
+    assert_eq!(reopened.list_lab_report_ids().unwrap().len(), 6);
     assert!(reopened.backup_to(account.join("nested-backup")).is_err());
     let backup = directory.path().join("backup");
     reopened.backup_to(&backup).unwrap();
@@ -84,20 +84,20 @@ fn user_can_reset_an_unlocked_vault_to_a_fresh_demo_set() {
             tags: Vec::new(),
         })
         .unwrap();
-    assert_eq!(vault.list_lab_report_ids().unwrap().len(), 4);
+    assert_eq!(vault.list_lab_report_ids().unwrap().len(), 7);
 
     assert!(
         vault
             .reset_to_demo("wrong passphrase".to_owned(), "RESET DEMO VAULT")
             .is_err()
     );
-    assert_eq!(vault.list_lab_report_ids().unwrap().len(), 4);
+    assert_eq!(vault.list_lab_report_ids().unwrap().len(), 7);
     assert!(
         vault
             .reset_to_demo("correct horse battery staple".to_owned(), "RESET")
             .is_err()
     );
-    assert_eq!(vault.list_lab_report_ids().unwrap().len(), 4);
+    assert_eq!(vault.list_lab_report_ids().unwrap().len(), 7);
 
     let new_recovery_code = vault
         .reset_to_demo(
@@ -114,9 +114,9 @@ fn user_can_reset_an_unlocked_vault_to_a_fresh_demo_set() {
         .into_iter()
         .map(|id| vault.get_lab_report(&id).unwrap())
         .collect::<Vec<_>>();
-    assert_eq!(reports.len(), 3);
+    assert_eq!(reports.len(), 6);
     assert!(reports.iter().all(|report| report.tags == vec!["demo"]));
-    assert!(reports.iter().all(|report| report.measurements.len() == 3));
+    assert!(reports.iter().all(|report| report.measurements.len() == 8));
     assert!(reports.iter().all(|report| {
         report
             .notes
@@ -273,7 +273,7 @@ fn encrypted_backup_restores_and_plaintext_export_is_a_zip() {
         .restore_from_backup(&backup, "valid passphrase".to_owned())
         .unwrap();
     assert_eq!(clean_vault.status(), VaultStatus::Unlocked);
-    assert_eq!(clean_vault.list_lab_report_ids().unwrap().len(), 4);
+    assert_eq!(clean_vault.list_lab_report_ids().unwrap().len(), 7);
 }
 
 #[test]

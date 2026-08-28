@@ -434,7 +434,7 @@ impl LocalAccountVault {
 
     fn verify_seeded_demo_vault(vault: &LocalAccountVault) -> Result<(), LocalAccountError> {
         let report_ids = vault.list_lab_report_ids()?;
-        if report_ids.len() != 3 {
+        if report_ids.len() != 6 {
             return Err(LocalAccountError::Operation);
         }
         for report_id in report_ids {
@@ -442,7 +442,7 @@ impl LocalAccountVault {
             if report.status != ReportStatus::Complete
                 || report.tags != vec!["demo".to_owned()]
                 || report.source_files.len() != 1
-                || report.measurements.len() != 3
+                || report.measurements.len() != 8
             {
                 return Err(LocalAccountError::Operation);
             }
@@ -958,6 +958,38 @@ impl LocalAccountVault {
                 Some("777-3"),
                 "10*3/uL",
             ),
+            (
+                "Hematocrit",
+                "Hematocrit",
+                "VFr",
+                "Blood",
+                Some("4544-3"),
+                "%",
+            ),
+            (
+                "Leukocytes",
+                "Leukocytes",
+                "NCnc",
+                "Blood",
+                Some("6690-2"),
+                "10*3/uL",
+            ),
+            (
+                "C reactive protein",
+                "C reactive protein",
+                "MCnc",
+                "Serum or plasma",
+                Some("1988-5"),
+                "mg/L",
+            ),
+            (
+                "Ferritin",
+                "Ferritin",
+                "MCnc",
+                "Serum or plasma",
+                Some("2276-4"),
+                "ug/L",
+            ),
         ] {
             self.add_analyte(NewAnalyte {
                 name: name.to_owned(),
@@ -987,13 +1019,77 @@ impl LocalAccountVault {
         let hemoglobin_id = analyte_id("Hemoglobin")?;
         let glucose_id = analyte_id("Glucose")?;
         let creatinine_id = analyte_id("Creatinine")?;
+        let platelet_id = analyte_id("Platelet count")?;
+        let hematocrit_id = analyte_id("Hematocrit")?;
+        let wbc_id = analyte_id("Leukocytes")?;
+        let crp_id = analyte_id("C reactive protein")?;
+        let ferritin_id = analyte_id("Ferritin")?;
         let samples = [
-            ("2026-01-15T08:00:00Z", "13.4", "90", "1.02"),
-            ("2026-04-22T08:30:00Z", "13.8", "4.99567", "90.3"),
-            ("2026-07-18T07:45:00Z", "14.1", "96", "1.08"),
+            (
+                "2025-08-12T08:00:00Z",
+                "13.4",
+                "90",
+                "1.02",
+                "42",
+                "6.2",
+                "1.8",
+                "82",
+            ),
+            (
+                "2025-11-28T08:30:00Z",
+                "13.6",
+                "4.99567",
+                "90.3",
+                "42.5",
+                "6.4",
+                "2.1",
+                "86",
+            ),
+            (
+                "2026-02-19T07:45:00Z",
+                "13.8",
+                "96",
+                "1.08",
+                "43",
+                "6.6",
+                "2.4",
+                "91",
+            ),
+            (
+                "2026-04-22T08:15:00Z",
+                "13.2",
+                "5.162",
+                "1.00",
+                "41",
+                "7.8",
+                "8.7",
+                "74",
+            ),
+            (
+                "2026-06-30T09:10:00Z",
+                "13.7",
+                "101",
+                "1.04",
+                "42",
+                "6.9",
+                "3.1",
+                "80",
+            ),
+            (
+                "2026-08-20T07:55:00Z",
+                "14.1",
+                "4.99567",
+                "92.0",
+                "43",
+                "6.5",
+                "1.9",
+                "88",
+            ),
         ];
-        for (index, (collection_time, hemoglobin, glucose, creatinine)) in
-            samples.into_iter().enumerate()
+        for (
+            index,
+            (collection_time, hemoglobin, glucose, creatinine, hematocrit, wbc, crp, ferritin),
+        ) in samples.into_iter().enumerate()
         {
             let report_id = self.create_lab_report_draft(CreateLabReportDraft {
                 collection_time: collection_time.to_owned(),
@@ -1045,6 +1141,41 @@ impl LocalAccountVault {
                     "0.6-1.2 mg/dL",
                     creatinine_id.as_str(),
                 ),
+                (
+                    "Platelet count",
+                    if index == 3 { "258" } else { "245" },
+                    "10*3/uL",
+                    "150-400 10*3/uL",
+                    platelet_id.as_str(),
+                ),
+                (
+                    "Hematocrit",
+                    hematocrit,
+                    "%",
+                    if index >= 4 { "36-46 %" } else { "37-47 %" },
+                    hematocrit_id.as_str(),
+                ),
+                (
+                    "Leukocytes",
+                    wbc,
+                    "10*3/uL",
+                    "4.0-10.0 10*3/uL",
+                    wbc_id.as_str(),
+                ),
+                (
+                    "C reactive protein",
+                    crp,
+                    "mg/L",
+                    "0-5 mg/L",
+                    crp_id.as_str(),
+                ),
+                (
+                    "Ferritin",
+                    ferritin,
+                    "ug/L",
+                    "20-250 ug/L",
+                    ferritin_id.as_str(),
+                ),
             ] {
                 self.add_measurement(
                     &report_id,
@@ -1053,7 +1184,11 @@ impl LocalAccountVault {
                         source_value: value.to_owned(),
                         source_unit: unit.to_owned(),
                         source_reference_interval: interval.to_owned(),
-                        source_flag: String::new(),
+                        source_flag: if label == "C reactive protein" && index == 3 {
+                            "high".to_owned()
+                        } else {
+                            String::new()
+                        },
                         parsed_numeric_value: Some(value.to_owned()),
                         analyte_id: Some(analyte.to_owned()),
                     },

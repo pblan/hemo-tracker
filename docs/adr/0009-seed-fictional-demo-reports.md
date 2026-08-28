@@ -13,11 +13,11 @@ fixture must not be copied into a user account automatically.
 
 ## Decision
 
-Create three complete reports when a new local vault is created. Each report
-uses the `demo` tag, fictional notes, one encrypted text source file, and
-hemoglobin, glucose, and creatinine measurements across three collection dates.
-Use representative source units and reference intervals so the trend view can
-show normalization and changing dates immediately.
+Create six complete reports when a new local vault is created. Each report
+uses the `demo` tag, fictional notes, one encrypted text source file, and eight
+representative measurements across irregular collection dates. Use alternate
+glucose units, changing intervals, and one temporary flagged deviation so the
+trend view can show normalization and interpretation boundaries immediately.
 
 Do not seed demo reports when an existing vault is unlocked. Store the demo
 reports through the same encrypted report and source-file paths as user data.

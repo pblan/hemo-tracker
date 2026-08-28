@@ -17,7 +17,9 @@ Use only fictional names and values. Never add real laboratory reports, identifi
 
 The small fixture is suitable for routine checks. Large plot benchmarks are separate work and must not slow routine CI.
 
-New local vaults use a smaller runtime demo set. The application creates three
-complete fictional reports with encrypted text source files. The runtime set
-uses the same representative analytes and unit rules, but it is not a copy of
-the ten-report repository fixture.
+New local vaults use a focused runtime demo set. The application creates six
+complete fictional reports with encrypted text source files and eight
+representative analytes. The runtime set demonstrates irregular dates, a
+temporary flagged deviation, alternate glucose units, changed intervals, and
+source-linked trends. It is smaller than the comprehensive repository fixture
+so first-run startup stays quick.

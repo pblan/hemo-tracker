@@ -28,7 +28,7 @@ Hemo Tracker stores laboratory reports in an encrypted local vault. It does not 
 
 Result: The report is stored in the encrypted local vault. The original source file is not changed.
 
-Each new vault also contains three clearly marked fictional demo reports. Use
+Each new vault also contains six clearly marked fictional demo reports. Use
 these reports to inspect the trend and report controls before you record real
 data. Archive or permanently delete the demo reports when you no longer need
 them.
@@ -84,7 +84,7 @@ return to the fictional first-run data.
 
 Reset does not create a backup. It permanently removes reports, source files,
 analytes, personal ranges, and the old recovery key. It keeps non-vault app
-preferences. The replacement contains three fictional demo reports.
+preferences. The replacement contains six fictional demo reports.
 
 ## Read a trend
 
