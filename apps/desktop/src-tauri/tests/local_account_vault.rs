@@ -140,6 +140,15 @@ fn user_records_and_reopens_one_complete_lab_report_with_encrypted_evidence() {
         })
         .unwrap();
     assert!(vault.list_analytes().unwrap().len() >= 5);
+    assert_eq!(
+        vault
+            .list_analytes()
+            .unwrap()
+            .into_iter()
+            .find(|analyte| analyte.id == hemoglobin_id)
+            .and_then(|analyte| analyte.healthy_range),
+        Some("120-180 g/L (example only)".to_owned())
+    );
 
     let report_id = vault
         .create_lab_report_draft(CreateLabReportDraft {
