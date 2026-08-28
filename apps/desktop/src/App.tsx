@@ -11,9 +11,13 @@ import {
 import { type FormEvent, useEffect, useState } from "react";
 
 import {
+  addLabMeasurement,
+  completeLabReport,
+  createLabReport,
   createLocalAccount,
   getVaultState,
   lockVault,
+  selectAndAttachSourceFile,
   unlockWithPassphrase,
   unlockWithRecovery,
   type VaultState,
@@ -276,6 +280,51 @@ function UnlockedVault({
   onLocked: (state: VaultState) => void;
   onError: (message: string) => void;
 }) {
+  const [collectionTime, setCollectionTime] = useState("");
+  const [laboratory, setLaboratory] = useState("");
+  const [sourceLabel, setSourceLabel] = useState("");
+  const [sourceValue, setSourceValue] = useState("");
+  const [sourceUnit, setSourceUnit] = useState("");
+  const [sourceReferenceInterval, setSourceReferenceInterval] = useState("");
+  const [sourceFlag, setSourceFlag] = useState("");
+  const [sourceFilename, setSourceFilename] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  async function saveReport(event: FormEvent) {
+    event.preventDefault();
+    setSaving(true);
+    onError("");
+    try {
+      const reportId = await createLabReport({
+        collectionTime,
+        laboratory: laboratory || undefined,
+        tags: [],
+      });
+      const source = await selectAndAttachSourceFile(reportId);
+      if (!source) throw new Error("source file not selected");
+      setSourceFilename(source.originalFilename);
+      await addLabMeasurement(reportId, {
+        sourceLabel,
+        sourceValue,
+        sourceUnit,
+        sourceReferenceInterval,
+        sourceFlag,
+      });
+      await completeLabReport(reportId);
+      setCollectionTime("");
+      setLaboratory("");
+      setSourceLabel("");
+      setSourceValue("");
+      setSourceUnit("");
+      setSourceReferenceInterval("");
+      setSourceFlag("");
+    } catch {
+      onError("Hemo Tracker could not save the lab report.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function lock() {
     try {
       onLocked(await lockVault());
@@ -284,17 +333,95 @@ function UnlockedVault({
     }
   }
   return (
-    <Box borderWidth="1px" borderRadius="xl" p="7">
-      <Stack gap="4">
-        <Heading as="h2" size="xl">
-          Your vault is unlocked
-        </Heading>
-        <Text color="fg.muted">You can now record your first lab report.</Text>
-        <Button alignSelf="start" variant="outline" onClick={() => void lock()}>
-          Lock vault
-        </Button>
-      </Stack>
-    </Box>
+    <Stack gap="6">
+      <Box
+        as="form"
+        borderWidth="1px"
+        borderRadius="xl"
+        p="7"
+        onSubmit={saveReport}
+      >
+        <Stack gap="5">
+          <Stack gap="2">
+            <Heading as="h2" size="xl">
+              Record a lab report
+            </Heading>
+            <Text color="fg.muted">
+              Use the original source file and keep the source text exact.
+            </Text>
+          </Stack>
+          <Field.Root required>
+            <Field.Label>Collection date and time</Field.Label>
+            <Input
+              type="datetime-local"
+              value={collectionTime}
+              onChange={(event) => setCollectionTime(event.target.value)}
+            />
+          </Field.Root>
+          <Field.Root>
+            <Field.Label>Laboratory</Field.Label>
+            <Input
+              value={laboratory}
+              onChange={(event) => setLaboratory(event.target.value)}
+            />
+          </Field.Root>
+          <Heading as="h3" size="md">
+            First measurement
+          </Heading>
+          <Field.Root required>
+            <Field.Label>Source label</Field.Label>
+            <Input
+              value={sourceLabel}
+              onChange={(event) => setSourceLabel(event.target.value)}
+            />
+          </Field.Root>
+          <Field.Root required>
+            <Field.Label>Source value</Field.Label>
+            <Input
+              value={sourceValue}
+              onChange={(event) => setSourceValue(event.target.value)}
+            />
+          </Field.Root>
+          <Field.Root required>
+            <Field.Label>Source unit</Field.Label>
+            <Input
+              value={sourceUnit}
+              onChange={(event) => setSourceUnit(event.target.value)}
+            />
+          </Field.Root>
+          <Field.Root required>
+            <Field.Label>Source reference interval</Field.Label>
+            <Input
+              value={sourceReferenceInterval}
+              onChange={(event) =>
+                setSourceReferenceInterval(event.target.value)
+              }
+            />
+          </Field.Root>
+          <Field.Root required>
+            <Field.Label>Source flag</Field.Label>
+            <Input
+              value={sourceFlag}
+              onChange={(event) => setSourceFlag(event.target.value)}
+            />
+          </Field.Root>
+          {sourceFilename ? (
+            <Text>Attached source file: {sourceFilename}</Text>
+          ) : null}
+          <Button
+            type="submit"
+            alignSelf="start"
+            colorPalette="teal"
+            loading={saving}
+          >
+            Choose source file and save report
+          </Button>
+        </Stack>
+      </Box>
+      <Button alignSelf="start" variant="outline" onClick={() => void lock()}>
+        Lock vault
+      </Button>
+    </Stack>
   );
 }
 

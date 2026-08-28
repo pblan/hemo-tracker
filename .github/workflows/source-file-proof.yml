@@ -11,11 +11,13 @@ on:
   pull_request:
     paths:
       - ".github/workflows/source-file-proof.yml"
+      - "crates/source-file-encryption/**"
       - "proofs/source-file-encryption/**"
   push:
     branches: [main]
     paths:
       - ".github/workflows/source-file-proof.yml"
+      - "crates/source-file-encryption/**"
       - "proofs/source-file-encryption/**"
 
 permissions:
@@ -42,7 +44,9 @@ jobs:
           components: clippy, rustfmt
       - uses: swatinem/rust-cache@v2
         with:
-          workspaces: proofs/source-file-encryption
+          workspaces: |
+            crates/source-file-encryption -> target
+            proofs/source-file-encryption -> target
       - run:
           cargo fmt --manifest-path proofs/source-file-encryption/Cargo.toml --
           --check
@@ -62,7 +66,9 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: swatinem/rust-cache@v2
         with:
-          workspaces: proofs/source-file-encryption
+          workspaces: |
+            crates/source-file-encryption -> target
+            proofs/source-file-encryption -> target
       - run:
           cargo test --release --locked --manifest-path
           proofs/source-file-encryption/Cargo.toml

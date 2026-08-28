@@ -1,7 +1,13 @@
-use crate::account_vault::{CreateLocalAccount, LocalAccountVault, VaultStatus};
+use crate::account_vault::{
+    CreateLabReportDraft, CreateLocalAccount, LocalAccountVault, NewMeasurement, NewSourceFile,
+    VaultStatus,
+};
 use serde::Serialize;
+use std::fs::File;
+use std::path::Path;
 use std::{path::PathBuf, sync::Mutex};
 use tauri::{AppHandle, Manager, State};
+use tauri_plugin_dialog::DialogExt;
 
 const LOCAL_ACCOUNT_ID: &str = "default";
 
@@ -21,6 +27,35 @@ pub struct VaultStateResult {
 #[serde(rename_all = "camelCase")]
 pub struct CreatedVaultResult {
     recovery_code: String,
+}
+
+#[derive(serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateReportRequest {
+    pub collection_time: String,
+    pub report_date: Option<String>,
+    pub laboratory: Option<String>,
+    pub ordering_clinician: Option<String>,
+    pub fasting_state: Option<String>,
+    pub notes: Option<String>,
+    pub tags: Vec<String>,
+}
+
+#[derive(serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MeasurementRequest {
+    pub source_label: String,
+    pub source_value: String,
+    pub source_unit: String,
+    pub source_reference_interval: String,
+    pub source_flag: String,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SourceFileResult {
+    pub id: String,
+    pub original_filename: String,
 }
 
 #[tauri::command]
@@ -93,6 +128,105 @@ pub fn lock_vault(
     })
 }
 
+#[tauri::command]
+pub fn create_lab_report(
+    state: State<'_, DesktopVaultState>,
+    request: CreateReportRequest,
+) -> Result<String, String> {
+    let mut guard = state.vault.lock().map_err(|_| safe_error())?;
+    guard
+        .as_mut()
+        .ok_or_else(safe_error)?
+        .create_lab_report_draft(CreateLabReportDraft {
+            collection_time: request.collection_time,
+            report_date: request.report_date,
+            laboratory: request.laboratory,
+            ordering_clinician: request.ordering_clinician,
+            fasting_state: request.fasting_state,
+            notes: request.notes,
+            tags: request.tags,
+        })
+        .map_err(|_| safe_error())
+}
+
+#[tauri::command]
+pub fn select_and_attach_source_file(
+    app: AppHandle,
+    state: State<'_, DesktopVaultState>,
+    report_id: String,
+) -> Result<Option<SourceFileResult>, String> {
+    let Some(file_path) = app
+        .dialog()
+        .file()
+        .add_filter("Laboratory reports", &["pdf", "png", "jpg", "jpeg", "heic"])
+        .blocking_pick_file()
+    else {
+        return Ok(None);
+    };
+    let path = file_path.into_path().map_err(|_| safe_error())?;
+    let original_filename = path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .ok_or_else(safe_error)?
+        .to_owned();
+    let media_type = media_type_for(&path);
+    let file = File::open(&path).map_err(|_| safe_error())?;
+    let mut guard = state.vault.lock().map_err(|_| safe_error())?;
+    let id = guard
+        .as_mut()
+        .ok_or_else(safe_error)?
+        .add_source_file(
+            &report_id,
+            file,
+            NewSourceFile {
+                original_filename: original_filename.clone(),
+                media_type,
+                role: "primary".to_owned(),
+            },
+        )
+        .map_err(|_| safe_error())?;
+    Ok(Some(SourceFileResult {
+        id,
+        original_filename,
+    }))
+}
+
+#[tauri::command]
+pub fn add_lab_measurement(
+    state: State<'_, DesktopVaultState>,
+    report_id: String,
+    request: MeasurementRequest,
+) -> Result<String, String> {
+    let mut guard = state.vault.lock().map_err(|_| safe_error())?;
+    guard
+        .as_mut()
+        .ok_or_else(safe_error)?
+        .add_measurement(
+            &report_id,
+            NewMeasurement {
+                source_label: request.source_label,
+                source_value: request.source_value,
+                source_unit: request.source_unit,
+                source_reference_interval: request.source_reference_interval,
+                source_flag: request.source_flag,
+            },
+        )
+        .map_err(|_| safe_error())
+}
+
+#[tauri::command]
+pub fn complete_lab_report(
+    state: State<'_, DesktopVaultState>,
+    report_id: String,
+) -> Result<(), String> {
+    let mut guard = state.vault.lock().map_err(|_| safe_error())?;
+    guard
+        .as_mut()
+        .ok_or_else(safe_error)?
+        .complete_lab_report(&report_id)
+        .map_err(|_| safe_error())
+}
+
 fn with_vault(
     app: &AppHandle,
     state: &State<'_, DesktopVaultState>,
@@ -136,4 +270,15 @@ fn account_directory(app: &AppHandle) -> Result<PathBuf, String> {
 
 fn safe_error() -> String {
     "the local vault operation failed".to_owned()
+}
+
+fn media_type_for(path: &Path) -> String {
+    match path.extension().and_then(|extension| extension.to_str()) {
+        Some("pdf") => "application/pdf",
+        Some("png") => "image/png",
+        Some("jpg" | "jpeg") => "image/jpeg",
+        Some("heic") => "image/heic",
+        _ => "application/octet-stream",
+    }
+    .to_owned()
 }

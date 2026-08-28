@@ -1,4 +1,4 @@
-use rusqlite::{Connection, OpenFlags, params};
+use rusqlite::{Connection, OpenFlags, OptionalExtension, params};
 use std::{
     fmt, fs,
     path::{Path, PathBuf},
@@ -11,7 +11,7 @@ use std::{
 use thiserror::Error;
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
-const SCHEMA_VERSION: i64 = 1;
+const SCHEMA_VERSION: i64 = 2;
 const KEY_BYTES: usize = 32;
 
 #[derive(Clone, Zeroize, ZeroizeOnDrop)]
@@ -56,6 +56,57 @@ pub struct LabReport {
     pub id: i64,
     pub title: String,
     pub observed_at: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct CreateReport {
+    pub collection_time: String,
+    pub report_date: Option<String>,
+    pub laboratory: Option<String>,
+    pub ordering_clinician: Option<String>,
+    pub fasting_state: Option<String>,
+    pub notes: Option<String>,
+    pub tags: Vec<String>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SourceFileRecord {
+    pub id: String,
+    pub original_filename: String,
+    pub media_type: String,
+    pub role: String,
+    pub opaque_object_id: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct MeasurementRecord {
+    pub id: String,
+    pub source_label: String,
+    pub source_value: String,
+    pub source_unit: String,
+    pub source_reference_interval: String,
+    pub source_flag: String,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ReportState {
+    Draft,
+    Complete,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ReportRecord {
+    pub id: String,
+    pub collection_time: String,
+    pub report_date: Option<String>,
+    pub laboratory: Option<String>,
+    pub ordering_clinician: Option<String>,
+    pub fasting_state: Option<String>,
+    pub notes: Option<String>,
+    pub tags: Vec<String>,
+    pub state: ReportState,
+    pub source_files: Vec<SourceFileRecord>,
+    pub measurements: Vec<MeasurementRecord>,
 }
 
 pub struct AccountVault {
@@ -112,6 +163,186 @@ impl AccountVault {
             .map_err(|_| VaultError::InvalidKeyOrVault)?;
         rows.collect::<Result<Vec<_>, _>>()
             .map_err(|_| VaultError::InvalidKeyOrVault)
+    }
+
+    pub fn create_report(&self, report: &CreateReport) -> Result<String, VaultError> {
+        let id = random_identifier()?;
+        let tags = serde_json::to_string(&report.tags).map_err(|_| VaultError::Operation)?;
+        self.connection
+            .execute(
+                "INSERT INTO reports (
+                    id, collection_time, report_date, laboratory, ordering_clinician,
+                    fasting_state, notes, tags_json, state
+                 ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, 'draft')",
+                params![
+                    id,
+                    report.collection_time,
+                    report.report_date,
+                    report.laboratory,
+                    report.ordering_clinician,
+                    report.fasting_state,
+                    report.notes,
+                    tags,
+                ],
+            )
+            .map_err(|_| VaultError::Operation)?;
+        Ok(id)
+    }
+
+    pub fn add_source_file_record(
+        &self,
+        report_id: &str,
+        source: &SourceFileRecord,
+    ) -> Result<(), VaultError> {
+        self.connection
+            .execute(
+                "INSERT INTO source_files (
+                    id, report_id, original_filename, media_type, role, opaque_object_id
+                 ) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+                params![
+                    source.id,
+                    report_id,
+                    source.original_filename,
+                    source.media_type,
+                    source.role,
+                    source.opaque_object_id,
+                ],
+            )
+            .map_err(|_| VaultError::Operation)?;
+        Ok(())
+    }
+
+    pub fn add_measurement_record(
+        &self,
+        report_id: &str,
+        measurement: &MeasurementRecord,
+    ) -> Result<(), VaultError> {
+        self.connection
+            .execute(
+                "INSERT INTO measurements (
+                    id, report_id, source_label, source_value, source_unit,
+                    source_reference_interval, source_flag
+                 ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+                params![
+                    measurement.id,
+                    report_id,
+                    measurement.source_label,
+                    measurement.source_value,
+                    measurement.source_unit,
+                    measurement.source_reference_interval,
+                    measurement.source_flag,
+                ],
+            )
+            .map_err(|_| VaultError::Operation)?;
+        Ok(())
+    }
+
+    pub fn complete_report(&self, report_id: &str) -> Result<(), VaultError> {
+        let changed = self
+            .connection
+            .execute(
+                "UPDATE reports SET state = 'complete' WHERE id = ?1 AND state = 'draft'",
+                [report_id],
+            )
+            .map_err(|_| VaultError::Operation)?;
+        if changed == 1 {
+            Ok(())
+        } else {
+            Err(VaultError::Operation)
+        }
+    }
+
+    pub fn get_report(&self, report_id: &str) -> Result<ReportRecord, VaultError> {
+        let report = self
+            .connection
+            .query_row(
+                "SELECT collection_time, report_date, laboratory, ordering_clinician,
+                        fasting_state, notes, tags_json, state
+                 FROM reports WHERE id = ?1",
+                [report_id],
+                |row| {
+                    Ok((
+                        row.get::<_, String>(0)?,
+                        row.get::<_, Option<String>>(1)?,
+                        row.get::<_, Option<String>>(2)?,
+                        row.get::<_, Option<String>>(3)?,
+                        row.get::<_, Option<String>>(4)?,
+                        row.get::<_, Option<String>>(5)?,
+                        row.get::<_, String>(6)?,
+                        row.get::<_, String>(7)?,
+                    ))
+                },
+            )
+            .optional()
+            .map_err(|_| VaultError::Operation)?
+            .ok_or(VaultError::Operation)?;
+        let tags = serde_json::from_str(&report.6).map_err(|_| VaultError::Operation)?;
+        let state = match report.7.as_str() {
+            "draft" => ReportState::Draft,
+            "complete" => ReportState::Complete,
+            _ => return Err(VaultError::Operation),
+        };
+        Ok(ReportRecord {
+            id: report_id.to_owned(),
+            collection_time: report.0,
+            report_date: report.1,
+            laboratory: report.2,
+            ordering_clinician: report.3,
+            fasting_state: report.4,
+            notes: report.5,
+            tags,
+            state,
+            source_files: self.source_files(report_id)?,
+            measurements: self.measurements(report_id)?,
+        })
+    }
+
+    fn source_files(&self, report_id: &str) -> Result<Vec<SourceFileRecord>, VaultError> {
+        let mut statement = self
+            .connection
+            .prepare(
+                "SELECT id, original_filename, media_type, role, opaque_object_id
+             FROM source_files WHERE report_id = ?1 ORDER BY rowid",
+            )
+            .map_err(|_| VaultError::Operation)?;
+        statement
+            .query_map([report_id], |row| {
+                Ok(SourceFileRecord {
+                    id: row.get(0)?,
+                    original_filename: row.get(1)?,
+                    media_type: row.get(2)?,
+                    role: row.get(3)?,
+                    opaque_object_id: row.get(4)?,
+                })
+            })
+            .map_err(|_| VaultError::Operation)?
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|_| VaultError::Operation)
+    }
+
+    fn measurements(&self, report_id: &str) -> Result<Vec<MeasurementRecord>, VaultError> {
+        let mut statement = self
+            .connection
+            .prepare(
+                "SELECT id, source_label, source_value, source_unit,
+                    source_reference_interval, source_flag
+             FROM measurements WHERE report_id = ?1 ORDER BY rowid",
+            )
+            .map_err(|_| VaultError::Operation)?;
+        statement
+            .query_map([report_id], |row| {
+                Ok(MeasurementRecord {
+                    id: row.get(0)?,
+                    source_label: row.get(1)?,
+                    source_value: row.get(2)?,
+                    source_unit: row.get(3)?,
+                    source_reference_interval: row.get(4)?,
+                    source_flag: row.get(5)?,
+                })
+            })
+            .map_err(|_| VaultError::Operation)?
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|_| VaultError::Operation)
     }
 
     pub fn schema_version(&self) -> Result<i64, VaultError> {
@@ -358,7 +589,71 @@ fn migrate(connection: &Connection) -> Result<(), VaultError> {
                      title TEXT NOT NULL,
                      observed_at TEXT NOT NULL
                  );
-                 PRAGMA user_version = 1;
+                 CREATE TABLE reports (
+                     id TEXT PRIMARY KEY,
+                     collection_time TEXT NOT NULL,
+                     report_date TEXT,
+                     laboratory TEXT,
+                     ordering_clinician TEXT,
+                     fasting_state TEXT,
+                     notes TEXT,
+                     tags_json TEXT NOT NULL,
+                     state TEXT NOT NULL CHECK (state IN ('draft', 'complete'))
+                 );
+                 CREATE TABLE source_files (
+                     id TEXT PRIMARY KEY,
+                     report_id TEXT NOT NULL REFERENCES reports(id) ON DELETE CASCADE,
+                     original_filename TEXT NOT NULL,
+                     media_type TEXT NOT NULL,
+                     role TEXT NOT NULL,
+                     opaque_object_id TEXT NOT NULL UNIQUE
+                 );
+                 CREATE TABLE measurements (
+                     id TEXT PRIMARY KEY,
+                     report_id TEXT NOT NULL REFERENCES reports(id) ON DELETE CASCADE,
+                     source_label TEXT NOT NULL,
+                     source_value TEXT NOT NULL,
+                     source_unit TEXT NOT NULL,
+                     source_reference_interval TEXT NOT NULL,
+                     source_flag TEXT NOT NULL
+                 );
+                 PRAGMA user_version = 2;
+                 COMMIT;",
+            )
+            .map_err(|_| VaultError::InvalidKeyOrVault)?;
+    } else if version == 1 {
+        connection
+            .execute_batch(
+                "BEGIN IMMEDIATE;
+                 CREATE TABLE reports (
+                     id TEXT PRIMARY KEY,
+                     collection_time TEXT NOT NULL,
+                     report_date TEXT,
+                     laboratory TEXT,
+                     ordering_clinician TEXT,
+                     fasting_state TEXT,
+                     notes TEXT,
+                     tags_json TEXT NOT NULL,
+                     state TEXT NOT NULL CHECK (state IN ('draft', 'complete'))
+                 );
+                 CREATE TABLE source_files (
+                     id TEXT PRIMARY KEY,
+                     report_id TEXT NOT NULL REFERENCES reports(id) ON DELETE CASCADE,
+                     original_filename TEXT NOT NULL,
+                     media_type TEXT NOT NULL,
+                     role TEXT NOT NULL,
+                     opaque_object_id TEXT NOT NULL UNIQUE
+                 );
+                 CREATE TABLE measurements (
+                     id TEXT PRIMARY KEY,
+                     report_id TEXT NOT NULL REFERENCES reports(id) ON DELETE CASCADE,
+                     source_label TEXT NOT NULL,
+                     source_value TEXT NOT NULL,
+                     source_unit TEXT NOT NULL,
+                     source_reference_interval TEXT NOT NULL,
+                     source_flag TEXT NOT NULL
+                 );
+                 PRAGMA user_version = 2;
                  COMMIT;",
             )
             .map_err(|_| VaultError::InvalidKeyOrVault)?;
@@ -370,4 +665,10 @@ fn migrate(connection: &Connection) -> Result<(), VaultError> {
 
 fn encode_hex(bytes: &[u8]) -> String {
     bytes.iter().map(|byte| format!("{byte:02x}")).collect()
+}
+
+fn random_identifier() -> Result<String, VaultError> {
+    let mut bytes = [0_u8; 16];
+    getrandom::fill(&mut bytes).map_err(|_| VaultError::SecureRandom)?;
+    Ok(encode_hex(&bytes))
 }

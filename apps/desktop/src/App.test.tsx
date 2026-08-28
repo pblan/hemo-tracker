@@ -92,7 +92,7 @@ describe("desktop application shell", () => {
       "valid passphrase",
     );
     expect(
-      await screen.findByRole("heading", { name: "Your vault is unlocked" }),
+      await screen.findByRole("heading", { name: "Record a lab report" }),
     ).toBeVisible();
   });
 

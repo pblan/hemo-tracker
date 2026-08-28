@@ -15,3 +15,28 @@ export const unlockWithPassphrase = (passphrase: string) =>
 export const unlockWithRecovery = (recoveryCode: string) =>
   invoke<VaultState>("unlock_with_recovery", { recoveryCode });
 export const lockVault = () => invoke<VaultState>("lock_vault");
+export const createLabReport = (request: {
+  collectionTime: string;
+  reportDate?: string;
+  laboratory?: string;
+  fastingState?: string;
+  notes?: string;
+  tags: string[];
+}) => invoke<string>("create_lab_report", { request });
+export const selectAndAttachSourceFile = (reportId: string) =>
+  invoke<{ id: string; originalFilename: string } | null>(
+    "select_and_attach_source_file",
+    { reportId },
+  );
+export const addLabMeasurement = (
+  reportId: string,
+  request: {
+    sourceLabel: string;
+    sourceValue: string;
+    sourceUnit: string;
+    sourceReferenceInterval: string;
+    sourceFlag: string;
+  },
+) => invoke<string>("add_lab_measurement", { reportId, request });
+export const completeLabReport = (reportId: string) =>
+  invoke<void>("complete_lab_report", { reportId });

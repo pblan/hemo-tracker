@@ -1,4 +1,8 @@
-use hemo_tracker_desktop_lib::account_vault::{CreateLocalAccount, LocalAccountVault, VaultStatus};
+use hemo_tracker_desktop_lib::account_vault::{
+    CreateLabReportDraft, CreateLocalAccount, LocalAccountVault, NewMeasurement, NewSourceFile,
+    ReportStatus, VaultStatus,
+};
+use std::{fs, io::Cursor};
 use tempfile::tempdir;
 
 #[test]
@@ -73,4 +77,96 @@ fn recovery_unlocks_the_vault_and_wrong_credentials_do_not_damage_it() {
         .unlock_with_passphrase("valid passphrase".to_owned())
         .unwrap();
     assert_eq!(vault.status(), VaultStatus::Unlocked);
+}
+
+#[test]
+fn user_records_and_reopens_one_complete_lab_report_with_encrypted_evidence() {
+    let parent = tempdir().unwrap();
+    let account = parent.path().join("account");
+    let created = LocalAccountVault::create(
+        &account,
+        CreateLocalAccount {
+            account_id: "first-report".to_owned(),
+            passphrase: "valid passphrase".to_owned(),
+        },
+    )
+    .unwrap();
+    let mut vault = created.into_vault();
+
+    let report_id = vault
+        .create_lab_report_draft(CreateLabReportDraft {
+            collection_time: "2026-08-20T08:30:00+02:00".to_owned(),
+            report_date: Some("2026-08-21".to_owned()),
+            laboratory: Some("Fictional Central Laboratory".to_owned()),
+            ordering_clinician: None,
+            fasting_state: Some("fasting".to_owned()),
+            notes: Some("Routine fictional check".to_owned()),
+            tags: vec!["annual".to_owned()],
+        })
+        .unwrap();
+    let source_marker = b"fictional-pdf-source-marker";
+    vault
+        .add_source_file(
+            &report_id,
+            Cursor::new(source_marker),
+            NewSourceFile {
+                original_filename: "fictional-report.pdf".to_owned(),
+                media_type: "application/pdf".to_owned(),
+                role: "primary".to_owned(),
+            },
+        )
+        .unwrap();
+    vault
+        .add_measurement(
+            &report_id,
+            NewMeasurement {
+                source_label: "Hemoglobin (original label)".to_owned(),
+                source_value: "13,7".to_owned(),
+                source_unit: "g/dL".to_owned(),
+                source_reference_interval: "12,0–16,0".to_owned(),
+                source_flag: "within range".to_owned(),
+            },
+        )
+        .unwrap();
+    vault.complete_lab_report(&report_id).unwrap();
+
+    let report = vault.get_lab_report(&report_id).unwrap();
+    assert_eq!(report.status, ReportStatus::Complete);
+    assert_eq!(report.measurements[0].source_value, "13,7");
+    assert_eq!(
+        report.measurements[0].source_reference_interval,
+        "12,0–16,0"
+    );
+    assert_eq!(
+        report.source_files[0].original_filename,
+        "fictional-report.pdf"
+    );
+
+    vault.lock();
+    drop(vault);
+    let mut reopened = LocalAccountVault::open(&account).unwrap();
+    reopened
+        .unlock_with_passphrase("valid passphrase".to_owned())
+        .unwrap();
+    let report = reopened.get_lab_report(&report_id).unwrap();
+    assert_eq!(report.status, ReportStatus::Complete);
+    assert_eq!(
+        report.measurements[0].source_label,
+        "Hemoglobin (original label)"
+    );
+
+    assert_directory_does_not_contain(&account, source_marker);
+    assert_directory_does_not_contain(&account, b"13,7");
+}
+
+fn assert_directory_does_not_contain(directory: &std::path::Path, marker: &[u8]) {
+    for entry in fs::read_dir(directory).unwrap() {
+        let path = entry.unwrap().path();
+        if path.is_dir() {
+            assert_directory_does_not_contain(&path, marker);
+        } else {
+            let bytes = fs::read(path).unwrap();
+            assert!(!bytes.windows(marker.len()).any(|part| part == marker));
+        }
+    }
 }
