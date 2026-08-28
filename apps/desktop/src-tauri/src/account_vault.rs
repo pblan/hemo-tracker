@@ -208,65 +208,94 @@ impl LocalAccountVault {
         &self,
         destination: impl AsRef<Path>,
     ) -> Result<(), LocalAccountError> {
-        let file = File::create(destination).map_err(|_| LocalAccountError::Operation)?;
-        let mut archive = zip::ZipWriter::new(file);
-        let options = zip::write::SimpleFileOptions::default()
-            .compression_method(zip::CompressionMethod::Deflated);
-        let reports = self.list_lab_report_ids()?;
-        let unlocked = self.unlocked_ref()?;
-        let source_key = SourceFileKey::from_bytes(*unlocked.source_file_key.bytes());
-        let mut csv = String::from(
-            "report_id,collection_time,laboratory,source_label,source_value,source_unit,source_reference_interval,source_flag\n",
-        );
-        for report_id in reports {
-            let report = self.get_lab_report(&report_id)?;
-            for measurement in &report.measurements {
-                csv.push_str(&format!(
-                    "{},{},{},{},{},{},{},{}\n",
-                    report.id,
-                    report.collection_time,
-                    report.laboratory.as_deref().unwrap_or(""),
-                    measurement.source_label,
-                    measurement.source_value,
-                    measurement.source_unit,
-                    measurement.source_reference_interval,
-                    measurement.source_flag
-                ));
-            }
-            archive
-                .start_file(format!("reports/{report_id}.json"), options)
-                .map_err(|_| LocalAccountError::Operation)?;
-            let json =
-                serde_json::to_vec_pretty(&report).map_err(|_| LocalAccountError::Operation)?;
-            archive
-                .write_all(&json)
-                .map_err(|_| LocalAccountError::Operation)?;
-            for source in report.source_files {
-                let object = self
-                    .directory
-                    .join("objects")
-                    .join(format!("{}.hemo", source.opaque_object_id));
-                let context = SourceFileContext::new(
-                    self.manifest.account_id.clone(),
-                    OpaqueObjectId::parse(source.opaque_object_id.clone())
-                        .map_err(|_| LocalAccountError::Operation)?,
-                );
-                let filename = source.original_filename.replace(['/', '\\'], "_");
-                archive
-                    .start_file(format!("sources/{report_id}-{filename}"), options)
-                    .map_err(|_| LocalAccountError::Operation)?;
-                decrypt_source_file(object, &mut archive, &context, &source_key)
-                    .map_err(|_| LocalAccountError::Operation)?;
-            }
+        let destination = destination.as_ref();
+        if destination.exists() {
+            return Err(LocalAccountError::AlreadyExists);
         }
-        archive
-            .start_file("measurements.csv", options)
-            .map_err(|_| LocalAccountError::Operation)?;
-        archive
-            .write_all(csv.as_bytes())
-            .map_err(|_| LocalAccountError::Operation)?;
-        archive.finish().map_err(|_| LocalAccountError::Operation)?;
-        Ok(())
+        let parent = destination
+            .parent()
+            .filter(|path| !path.as_os_str().is_empty())
+            .unwrap_or_else(|| Path::new("."));
+        fs::create_dir_all(parent).map_err(|_| LocalAccountError::Operation)?;
+        let staging = destination.with_extension("zip-partial");
+        if staging.exists() {
+            let _ = fs::remove_file(&staging);
+        }
+
+        let result = (|| {
+            let file = File::create(&staging).map_err(|_| LocalAccountError::Operation)?;
+            let mut archive = zip::ZipWriter::new(file);
+            let options = zip::write::SimpleFileOptions::default()
+                .compression_method(zip::CompressionMethod::Deflated);
+            let reports = self.list_lab_report_ids()?;
+            let unlocked = self.unlocked_ref()?;
+            let source_key = SourceFileKey::from_bytes(*unlocked.source_file_key.bytes());
+            let mut csv = String::from(
+                "report_id,collection_time,laboratory,source_label,source_value,source_unit,source_reference_interval,source_flag\n",
+            );
+            for report_id in reports {
+                let report = self.get_lab_report(&report_id)?;
+                for measurement in &report.measurements {
+                    let fields = [
+                        report.id.as_str(),
+                        report.collection_time.as_str(),
+                        report.laboratory.as_deref().unwrap_or(""),
+                        measurement.source_label.as_str(),
+                        measurement.source_value.as_str(),
+                        measurement.source_unit.as_str(),
+                        measurement.source_reference_interval.as_str(),
+                        measurement.source_flag.as_str(),
+                    ];
+                    csv.push_str(
+                        &fields
+                            .iter()
+                            .map(|field| csv_field(field))
+                            .collect::<Vec<_>>()
+                            .join(","),
+                    );
+                    csv.push('\n');
+                }
+                archive
+                    .start_file(format!("reports/{report_id}.json"), options)
+                    .map_err(|_| LocalAccountError::Operation)?;
+                let json =
+                    serde_json::to_vec_pretty(&report).map_err(|_| LocalAccountError::Operation)?;
+                archive
+                    .write_all(&json)
+                    .map_err(|_| LocalAccountError::Operation)?;
+                for source in report.source_files {
+                    let object = self
+                        .directory
+                        .join("objects")
+                        .join(format!("{}.hemo", source.opaque_object_id));
+                    let context = SourceFileContext::new(
+                        self.manifest.account_id.clone(),
+                        OpaqueObjectId::parse(source.opaque_object_id.clone())
+                            .map_err(|_| LocalAccountError::Operation)?,
+                    );
+                    let filename = source.original_filename.replace(['/', '\\'], "_");
+                    archive
+                        .start_file(format!("sources/{report_id}-{filename}"), options)
+                        .map_err(|_| LocalAccountError::Operation)?;
+                    decrypt_source_file(object, &mut archive, &context, &source_key)
+                        .map_err(|_| LocalAccountError::Operation)?;
+                }
+            }
+            archive
+                .start_file("measurements.csv", options)
+                .map_err(|_| LocalAccountError::Operation)?;
+            archive
+                .write_all(csv.as_bytes())
+                .map_err(|_| LocalAccountError::Operation)?;
+            let file = archive.finish().map_err(|_| LocalAccountError::Operation)?;
+            file.sync_all().map_err(|_| LocalAccountError::Operation)?;
+            fs::rename(&staging, destination).map_err(|_| LocalAccountError::Operation)?;
+            sync_directory(parent)
+        })();
+        if result.is_err() {
+            let _ = fs::remove_file(&staging);
+        }
+        result
     }
 
     pub fn restore_from_backup(
@@ -897,6 +926,17 @@ fn parse_decimal(value: &str) -> Result<f64, LocalAccountError> {
         .ok_or(LocalAccountError::Operation)
 }
 
+fn csv_field(value: &str) -> String {
+    if value
+        .bytes()
+        .any(|byte| matches!(byte, b',' | b'"' | b'\r' | b'\n'))
+    {
+        format!("\"{}\"", value.replace('"', "\"\""))
+    } else {
+        value.to_owned()
+    }
+}
+
 fn validated_numeric(value: Option<String>) -> Result<Option<String>, LocalAccountError> {
     let value = nonempty(value);
     value
@@ -1021,5 +1061,16 @@ mod tests {
         assert!(failed.is_err());
         assert!(!directory.exists());
         assert!(LocalAccountVault::create(&directory, input()).is_ok());
+    }
+
+    #[test]
+    fn csv_fields_escape_structural_characters() {
+        assert_eq!(csv_field("plain"), "plain");
+        assert_eq!(csv_field("lab, west"), "\"lab, west\"");
+        assert_eq!(
+            csv_field("value \"as printed\""),
+            "\"value \"\"as printed\"\"\""
+        );
+        assert_eq!(csv_field("line\none"), "\"line\none\"");
     }
 }
