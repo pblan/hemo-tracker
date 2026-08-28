@@ -24,6 +24,7 @@ pub fn run() {
             vault_commands::correct_lab_measurement,
             vault_commands::permanently_delete_lab_report,
             vault_commands::backup_local_vault,
+            vault_commands::choose_and_backup_local_vault,
         ])
         .run(tauri::generate_context!())
         .expect("Hemo Tracker failed to start");
@@ -50,6 +51,13 @@ mod tests {
                 .unwrap()
                 .iter()
                 .any(|permission| permission == "dialog:allow-open")
+        );
+        assert!(
+            capability["permissions"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|permission| permission == "dialog:allow-save")
         );
     }
 }

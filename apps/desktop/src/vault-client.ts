@@ -107,3 +107,5 @@ export const permanentlyDeleteLabReport = (
 ) => invoke<void>("permanently_delete_lab_report", { reportId, confirmed });
 export const backupLocalVault = (destination: string) =>
   invoke<void>("backup_local_vault", { destination });
+export const chooseAndBackupLocalVault = () =>
+  invoke<boolean>("choose_and_backup_local_vault");

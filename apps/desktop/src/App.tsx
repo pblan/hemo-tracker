@@ -14,6 +14,7 @@ import {
   addAnalyteDefinition,
   addLabMeasurement,
   completeLabReport,
+  chooseAndBackupLocalVault,
   createLabReport,
   createLocalAccount,
   getVaultState,
@@ -414,6 +415,14 @@ function UnlockedVault({
     }
   }
 
+  async function backupVault() {
+    try {
+      await chooseAndBackupLocalVault();
+    } catch {
+      onError("Hemo Tracker could not create the encrypted backup.");
+    }
+  }
+
   async function lock() {
     try {
       onLocked(await lockVault());
@@ -782,9 +791,18 @@ function UnlockedVault({
           </Button>
         </Stack>
       </Box>
-      <Button alignSelf="start" variant="outline" onClick={() => void lock()}>
-        Lock vault
-      </Button>
+      <Stack direction={{ base: "column", sm: "row" }} gap="3">
+        <Button
+          alignSelf="start"
+          variant="outline"
+          onClick={() => void backupVault()}
+        >
+          Save encrypted backup
+        </Button>
+        <Button alignSelf="start" variant="outline" onClick={() => void lock()}>
+          Lock vault
+        </Button>
+      </Stack>
     </Stack>
   );
 }
