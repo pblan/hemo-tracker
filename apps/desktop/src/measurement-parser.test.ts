@@ -26,4 +26,19 @@ describe("parseMeasurementInput", () => {
       kind: "text",
       value: "positive",
     }));
+  it("covers representative blood-count and metabolic values", () => {
+    expect(parseMeasurementInput("4.8", "en-US")).toMatchObject({
+      kind: "number",
+      value: 4.8,
+    });
+    expect(parseMeasurementInput("5,6", "de-DE")).toMatchObject({
+      kind: "number",
+      value: 5.6,
+    });
+  });
+  it("keeps custom analyte text values unchanged", () =>
+    expect(parseMeasurementInput("trace", "en-US")).toMatchObject({
+      kind: "text",
+      normalized: "trace",
+    }));
 });
