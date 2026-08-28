@@ -264,7 +264,9 @@ export function TrendPlot({
         (source) => source.lower !== undefined || source.upper !== undefined,
       ) || targetBounds ? (
         <Text color="fg.muted" fontSize="xs">
-          Bands: laboratory interval (orange) and personal target (teal).
+          Orange band: laboratory interval supplied with the source report. Teal
+          band: personal target set by you. These ranges explain the plot only;
+          they are not medical advice.
         </Text>
       ) : null}
       {!plotReady ? (
