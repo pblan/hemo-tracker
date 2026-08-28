@@ -86,6 +86,33 @@ fn recovery_unlocks_the_vault_and_wrong_credentials_do_not_damage_it() {
 }
 
 #[test]
+fn encrypted_backup_restores_and_plaintext_export_is_a_zip() {
+    let parent = tempdir().unwrap();
+    let account = parent.path().join("account");
+    let backup = parent.path().join("backup");
+    let export = parent.path().join("export.zip");
+    let created = LocalAccountVault::create(
+        &account,
+        CreateLocalAccount {
+            account_id: "restore-test".to_owned(),
+            passphrase: "valid passphrase".to_owned(),
+        },
+    )
+    .unwrap();
+    let mut vault = created.into_vault();
+    vault.backup_to(&backup).unwrap();
+    vault.export_plaintext_zip(&export).unwrap();
+    let archive_file = fs::File::open(&export).unwrap();
+    let mut archive = zip::ZipArchive::new(archive_file).unwrap();
+    assert!(archive.by_name("measurements.csv").is_ok());
+    vault.lock();
+    vault
+        .restore_from_backup(&backup, "valid passphrase".to_owned())
+        .unwrap();
+    assert_eq!(vault.status(), VaultStatus::Unlocked);
+}
+
+#[test]
 fn user_records_and_reopens_one_complete_lab_report_with_encrypted_evidence() {
     let parent = tempdir().unwrap();
     let account = parent.path().join("account");
