@@ -95,6 +95,15 @@ pub struct ReportResult {
     pub status: String,
     pub source_file_count: usize,
     pub measurement_count: usize,
+    pub source_files: Vec<SourcePreviewResult>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SourcePreviewResult {
+    pub filename: String,
+    pub media_type: String,
+    pub role: String,
 }
 
 #[tauri::command]
@@ -328,6 +337,15 @@ pub fn get_lab_report(
         .to_owned(),
         source_file_count: report.source_files.len(),
         measurement_count: report.measurements.len(),
+        source_files: report
+            .source_files
+            .into_iter()
+            .map(|source| SourcePreviewResult {
+                filename: source.original_filename,
+                media_type: source.media_type,
+                role: source.role,
+            })
+            .collect(),
     })
 }
 

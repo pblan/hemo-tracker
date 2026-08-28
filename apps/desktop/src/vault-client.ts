@@ -83,6 +83,7 @@ export type ReportSummary = {
   status: "draft" | "complete" | "archived";
   sourceFileCount: number;
   measurementCount: number;
+  sourceFiles: { filename: string; mediaType: string; role: string }[];
 };
 export const getLabReport = (reportId: string) =>
   invoke<ReportSummary>("get_lab_report", { reportId });
