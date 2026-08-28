@@ -306,6 +306,7 @@ function UnlockedVault({
   >([]);
   const [selectedAnalyteId, setSelectedAnalyteId] = useState("");
   const [sourceFilename, setSourceFilename] = useState<string | null>(null);
+  const [sourceRole, setSourceRole] = useState("primary");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -328,7 +329,7 @@ function UnlockedVault({
         laboratory: laboratory || undefined,
         tags: [],
       });
-      const source = await selectAndAttachSourceFile(reportId);
+      const source = await selectAndAttachSourceFile(reportId, sourceRole);
       if (!source) throw new Error("source file not selected");
       setSourceFilename(source.originalFilename);
       const analyteId =
@@ -614,6 +615,18 @@ function UnlockedVault({
               </Text>
             </Box>
           ) : null}
+          <Field.Root>
+            <Field.Label>Source file role</Field.Label>
+            <select
+              aria-label="Source file role"
+              value={sourceRole}
+              onChange={(event) => setSourceRole(event.target.value)}
+            >
+              <option value="primary">Primary report</option>
+              <option value="supplement">Supplement</option>
+              <option value="correction">Correction</option>
+            </select>
+          </Field.Root>
           <Button
             type="submit"
             alignSelf="start"

@@ -182,6 +182,7 @@ pub fn select_and_attach_source_file(
     app: AppHandle,
     state: State<'_, DesktopVaultState>,
     report_id: String,
+    role: String,
 ) -> Result<Option<SourceFileResult>, String> {
     let Some(file_path) = app
         .dialog()
@@ -209,7 +210,7 @@ pub fn select_and_attach_source_file(
             NewSourceFile {
                 original_filename: original_filename.clone(),
                 media_type,
-                role: "primary".to_owned(),
+                role,
             },
         )
         .map_err(|_| safe_error())?;

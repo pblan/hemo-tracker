@@ -23,10 +23,10 @@ export const createLabReport = (request: {
   notes?: string;
   tags: string[];
 }) => invoke<string>("create_lab_report", { request });
-export const selectAndAttachSourceFile = (reportId: string) =>
+export const selectAndAttachSourceFile = (reportId: string, role = "primary") =>
   invoke<{ id: string; originalFilename: string } | null>(
     "select_and_attach_source_file",
-    { reportId },
+    { reportId, role },
   );
 export const addLabMeasurement = (
   reportId: string,
