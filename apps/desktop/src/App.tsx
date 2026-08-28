@@ -326,6 +326,7 @@ function UnlockedVault({
   const [sourceFilename, setSourceFilename] = useState<string | null>(null);
   const [sourceRole, setSourceRole] = useState("primary");
   const [saving, setSaving] = useState(false);
+  const [dataVersion, setDataVersion] = useState(0);
   const [reports, setReports] = useState<ReportSummary[]>([]);
   const [reportSearch, setReportSearch] = useState("");
   const [expandedReportId, setExpandedReportId] = useState<string | null>(null);
@@ -367,7 +368,7 @@ function UnlockedVault({
       .then((ids) => Promise.all(ids.map((id) => getLabReport(id))))
       .then(setReports)
       .catch(() => undefined);
-  }, [saving]);
+  }, [saving, dataVersion]);
 
   async function saveReport(event: FormEvent) {
     event.preventDefault();
@@ -624,7 +625,7 @@ function UnlockedVault({
       setAdditionalLabel("");
       setAdditionalValue("");
       setAdditionalUnit("");
-      setSaving((value) => !value);
+      setDataVersion((value) => value + 1);
     } catch {
       onError("Hemo Tracker could not save the measurement.");
     }
@@ -632,7 +633,7 @@ function UnlockedVault({
   async function archiveReport(reportId: string) {
     try {
       await archiveLabReport(reportId);
-      setSaving((value) => !value);
+      setDataVersion((value) => value + 1);
     } catch {
       onError("Hemo Tracker could not archive the report.");
     }
@@ -647,7 +648,7 @@ function UnlockedVault({
     try {
       await permanentlyDeleteLabReport(reportId, true);
       setExpandedReportId(null);
-      setSaving((value) => !value);
+      setDataVersion((value) => value + 1);
     } catch {
       onError("Hemo Tracker could not permanently delete the report.");
     }
@@ -997,7 +998,7 @@ function UnlockedVault({
                             report.id,
                             sourceRole,
                           ).then((source) => {
-                            if (source) setSaving((value) => !value);
+                            if (source) setDataVersion((value) => value + 1);
                           });
                         }}
                       >
