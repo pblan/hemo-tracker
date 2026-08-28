@@ -72,7 +72,7 @@ Hemo Tracker encrypts the backup. The backup does not contain the passphrase or 
 
 ## Read a trend
 
-![Hemo Tracker unlocked overview with a hemoglobin trend, personal target ranges, report history, report entry, and local data controls.](../assets/screenshots/v1/desktop-unlocked-overview.png)
+![Hemo Tracker unlocked overview with a hemoglobin trend, personal target ranges, fictional demo-data notice, report history, report entry, and local data controls.](../assets/screenshots/v1/desktop-unlocked-overview.png)
 
 1. Select an analyte in **Analyte trend**.
 2. Review the plot for recorded numeric values.

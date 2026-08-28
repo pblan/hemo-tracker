@@ -70,7 +70,10 @@ async function mockTauri(
     {
       vaultStatus: status,
       analytes: fixtureAnalytes.analytes,
-      reports: fixtureReports.reports,
+      reports: fixtureReports.reports.map((report) => ({
+        ...report,
+        tags: [...report.tags, "demo"],
+      })),
     },
   );
 }
