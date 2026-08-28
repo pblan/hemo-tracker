@@ -17,8 +17,9 @@ current passphrase, the exact confirmation text `RESET DEMO VAULT`, and a final
 warning. V1 does not require a backup before reset because the user explicitly
 chooses the irreversible action. The native client creates a fresh vault in a
 staging directory with a new account key set and recovery key. It validates the
-fresh vault, then atomically replaces the active directory. If replacement or
-reopen fails, the prior vault remains usable.
+fresh vault, then performs a staged directory replacement. If a handled
+replacement or reopen operation fails, the implementation restores the prior
+vault and keeps it usable. Crash-level durability guarantees are outside V1.
 
 Use the exact small fictional data set from new-vault creation. Preserve
 non-vault application preferences. Show the new recovery key once and require

@@ -420,9 +420,13 @@ impl LocalAccountVault {
                 passphrase: passphrase_text.as_str().to_owned(),
             },
         )?;
-        Self::verify_seeded_demo_vault(&created.vault)?;
+        let validation = Self::verify_seeded_demo_vault(&created.vault);
         let recovery_code = created.recovery_code().to_owned();
         drop(created);
+        if let Err(error) = validation {
+            let _ = fs::remove_dir_all(&staging);
+            return Err(error);
+        }
         let result = self.restore_from_backup(&staging, passphrase_text.as_str().to_owned());
         let _ = fs::remove_dir_all(&staging);
         result.map(|_| recovery_code)
