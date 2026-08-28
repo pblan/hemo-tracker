@@ -33,6 +33,15 @@ Use the correction action for a value that was entered incorrectly. Review the s
 
 The correction changes the current value. The source file remains immutable. Hemo Tracker records the update time and local user identity.
 
+## Add data to an existing report
+
+1. Expand the report in **Report history**.
+2. Select **Attach source file** to add a supplement or correction document.
+3. Select **Add measurement** to record a result that was missing from the first entry.
+4. Enter the source label, value, and unit. Select **Save**.
+
+The report can accept later measurements after it is complete. Hemo Tracker keeps each attached source file as a separate encrypted object.
+
 ## Find a report
 
 Use **Report history** after you unlock the vault. Enter a laboratory name in **Search reports** to filter the list. The list shows the collection time and report state.
@@ -82,6 +91,15 @@ Use a personal target range only as personal information. It does not replace th
 6. Select **Add personal target range**.
 
 Result: Hemo Tracker adds the range to the analyte. Existing measurements and source reference intervals do not change. You can add more ranges for other dates, units, or contexts.
+
+## Archive or permanently delete a report
+
+1. Expand the report in **Report history**.
+2. Select **Archive report** to hide the report from active work. Archiving is recoverable.
+3. For an archived report, select **Permanently delete** only when you are certain.
+4. Confirm the deletion message.
+
+Permanent deletion removes the report and its encrypted source files. This action cannot be undone. Keep an encrypted backup before you delete data.
 
 ## Safety limits
 
