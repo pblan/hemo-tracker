@@ -43,11 +43,23 @@ Create a release tag only from a reviewed commit on `main`. The application vers
 
 ## V1 release gate
 
-Do not create the V1 tag until the release issue is the only open issue in the “V1: Local desktop app” milestone. The independent local security review must have no unresolved release-blocking finding.
+Create the V1 tag after the functional V1 issues are complete and the release
+issue is the only open product-delivery issue in the “V1: Local desktop app”
+milestone. An independent security review, native assistive-technology review,
+slowest-device KDF measurement, and exhaustive migration-failure matrix are
+Post-V1 assurance work. They are not prerequisites for the unsigned local V1
+package.
 
-Feature tickets can close before security-hardening tickets. They must preserve the accepted encrypted formats and Rust/webview boundary. Use only deterministic fictional data until the security gate passes.
+Feature tickets can close before assurance tickets. They must preserve the
+accepted encrypted formats and Rust/webview boundary. Use only deterministic
+fictional data in the repository. V1 release notes must state that the package
+has not received an independent security review and is not production-ready
+for medical data.
 
-The exact tag commit must pass routine CI, native validation, documentation checks, and the local security-proof workflows. A maintainer must verify installation and the complete local workflow on macOS and Windows before publication.
+The exact tag commit must pass routine CI, native validation, documentation
+checks, and the local security-proof workflows. A maintainer must verify
+installation and the complete local workflow on macOS and Windows before
+publication.
 
 ## Post-V1 release gate
 

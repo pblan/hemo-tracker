@@ -102,11 +102,14 @@ V1 creates unsigned local packages for macOS and Windows. The user guides must e
 
 ## Security verification
 
-Feature development uses deterministic fictional data. It preserves the implemented encryption and native-boundary code. The project must complete these security checks before V1 is released for real medical data:
+Feature development uses deterministic fictional data. It preserves the implemented encryption and native-boundary code. These controls are included in V1:
 
 - Key creation, wrapping, recovery, passphrase change, and rotation.
 - SQLCipher files, journals, temporary files, backups, and crash behavior.
 - Streaming encryption for large source files.
-- Log, telemetry, crash-report, clipboard, export, and screenshot review.
+- Log, telemetry, crash-report, clipboard, export, and screenshot controls.
 
-An independent specialist must review the local threat model, key hierarchy, encrypted formats, Tauri capabilities, backups, exports, and unsigned distribution limits.
+Independent specialist review, native assistive-technology review, slowest-device
+KDF measurement, and exhaustive migration-failure testing are tracked as
+Post-V1 assurance work. V1 documentation must state these limits and must not
+describe the unsigned package as production-ready for medical data.
