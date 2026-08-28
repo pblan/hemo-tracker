@@ -13,7 +13,7 @@ declare module "@lhncbc/ucum-lhc" {
       fromUnit: string,
       value: number,
       toUnit: string,
-      options?: Record<string, never>,
+      options?: { molecularWeight?: number; charge?: number },
     ): {
       status: "succeeded" | "failed" | "error";
       toVal: number | null;

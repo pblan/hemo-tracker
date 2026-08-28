@@ -58,4 +58,78 @@ describe("normalizeMeasurement", () => {
       normalizeMeasurement({ ...measurement, sourceUnit: "bananas" }, analyte),
     ).toEqual({ status: "blocked", reason: "invalid-unit" });
   });
+
+  it("uses a reviewed glucose rule only for the exact identity", () => {
+    const glucose = {
+      ...analyte,
+      id: "glucose",
+      name: "Glucose",
+      component: "Glucose",
+      property: "MCnc",
+      specimen: "Serum or plasma",
+      loincCode: "2345-7",
+      canonicalUnit: "mmol/L",
+    };
+    const glucoseMeasurement = {
+      ...measurement,
+      analyteId: "glucose",
+      sourceLabel: "Glucose",
+      sourceValue: "90",
+      parsedNumericValue: "90",
+      sourceUnit: "mg/dL",
+    };
+    const result = normalizeMeasurement(glucoseMeasurement, glucose);
+    expect(result).toMatchObject({
+      status: "normalized",
+      unit: "mmol/L",
+      ruleId: "curated:2345-7->14749-6:nist-srd-69:50-99-7",
+    });
+    expect(result.status === "normalized" ? result.value : 0).toBeCloseTo(
+      4.99567,
+      5,
+    );
+    expect(
+      normalizeMeasurement(glucoseMeasurement, {
+        ...glucose,
+        specimen: "Whole blood",
+      }),
+    ).toEqual({ status: "blocked", reason: "incompatible-unit" });
+  });
+
+  it("uses the reviewed creatinine rule and blocks a near match", () => {
+    const creatinine = {
+      ...analyte,
+      id: "creatinine",
+      name: "Creatinine",
+      component: "Creatinine",
+      property: "MCnc",
+      specimen: "Serum or plasma",
+      loincCode: "2160-0",
+      canonicalUnit: "umol/L",
+    };
+    const creatinineMeasurement = {
+      ...measurement,
+      analyteId: "creatinine",
+      sourceLabel: "Creatinine",
+      sourceValue: "1.2",
+      parsedNumericValue: "1.2",
+      sourceUnit: "mg/dL",
+    };
+    const result = normalizeMeasurement(creatinineMeasurement, creatinine);
+    expect(result).toMatchObject({
+      status: "normalized",
+      unit: "umol/L",
+      ruleId: "curated:2160-0->14682-9:nist-srd-69:60-27-5",
+    });
+    expect(result.status === "normalized" ? result.value : 0).toBeCloseTo(
+      106.084006,
+      5,
+    );
+    expect(
+      normalizeMeasurement(creatinineMeasurement, {
+        ...creatinine,
+        loincCode: "38483-4",
+      }),
+    ).toEqual({ status: "blocked", reason: "incompatible-unit" });
+  });
 });

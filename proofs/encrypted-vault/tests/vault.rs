@@ -1,6 +1,6 @@
 use hemo_encrypted_vault_proof::{
-    LabReportDraft, NativeVaultManager, VaultCommand, VaultCommandFacade, VaultCommandResult,
-    VaultError, VaultKey, VaultProbe, CURRENT_SCHEMA_VERSION,
+    CURRENT_SCHEMA_VERSION, LabReportDraft, NativeVaultManager, VaultCommand, VaultCommandFacade,
+    VaultCommandResult, VaultError, VaultKey, VaultProbe,
 };
 use std::fs;
 use tempfile::tempdir;

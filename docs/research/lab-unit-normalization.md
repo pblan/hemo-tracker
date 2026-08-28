@@ -95,11 +95,18 @@ Use a LOINC code when a confident mapping exists. Keep a local definition when n
 2. **Curated**: The conversion crosses from mass concentration to substance concentration. A reviewed rule specifies the exact component, molar mass, source property, target property, and provenance.
 3. **Blocked**: The system cannot prove equivalence. Keep the source result and show it in its original unit.
 
-### Review candidates for curated conversion
+### Reviewed curated conversions in V1
 
-Glucose and creatinine are representative candidates for reviewed mass-to-substance concentration rules. NIST gives a molecular weight of 180.1559 for glucose and 113.1179 for creatinine. [NIST glucose record](https://webbook.nist.gov/cgi/cbook.cgi?ID=C50997) [NIST creatinine record](https://webbook.nist.gov/cgi/cbook.cgi?ID=C60275)
+V1 includes two narrow mass-to-substance concentration rules. Each rule requires an exact LOINC identity, component, property, specimen, source UCUM unit, and target UCUM unit. A near match stays blocked.
 
-These values are necessary but not sufficient for a product rule. Before approval, bind each rule to exact source and target properties, specimen, method relevance, LOINC identities, UCUM units, formula, rounding behavior, and provenance. Keep the conversion blocked until that review is complete.
+| Component | Source identity | Target identity | Source unit | Target unit | Molar mass |
+| --- | --- | --- | --- | --- | --- |
+| Glucose | LOINC `2345-7`, mass concentration in serum or plasma | LOINC `14749-6`, substance concentration in serum or plasma | `mg/dL` | `mmol/L` | 180.1559 g/mol |
+| Creatinine | LOINC `2160-0`, mass concentration in serum or plasma | LOINC `14682-9`, substance concentration in serum or plasma | `mg/dL` | `umol/L` | 113.1179 g/mol |
+
+The LOINC records define the source and target observation identities. The NIST Chemistry WebBook supplies each molar mass. [LOINC glucose mass concentration](https://loinc.org/2345-7) [LOINC glucose substance concentration](https://loinc.org/14749-6) [NIST glucose record](https://webbook.nist.gov/cgi/cbook.cgi?ID=C50997) [LOINC creatinine mass concentration](https://loinc.org/2160-0) [LOINC creatinine substance concentration](https://loinc.org/14682-9) [NIST creatinine record](https://webbook.nist.gov/cgi/cbook.cgi?ID=C60275)
+
+The local rule identifier records both LOINC codes and the NIST provenance. The UI calculates the normalized view again when it reads data. It does not overwrite the source value. The current rule does not apply a display-rounding policy. It keeps the converter result and lets the view format the number.
 
 Use a tested UCUM implementation. Do not implement unit parsing with a list of regular expressions.
 

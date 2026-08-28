@@ -757,17 +757,45 @@ impl LocalAccountVault {
         {
             return Ok(());
         }
-        for (name, component, property, loinc, canonical_unit) in [
-            ("Hemoglobin", "Hemoglobin", "MCnc", Some("718-7"), "g/dL"),
-            ("Glucose", "Glucose", "MCnc", Some("2345-7"), "mg/dL"),
-            ("Creatinine", "Creatinine", "MCnc", Some("2160-0"), "mg/dL"),
-            ("Platelet count", "Platelets", "N", Some("777-3"), "10*3/uL"),
+        for (name, component, property, specimen, loinc, canonical_unit) in [
+            (
+                "Hemoglobin",
+                "Hemoglobin",
+                "MCnc",
+                "Blood",
+                Some("718-7"),
+                "g/dL",
+            ),
+            (
+                "Glucose",
+                "Glucose",
+                "MCnc",
+                "Serum or plasma",
+                Some("2345-7"),
+                "mmol/L",
+            ),
+            (
+                "Creatinine",
+                "Creatinine",
+                "MCnc",
+                "Serum or plasma",
+                Some("2160-0"),
+                "umol/L",
+            ),
+            (
+                "Platelet count",
+                "Platelets",
+                "N",
+                "Blood",
+                Some("777-3"),
+                "10*3/uL",
+            ),
         ] {
             self.add_analyte(NewAnalyte {
                 name: name.to_owned(),
                 component: component.to_owned(),
                 property: property.to_owned(),
-                specimen: "Blood".to_owned(),
+                specimen: specimen.to_owned(),
                 scale: "Quantitative".to_owned(),
                 method: None,
                 aliases: Vec::new(),
