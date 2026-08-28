@@ -347,6 +347,10 @@ impl LocalAccountVault {
         if backup == self.directory || !backup.is_dir() {
             return Err(LocalAccountError::Operation);
         }
+        let parent = self
+            .directory
+            .parent()
+            .ok_or(LocalAccountError::Operation)?;
         let mut candidate = LocalAccountVault::open(backup)?;
         candidate.unlock_with_passphrase(passphrase_text.clone())?;
         candidate
@@ -355,10 +359,6 @@ impl LocalAccountVault {
             .integrity_check()
             .map_err(|_| LocalAccountError::Operation)?;
         drop(candidate);
-        let parent = self
-            .directory
-            .parent()
-            .ok_or(LocalAccountError::Operation)?;
         let staging = staging_directory(&self.directory)?;
         if staging.exists() {
             fs::remove_dir_all(&staging).map_err(|_| LocalAccountError::Operation)?;
@@ -370,7 +370,7 @@ impl LocalAccountVault {
         }
         fs::rename(&self.directory, &previous).map_err(|_| LocalAccountError::Operation)?;
         if fs::rename(&staging, &self.directory).is_err() {
-            let _ = fs::rename(&previous, &self.directory);
+            restore_previous_directory(&previous, &self.directory, parent)?;
             return Err(LocalAccountError::Operation);
         }
         let restored = (|| {
@@ -383,8 +383,9 @@ impl LocalAccountVault {
             Ok(restored) => restored,
             Err(error) => {
                 let _ = fs::remove_dir_all(&self.directory);
-                let _ = fs::rename(&previous, &self.directory);
-                let _ = sync_directory(parent);
+                if restore_previous_directory(&previous, &self.directory, parent).is_err() {
+                    return Err(LocalAccountError::Operation);
+                }
                 return Err(error);
             }
         };
@@ -411,10 +412,6 @@ impl LocalAccountVault {
             .unlock_with_passphrase(&passphrase)
             .map_err(|_| LocalAccountError::InvalidCredentials)?;
 
-        let parent = self
-            .directory
-            .parent()
-            .ok_or(LocalAccountError::Operation)?;
         let staging = staging_directory(&self.directory)?;
         let created = LocalAccountVault::create(
             &staging,
@@ -423,57 +420,36 @@ impl LocalAccountVault {
                 passphrase: passphrase_text.as_str().to_owned(),
             },
         )?;
+        Self::verify_seeded_demo_vault(&created.vault)?;
         let recovery_code = created.recovery_code().to_owned();
         drop(created);
-
-        let previous = self.directory.with_extension("pre-reset");
-        if previous.exists() {
-            fs::remove_dir_all(&previous).map_err(|_| LocalAccountError::Operation)?;
-        }
-        let active_unlocked = self.unlocked.take();
-        if fs::rename(&self.directory, &previous).is_err() {
-            self.unlocked = active_unlocked;
-            let _ = fs::remove_dir_all(&staging);
-            return Err(LocalAccountError::Operation);
-        }
-        if fs::rename(&staging, &self.directory).is_err() {
-            let _ = fs::rename(&previous, &self.directory);
-            self.unlocked = active_unlocked;
-            let _ = sync_directory(parent);
-            return Err(LocalAccountError::Operation);
-        }
-        if let Err(error) = sync_directory(parent) {
-            let _ = fs::remove_dir_all(&self.directory);
-            let _ = fs::rename(&previous, &self.directory);
-            let _ = sync_directory(parent);
-            self.unlocked = active_unlocked;
-            return Err(error);
-        }
-
-        let mut restored = match LocalAccountVault::open(&self.directory) {
-            Ok(restored) => restored,
-            Err(error) => {
-                let _ = fs::remove_dir_all(&self.directory);
-                let _ = fs::rename(&previous, &self.directory);
-                let _ = sync_directory(parent);
-                self.unlocked = active_unlocked;
-                return Err(error);
-            }
-        };
-        if let Err(error) = restored.unlock_with_passphrase(passphrase_text.as_str().to_owned()) {
-            let _ = fs::remove_dir_all(&self.directory);
-            let _ = fs::rename(&previous, &self.directory);
-            let _ = sync_directory(parent);
-            self.unlocked = active_unlocked;
-            return Err(error);
-        }
-        self.manifest = restored.manifest;
-        self.unlocked = restored.unlocked;
-        drop(active_unlocked);
-        let _ = fs::remove_dir_all(&previous);
-        let _ = sync_directory(parent);
-        Ok(recovery_code)
+        let result = self.restore_from_backup(&staging, passphrase_text.as_str().to_owned());
+        let _ = fs::remove_dir_all(&staging);
+        result.map(|_| recovery_code)
     }
+
+    fn verify_seeded_demo_vault(vault: &LocalAccountVault) -> Result<(), LocalAccountError> {
+        let report_ids = vault.list_lab_report_ids()?;
+        if report_ids.len() != 3 {
+            return Err(LocalAccountError::Operation);
+        }
+        for report_id in report_ids {
+            let report = vault.get_lab_report(&report_id)?;
+            if report.status != ReportStatus::Complete
+                || report.tags != vec!["demo".to_owned()]
+                || report.source_files.len() != 1
+                || report.measurements.len() != 3
+            {
+                return Err(LocalAccountError::Operation);
+            }
+        }
+        vault
+            .unlocked_ref()?
+            ._vault
+            .integrity_check()
+            .map_err(|_| LocalAccountError::Operation)
+    }
+
     pub fn add_analyte(&mut self, analyte: NewAnalyte) -> Result<String, LocalAccountError> {
         if analyte.name.trim().is_empty()
             || analyte.component.trim().is_empty()
@@ -1255,6 +1231,18 @@ fn sync_directory(directory: &Path) -> Result<(), LocalAccountError> {
             .map_err(|_| LocalAccountError::Operation)?;
     }
     Ok(())
+}
+
+fn restore_previous_directory(
+    previous: &Path,
+    destination: &Path,
+    parent: &Path,
+) -> Result<(), LocalAccountError> {
+    fs::rename(previous, destination).or_else(|_| {
+        copy_directory(previous, destination)?;
+        fs::remove_dir_all(previous).map_err(|_| LocalAccountError::Operation)
+    })?;
+    sync_directory(parent)
 }
 
 #[cfg(test)]

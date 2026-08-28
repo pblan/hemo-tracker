@@ -68,7 +68,7 @@ Use **Report history** after you unlock the vault. Enter a laboratory name in **
 3. Select a destination in the native save dialog.
 4. Store the backup separately from the computer.
 
-Hemo Tracker encrypts the backup. The backup does not contain the passphrase or recovery key. Keep the backup and recovery material separate.
+Hemo Tracker encrypts the backup. The backup does not contain the passphrase or recovery key. Keep the backup and recovery key separate.
 
 ## Reset the vault to demo data
 

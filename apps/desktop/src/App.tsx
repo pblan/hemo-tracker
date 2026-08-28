@@ -204,6 +204,19 @@ function RecoveryKey({
   code: string;
   onConfirmed: () => void;
 }) {
+  const [copyStatus, setCopyStatus] = useState("");
+
+  async function copyRecoveryKey() {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopyStatus("Recovery key copied.");
+    } catch {
+      setCopyStatus(
+        "Copy failed. Select the recovery key and copy it manually.",
+      );
+    }
+  }
+
   return (
     <Box borderWidth="1px" borderRadius="xl" p={{ base: "5", md: "7" }}>
       <Stack gap="5">
@@ -223,6 +236,10 @@ function RecoveryKey({
         >
           {code}
         </Box>
+        <Button alignSelf="start" variant="outline" onClick={copyRecoveryKey}>
+          Copy recovery key
+        </Button>
+        {copyStatus ? <Text role="status">{copyStatus}</Text> : null}
         <Button alignSelf="start" onClick={onConfirmed}>
           I stored the recovery key
         </Button>
