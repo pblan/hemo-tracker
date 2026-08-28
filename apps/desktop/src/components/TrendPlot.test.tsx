@@ -25,4 +25,21 @@ describe("TrendPlot", () => {
     expect(screen.getByText("Missing")).toBeInTheDocument();
     expect(screen.getByText("missing")).toBeInTheDocument();
   });
+
+  it("renders a representative local series without failing", () => {
+    const points = Array.from({ length: 1000 }, (_, index) => ({
+      date: `2026-${String((index % 12) + 1).padStart(2, "0")}-01`,
+      value: index % 17 === 0 ? null : index / 10,
+      unit: "g/dL",
+    }));
+    render(
+      <Provider>
+        <TrendPlot title="Large local series" points={points} />
+      </Provider>,
+    );
+    expect(
+      screen.getByRole("img", { name: "Large local series trend plot" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("table")).toBeInTheDocument();
+  });
 });
