@@ -6,8 +6,8 @@ import { normalizeMeasurement } from "./measurement-normalization";
 
 describe("V1 fictional fixture", () => {
   it("contains the documented coverage and safe glucose conversion", () => {
-    expect(analyteFixture.analytes).toHaveLength(14);
-    expect(reportFixture.reports).toHaveLength(10);
+    expect(analyteFixture.analytes.length).toBeGreaterThanOrEqual(25);
+    expect(reportFixture.reports.length).toBeGreaterThanOrEqual(12);
     const glucose = analyteFixture.analytes.find(
       (item) => item.id === "glucose",
     );

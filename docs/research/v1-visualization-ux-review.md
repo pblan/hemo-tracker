@@ -13,7 +13,7 @@ behavior only.
 
 ## Data review
 
-The repository fixture contains 14 analytes and 10 reports. The reports use
+The repository fixture contains at least 25 analytes and 12 reports. The reports use
 irregular collection dates. They include draft, complete, and archived states,
 multiple source files, source flags, missing values, changing laboratory
 intervals, corrections, personal target ranges, compatible unit variants, and

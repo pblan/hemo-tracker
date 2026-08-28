@@ -1,8 +1,22 @@
 {
-  "reportCount": 10,
-  "analyteCount": 14,
+  "reportCount": 12,
+  "analyteCount": 29,
   "irregularDates": true,
   "missingMeasurement": "fixture-measurement-7-10",
+  "comparatorMeasurement": "fixture-measurement-4-29",
+  "sparseAnalyte": "vitamin-d",
+  "correctedMeasurement": "fixture-measurement-10-01",
   "archivedReport": "fixture-report-005",
-  "draftReport": "fixture-report-010"
+  "draftReport": "fixture-report-010",
+  "storyCoverage": [
+    "stable-baseline",
+    "deviation-and-recovery",
+    "alternate-units",
+    "changed-reference-interval",
+    "missing-and-non-numeric",
+    "correction-provenance",
+    "report-states-and-source-files",
+    "cross-panel-cbc",
+    "sparse-series"
+  ]
 }

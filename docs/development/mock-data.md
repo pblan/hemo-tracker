@@ -2,7 +2,7 @@
 
 Hemo Tracker uses small deterministic mock data for tests, screenshots, and local exploration.
 
-The V1 fixture uses 14 analytes and 10 irregularly dated reports. It includes draft, complete, and archived reports. It includes multiple source files, safe and blocked unit cases, missing values, flags, corrections, and personal target ranges.
+The V1 fixture uses at least 25 analytes and 12 irregularly dated reports. It includes CBC, metabolic, liver, thyroid, iron, inflammation, lipid, and electrolyte analytes. It includes draft, complete, and archived reports. It includes multiple source files, alternate units, missing values, comparator values, flags, corrections, sparse series, and personal target ranges.
 
 Run these commands from the repository root:
 

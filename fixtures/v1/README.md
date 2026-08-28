@@ -3,9 +3,10 @@
 This directory contains deterministic fictional data for local development and
 tests.
 
-The fixture has 14 analytes and 10 reports. It includes different units, missing
-values, source flags, date ranges, source-file roles, corrections, and report
-states.
+The fixture has at least 25 analytes and 12 reports. It includes CBC, metabolic,
+liver, thyroid, iron, inflammation, lipid, and electrolyte analytes. It includes
+different units, missing and comparator values, source flags, date ranges,
+source-file roles, corrections, sparse series, and report states.
 
 The JSON files keep source facts separate from derived expectations:
 
