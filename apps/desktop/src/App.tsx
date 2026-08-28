@@ -71,7 +71,7 @@ function App() {
       <Stack gap="8" maxW="3xl" mx="auto">
         <Stack gap="3">
           <Text
-            color="teal.600"
+            color="teal.700"
             fontSize="sm"
             fontWeight="semibold"
             letterSpacing="wide"
@@ -170,7 +170,13 @@ function CreateVault({
             onChange={(event) => setConfirmation(event.target.value)}
           />
         </Field.Root>
-        <Button type="submit" alignSelf="start" colorPalette="teal">
+        <Button
+          type="submit"
+          alignSelf="start"
+          bg="teal.700"
+          color="white"
+          _hover={{ bg: "teal.800" }}
+        >
           Create vault
         </Button>
       </Stack>
@@ -264,7 +270,13 @@ function UnlockVault({
               onChange={(event) => setPassphrase(event.target.value)}
             />
           </Field.Root>
-          <Button type="submit" alignSelf="start" colorPalette="teal">
+          <Button
+            type="submit"
+            alignSelf="start"
+            bg="teal.700"
+            color="white"
+            _hover={{ bg: "teal.800" }}
+          >
             Unlock vault
           </Button>
         </Stack>
@@ -1084,7 +1096,13 @@ function UnlockedVault({
               />
             </Field.Root>
           </Stack>
-          <Button type="submit" alignSelf="start" colorPalette="teal">
+          <Button
+            type="submit"
+            alignSelf="start"
+            bg="teal.700"
+            color="white"
+            _hover={{ bg: "teal.800" }}
+          >
             Add personal target range
           </Button>
           {rangeMessage ? <Text role="status">{rangeMessage}</Text> : null}
@@ -1742,7 +1760,9 @@ function UnlockedVault({
           <Button
             type="submit"
             alignSelf="start"
-            colorPalette="teal"
+            bg="teal.700"
+            color="white"
+            _hover={{ bg: "teal.800" }}
             loading={saving}
           >
             Choose source file and save report
@@ -1808,7 +1828,7 @@ function SectionHeading({
     <Stack direction="row" gap="3" align="start" pt="2">
       <Box
         borderRadius="full"
-        bg="teal.600"
+        bg="teal.700"
         color="white"
         minW="8"
         h="8"

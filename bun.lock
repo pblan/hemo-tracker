@@ -5,6 +5,7 @@
     "": {
       "name": "hemo-tracker",
       "devDependencies": {
+        "@axe-core/playwright": "^4.13.0",
         "@eslint/js": "^9.34.0",
         "@playwright/test": "^1.55.0",
         "@testing-library/jest-dom": "^6.8.0",
@@ -73,6 +74,8 @@
     "@ark-ui/react": ["@ark-ui/react@5.37.2", "", { "dependencies": { "@internationalized/date": "3.12.2", "@zag-js/accordion": "1.41.2", "@zag-js/anatomy": "1.41.2", "@zag-js/angle-slider": "1.41.2", "@zag-js/async-list": "1.41.2", "@zag-js/auto-resize": "1.41.2", "@zag-js/avatar": "1.41.2", "@zag-js/carousel": "1.41.2", "@zag-js/cascade-select": "1.41.2", "@zag-js/checkbox": "1.41.2", "@zag-js/clipboard": "1.41.2", "@zag-js/collapsible": "1.41.2", "@zag-js/collection": "1.41.2", "@zag-js/color-picker": "1.41.2", "@zag-js/color-utils": "1.41.2", "@zag-js/combobox": "1.41.2", "@zag-js/core": "1.41.2", "@zag-js/date-input": "1.41.2", "@zag-js/date-picker": "1.41.2", "@zag-js/date-utils": "1.41.2", "@zag-js/dialog": "1.41.2", "@zag-js/dom-query": "1.41.2", "@zag-js/drawer": "1.41.2", "@zag-js/editable": "1.41.2", "@zag-js/file-upload": "1.41.2", "@zag-js/file-utils": "1.41.2", "@zag-js/floating-panel": "1.41.2", "@zag-js/focus-trap": "1.41.2", "@zag-js/focus-visible": "1.41.2", "@zag-js/highlight-word": "1.41.2", "@zag-js/hover-card": "1.41.2", "@zag-js/i18n-utils": "1.41.2", "@zag-js/image-cropper": "1.41.2", "@zag-js/json-tree-utils": "1.41.2", "@zag-js/listbox": "1.41.2", "@zag-js/marquee": "1.41.2", "@zag-js/menu": "1.41.2", "@zag-js/navigation-menu": "1.41.2", "@zag-js/number-input": "1.41.2", "@zag-js/pagination": "1.41.2", "@zag-js/password-input": "1.41.2", "@zag-js/pin-input": "1.41.2", "@zag-js/popover": "1.41.2", "@zag-js/presence": "1.41.2", "@zag-js/progress": "1.41.2", "@zag-js/qr-code": "1.41.2", "@zag-js/radio-group": "1.41.2", "@zag-js/rating-group": "1.41.2", "@zag-js/react": "1.41.2", "@zag-js/scroll-area": "1.41.2", "@zag-js/select": "1.41.2", "@zag-js/signature-pad": "1.41.2", "@zag-js/slider": "1.41.2", "@zag-js/splitter": "1.41.2", "@zag-js/steps": "1.41.2", "@zag-js/switch": "1.41.2", "@zag-js/tabs": "1.41.2", "@zag-js/tags-input": "1.41.2", "@zag-js/timer": "1.41.2", "@zag-js/toast": "1.41.2", "@zag-js/toggle": "1.41.2", "@zag-js/toggle-group": "1.41.2", "@zag-js/tooltip": "1.41.2", "@zag-js/tour": "1.41.2", "@zag-js/tree-view": "1.41.2", "@zag-js/types": "1.41.2", "@zag-js/utils": "1.41.2" }, "peerDependencies": { "react": ">=18.0.0", "react-dom": ">=18.0.0" } }, "sha512-Q0R2Ah50kUhup0Ljxg65zGJq5yBV52BLm1coRkjHHid40d1yclaDGfhPL48kcF/xtjAFlGLkL6SiENkGvfh+mw=="],
 
     "@asamuzakjp/css-color": ["@asamuzakjp/css-color@3.2.0", "", { "dependencies": { "@csstools/css-calc": "^2.1.3", "@csstools/css-color-parser": "^3.0.9", "@csstools/css-parser-algorithms": "^3.0.4", "@csstools/css-tokenizer": "^3.0.3", "lru-cache": "^10.4.3" } }, "sha512-K1A6z8tS3XsmCMM86xoWdn7Fkdn9m6RSVtocUrJYIwZnFVkng/PvkEoWtOWmP+Scc6saYWHWZYbndEEXxl24jw=="],
+
+    "@axe-core/playwright": ["@axe-core/playwright@4.13.0", "", { "dependencies": { "axe-core": "~4.13.0" }, "peerDependencies": { "playwright-core": ">= 1.0.0" } }, "sha512-6YLx+kxXu5GJceG4ozFg+33a2EMTdjYwWGloJ3sb9Kta5pp+ZNS53uxGVog5JetIY8s++P5UrtX+cri+u0VAVg=="],
 
     "@babel/code-frame": ["@babel/code-frame@7.29.7", "", { "dependencies": { "@babel/helper-validator-identifier": "^7.29.7", "js-tokens": "^4.0.0", "picocolors": "^1.1.1" } }, "sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw=="],
 
@@ -625,6 +628,8 @@
     "aria-query": ["aria-query@5.3.2", "", {}, "sha512-COROpnaoap1E2F000S62r6A60uHZnmlvomhfyT2DlTcrY1OrBKn2UhH7qn5wTC9zMvD0AY7csdPSNwKP+7WiQw=="],
 
     "assertion-error": ["assertion-error@2.0.1", "", {}, "sha512-Izi8RQcffqCeNVgFigKli1ssklIbpHnCYc6AknXGYoB6grJqyeby7jv12JUQgmTAnIDnbck1uxksT4dzN3PWBA=="],
+
+    "axe-core": ["axe-core@4.13.0", "", {}, "sha512-UzGt8zg7Ny8djbYMhxl2zuEevVa7r2gJjYY5Lwr1xM7+XU2nd6CkIWFTVcCIbAP63vSz71NaVyyuSk9lHKcy0A=="],
 
     "babel-plugin-macros": ["babel-plugin-macros@3.1.0", "", { "dependencies": { "@babel/runtime": "^7.12.5", "cosmiconfig": "^7.0.0", "resolve": "^1.19.0" } }, "sha512-Cg7TFGpIr01vOQNODXOOaGz2NpCU5gl8x1qJFbb6hbZxR7XrcE2vtbAsTAbJ7/xwJtUuJEw8K8Zr/AE0LHlesg=="],
 
