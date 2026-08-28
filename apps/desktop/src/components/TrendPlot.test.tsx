@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
 import { Provider } from "./ui/provider";
 import { TrendPlot } from "./TrendPlot";
 
@@ -33,6 +34,23 @@ describe("TrendPlot", () => {
     expect(screen.getByText("missing")).toBeInTheDocument();
     expect(screen.getByText("in target")).toBeInTheDocument();
     expect(screen.getAllByText("13.7 g/dL")).toHaveLength(2);
+  });
+
+  it("links a table point to its source report", async () => {
+    const onOpenReport = vi.fn();
+    render(
+      <Provider>
+        <TrendPlot
+          title="Linked trend"
+          points={[
+            { reportId: "report-1", date: "2026-01-01", value: 1, unit: "g/L" },
+          ]}
+          onOpenReport={onOpenReport}
+        />
+      </Provider>,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Open report" }));
+    expect(onOpenReport).toHaveBeenCalledWith("report-1");
   });
 
   it("renders a representative local series without failing", () => {

@@ -665,6 +665,7 @@ function UnlockedVault({
         ? [
             {
               id: measurement.id,
+              reportId: report.id,
               date: report.collectionTime,
               value: normalized.value,
               unit: normalized.unit,
@@ -699,6 +700,15 @@ function UnlockedVault({
   };
   const trend = buildTrend(trendAnalyteId);
   const comparison = buildTrend(compareAnalyteId);
+  const openReportFromTrend = (reportId: string) => {
+    setExpandedReportId(reportId);
+    requestAnimationFrame(() =>
+      document.getElementById(`report-${reportId}`)?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      }),
+    );
+  };
 
   return (
     <Stack gap="6">
@@ -741,7 +751,11 @@ function UnlockedVault({
           </select>
           {trendAnalyteId ? (
             <Stack gap="4">
-              <TrendPlot title="Local analyte trend" points={trend.points} />
+              <TrendPlot
+                title="Local analyte trend"
+                points={trend.points}
+                onOpenReport={openReportFromTrend}
+              />
               {trend.excluded ? (
                 <Text color="orange.700" fontSize="sm" role="status">
                   {trend.excluded} result could not be normalized and is not
@@ -753,6 +767,7 @@ function UnlockedVault({
                   <TrendPlot
                     title="Compared analyte trend"
                     points={comparison.points}
+                    onOpenReport={openReportFromTrend}
                   />
                   {comparison.excluded ? (
                     <Text color="orange.700" fontSize="sm" role="status">
@@ -928,6 +943,7 @@ function UnlockedVault({
             .map((report) => (
               <Box
                 key={report.id}
+                id={`report-${report.id}`}
                 borderWidth="1px"
                 borderColor="border"
                 borderRadius="lg"

@@ -3,6 +3,7 @@ import "uplot/dist/uPlot.min.css";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 export type TrendPoint = {
+  reportId?: string;
   date: string;
   value: number | null;
   unit: string;
@@ -15,9 +16,11 @@ export type TrendPoint = {
 export function TrendPlot({
   title,
   points,
+  onOpenReport,
 }: {
   title: string;
   points: TrendPoint[];
+  onOpenReport?: (reportId: string) => void;
 }) {
   const numeric = useMemo(
     () => points.filter((point) => point.value !== null),
@@ -111,6 +114,7 @@ export function TrendPlot({
             <Table.ColumnHeader>Normalized value</Table.ColumnHeader>
             <Table.ColumnHeader>Flag</Table.ColumnHeader>
             <Table.ColumnHeader>Personal target</Table.ColumnHeader>
+            <Table.ColumnHeader>Source report</Table.ColumnHeader>
           </Table.Row>
         </Table.Header>
         <Table.Body>
@@ -131,6 +135,18 @@ export function TrendPlot({
               </Table.Cell>
               <Table.Cell>{point.flag || "—"}</Table.Cell>
               <Table.Cell>{point.targetStatus || "Not evaluated"}</Table.Cell>
+              <Table.Cell>
+                {point.reportId && onOpenReport ? (
+                  <button
+                    type="button"
+                    onClick={() => onOpenReport(point.reportId!)}
+                  >
+                    Open report
+                  </button>
+                ) : (
+                  "—"
+                )}
+              </Table.Cell>
             </Table.Row>
           ))}
         </Table.Body>
