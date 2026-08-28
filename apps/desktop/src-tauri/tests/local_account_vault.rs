@@ -252,6 +252,15 @@ fn user_records_and_reopens_one_complete_lab_report_with_encrypted_evidence() {
         reopened_again.get_lab_report(&report_id).unwrap().status,
         ReportStatus::Archived
     );
+    assert!(
+        reopened_again
+            .permanently_delete_lab_report(&report_id, false)
+            .is_err()
+    );
+    reopened_again
+        .permanently_delete_lab_report(&report_id, true)
+        .unwrap();
+    assert!(reopened_again.get_lab_report(&report_id).is_err());
 
     assert_eq!(fs::read(&source_path).unwrap(), source_marker);
 
