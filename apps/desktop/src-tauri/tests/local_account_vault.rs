@@ -143,7 +143,7 @@ fn user_records_and_reopens_one_complete_lab_report_with_encrypted_evidence() {
             },
         )
         .unwrap();
-    vault
+    let hemoglobin_measurement_id = vault
         .add_measurement(
             &report_id,
             NewMeasurement {
@@ -154,6 +154,20 @@ fn user_records_and_reopens_one_complete_lab_report_with_encrypted_evidence() {
                 source_flag: "within range".to_owned(),
                 analyte_id: Some(hemoglobin_id.clone()),
             },
+        )
+        .unwrap();
+    vault
+        .correct_measurement(
+            &hemoglobin_measurement_id,
+            NewMeasurement {
+                source_label: "Hemoglobin (corrected label)".to_owned(),
+                source_value: "13.8".to_owned(),
+                source_unit: "g/dL".to_owned(),
+                source_reference_interval: "12,0–16,0".to_owned(),
+                source_flag: "within range".to_owned(),
+                analyte_id: Some(hemoglobin_id.clone()),
+            },
+            "local-user".to_owned(),
         )
         .unwrap();
     vault.complete_lab_report(&report_id).unwrap();
@@ -183,7 +197,9 @@ fn user_records_and_reopens_one_complete_lab_report_with_encrypted_evidence() {
     assert_eq!(report.notes.as_deref(), Some("Routine fictional check"));
     assert_eq!(report.tags, vec!["annual"]);
     assert_eq!(report.measurements.len(), 2);
-    assert_eq!(report.measurements[0].source_value, "13,7");
+    assert_eq!(report.measurements[0].source_value, "13.8");
+    assert_eq!(report.measurements[0].updated_by, "local-user");
+    assert!(!report.measurements[0].updated_at.is_empty());
     assert_eq!(report.measurements[0].source_unit, "g/dL");
     assert_eq!(
         report.measurements[0].source_reference_interval,
@@ -205,10 +221,10 @@ fn user_records_and_reopens_one_complete_lab_report_with_encrypted_evidence() {
     assert_eq!(report.status, ReportStatus::Complete);
     assert_eq!(
         report.measurements[0].source_label,
-        "Hemoglobin (original label)"
+        "Hemoglobin (corrected label)"
     );
     assert_eq!(report.measurements[0].source_unit, "g/dL");
-    assert_eq!(report.measurements[0].source_value, "13,7");
+    assert_eq!(report.measurements[0].source_value, "13.8");
     assert_eq!(
         report.measurements[0].source_reference_interval,
         "12,0–16,0"
