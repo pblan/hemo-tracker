@@ -1,5 +1,6 @@
 import { Box, Table, Text } from "@chakra-ui/react";
 import "uplot/dist/uPlot.min.css";
+import type uPlot from "uplot";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 export type TrendPoint = {
@@ -10,6 +11,8 @@ export type TrendPoint = {
   sourceValue?: string;
   sourceUnit?: string;
   sourceReferenceInterval?: string;
+  targetLowerBound?: number;
+  targetUpperBound?: number;
   flag?: string;
   targetStatus?: "below target" | "in target" | "above target";
 };
@@ -34,8 +37,32 @@ export function TrendPlot({
     [points],
   );
   const values = numeric.map((point) => point.value as number);
-  const min = values.length ? Math.min(...values) : 0;
-  const max = values.length ? Math.max(...values) : 1;
+  const targetBounds = useMemo(() => {
+    const first = numeric.find(
+      (point) =>
+        point.targetLowerBound !== undefined ||
+        point.targetUpperBound !== undefined,
+    );
+    if (!first) return undefined;
+    const same = numeric.every(
+      (point) =>
+        point.targetLowerBound === first.targetLowerBound &&
+        point.targetUpperBound === first.targetUpperBound,
+    );
+    return same
+      ? {
+          lower: first.targetLowerBound,
+          upper: first.targetUpperBound,
+        }
+      : undefined;
+  }, [numeric]);
+  const bounds = [
+    ...values,
+    ...(targetBounds?.lower === undefined ? [] : [targetBounds.lower]),
+    ...(targetBounds?.upper === undefined ? [] : [targetBounds.upper]),
+  ];
+  const min = bounds.length ? Math.min(...bounds) : 0;
+  const max = bounds.length ? Math.max(...bounds) : 1;
   const range = max - min || 1;
   const width = 640;
   const height = 180;
@@ -65,6 +92,35 @@ export function TrendPlot({
     void import("uplot")
       .then(({ default: UPlot }) => {
         if (cancelled) return;
+        const targetPlugin: uPlot.Plugin | undefined = targetBounds
+          ? {
+              hooks: {
+                drawClear: (currentPlot) => {
+                  const lower = targetBounds.lower;
+                  const upper = targetBounds.upper;
+                  if (lower === undefined && upper === undefined) return;
+                  const top =
+                    upper === undefined
+                      ? currentPlot.bbox.top
+                      : currentPlot.valToPos(upper, "y");
+                  const bottom =
+                    lower === undefined
+                      ? currentPlot.bbox.top + currentPlot.bbox.height
+                      : currentPlot.valToPos(lower, "y");
+                  const context = currentPlot.ctx;
+                  context.save();
+                  context.fillStyle = "rgba(13, 148, 136, 0.14)";
+                  context.fillRect(
+                    currentPlot.bbox.left,
+                    Math.min(top, bottom),
+                    currentPlot.bbox.width,
+                    Math.abs(bottom - top),
+                  );
+                  context.restore();
+                },
+              },
+            }
+          : undefined;
         plot = new UPlot(
           {
             width: host.clientWidth || 640,
@@ -90,6 +146,7 @@ export function TrendPlot({
                 },
               ],
             },
+            plugins: targetPlugin ? [targetPlugin] : undefined,
             series: [{}, { label: title, stroke: "currentColor", width: 2 }],
             axes: [{}, { label: "Value" }],
           },
@@ -107,7 +164,7 @@ export function TrendPlot({
       plot?.destroy();
       setPlotReady(false);
     };
-  }, [numeric, onTimeRangeChange, timeRange, title]);
+  }, [numeric, onTimeRangeChange, targetBounds, timeRange, title]);
   return (
     <Box
       borderWidth="1px"

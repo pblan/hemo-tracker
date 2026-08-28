@@ -734,6 +734,28 @@ function UnlockedVault({
               sourceValue: measurement.sourceValue,
               sourceUnit: measurement.sourceUnit,
               sourceReferenceInterval: measurement.sourceReferenceInterval,
+              targetLowerBound: (() => {
+                if (!analyte) return undefined;
+                const target = resolveApplicableTargetRange(
+                  report.collectionTime,
+                  analyte.personalTargetRanges,
+                  analyte,
+                );
+                return target.status === "applicable"
+                  ? target.lowerBound
+                  : undefined;
+              })(),
+              targetUpperBound: (() => {
+                if (!analyte) return undefined;
+                const target = resolveApplicableTargetRange(
+                  report.collectionTime,
+                  analyte.personalTargetRanges,
+                  analyte,
+                );
+                return target.status === "applicable"
+                  ? target.upperBound
+                  : undefined;
+              })(),
               flag: measurement.sourceFlag,
               targetStatus: (() => {
                 if (!analyte) return undefined;
