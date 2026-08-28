@@ -80,6 +80,15 @@ describe("desktop application shell", () => {
       accountExists: true,
       status: "unlocked",
     });
+    vi.mocked(vaultClient.listLabReports).mockResolvedValue(["report-1"]);
+    vi.mocked(vaultClient.getLabReport).mockResolvedValue({
+      id: "report-1",
+      collectionTime: "2026-08-20T08:30:00+02:00",
+      laboratory: "Fictional Central Laboratory",
+      status: "complete",
+      sourceFileCount: 1,
+      measurementCount: 2,
+    });
     const user = userEvent.setup();
     render(
       <Provider>
@@ -99,6 +108,16 @@ describe("desktop application shell", () => {
     expect(
       await screen.findByRole("heading", { name: "Record a lab report" }),
     ).toBeVisible();
+    expect(
+      await screen.findByText("Fictional Central Laboratory"),
+    ).toBeVisible();
+    await user.type(
+      screen.getByRole("textbox", { name: "Search reports" }),
+      "other",
+    );
+    expect(
+      screen.queryByText("Fictional Central Laboratory"),
+    ).not.toBeInTheDocument();
   });
 
   it("clears a rejected passphrase before the user retries", async () => {
