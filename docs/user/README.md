@@ -12,6 +12,8 @@ Hemo Tracker stores laboratory reports in an encrypted local vault. It does not 
 
 ## Quick start
 
+![Hemo Tracker locked-vault screen with passphrase and recovery-key unlock forms.](../assets/screenshots/v1/desktop-locked-vault.png)
+
 1. Start Hemo Tracker.
 2. Select **Create your local vault**.
 3. Enter and confirm a strong passphrase.

@@ -13,7 +13,7 @@ This directory stores screenshots for the unsigned local V1 release.
 
 ## Current entries
 
-No release screenshot is accepted yet. Add an entry only after the related V1 workflow and native platform validation pass.
+- `desktop-locked-vault.png`: Hemo Tracker 0.1.0, browser-rendered desktop webview, 1280 x 900 viewport, light theme, fictional locked-vault fixture, Playwright controlled Tauri API mock. Alternative text: "Hemo Tracker locked-vault screen with passphrase and recovery-key unlock forms."
 
 ## Naming and alternative text
 
