@@ -16,3 +16,8 @@ Keep source facts in `fixtures/v1/analytes.json` and `fixtures/v1/reports.json`.
 Use only fictional names and values. Never add real laboratory reports, identifiers, addresses, or health data. Release packages must not contain account vaults or generated benchmark data.
 
 The small fixture is suitable for routine checks. Large plot benchmarks are separate work and must not slow routine CI.
+
+New local vaults use a smaller runtime demo set. The application creates three
+complete fictional reports with encrypted text source files. The runtime set
+uses the same representative analytes and unit rules, but it is not a copy of
+the ten-report repository fixture.
