@@ -105,7 +105,7 @@ fn user_records_and_reopens_one_complete_lab_report_with_encrypted_evidence() {
             loinc_code: Some("718-7".to_owned()),
         })
         .unwrap();
-    assert_eq!(vault.list_analytes().unwrap().len(), 1);
+    assert!(vault.list_analytes().unwrap().len() >= 5);
 
     let report_id = vault
         .create_lab_report_draft(CreateLabReportDraft {

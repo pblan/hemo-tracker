@@ -265,12 +265,14 @@ impl LocalAccountVault {
         };
         let recovery_code = bundle.recovery_key().to_code();
 
+        let mut vault = LocalAccountVault {
+            directory,
+            manifest,
+            unlocked: Some(unlocked),
+        };
+        vault.seed_default_analytes()?;
         Ok(CreatedLocalAccount {
-            vault: Self {
-                directory,
-                manifest,
-                unlocked: Some(unlocked),
-            },
+            vault,
             recovery_code,
         })
     }
@@ -483,6 +485,37 @@ impl LocalAccountVault {
         let unlocked = unlock_account(&self.directory, &keys)
             .map_err(|_| LocalAccountError::InvalidCredentials)?;
         self.unlocked = Some(unlocked);
+        self.seed_default_analytes()?;
+        Ok(())
+    }
+
+    fn seed_default_analytes(&mut self) -> Result<(), LocalAccountError> {
+        if !self
+            .unlocked_ref()?
+            ._vault
+            .list_analytes()
+            .map_err(|_| LocalAccountError::Operation)?
+            .is_empty()
+        {
+            return Ok(());
+        }
+        for (name, component, property, loinc) in [
+            ("Hemoglobin", "Hemoglobin", "MCnc", Some("718-7")),
+            ("Glucose", "Glucose", "MCnc", Some("2345-7")),
+            ("Creatinine", "Creatinine", "MCnc", Some("2160-0")),
+            ("Platelet count", "Platelets", "N", Some("777-3")),
+        ] {
+            self.add_analyte(NewAnalyte {
+                name: name.to_owned(),
+                component: component.to_owned(),
+                property: property.to_owned(),
+                specimen: "Blood".to_owned(),
+                scale: "Quantitative".to_owned(),
+                method: None,
+                aliases: Vec::new(),
+                loinc_code: loinc.map(str::to_owned),
+            })?;
+        }
         Ok(())
     }
 
