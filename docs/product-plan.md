@@ -141,7 +141,7 @@ The system does not protect against these threats:
 - Malware or an attacker on the local computer.
 - An attacker who can replace the unsigned client or local installation source.
 - Screen capture while the application shows data.
-- Loss of all trusted devices, the passphrase, and the recovery key.
+- Loss of all local vault and backup copies, the passphrase, and the recovery key.
 - Metadata disclosure through local file names, ciphertext sizes, exports, and operating-system activity.
 
 ## Quality requirements
