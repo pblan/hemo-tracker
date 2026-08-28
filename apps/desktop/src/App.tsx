@@ -723,6 +723,26 @@ function UnlockedVault({
     );
     const points = candidates.flatMap(({ report, measurement }) => {
       const normalized = normalizeMeasurement(measurement, analyte);
+      const intervalMatch = measurement.sourceReferenceInterval
+        .trim()
+        .match(/^([<>]?\s*[\d.,]+)\s*(?:-|–|—|to)\s*([<>]?\s*[\d.,]+)/i);
+      const sourceBounds = intervalMatch
+        ? [intervalMatch[1], intervalMatch[2]].map((value) => {
+            const parsed = Number(
+              value?.replace(",", ".").replace(/[<>]/g, ""),
+            );
+            if (!Number.isFinite(parsed) || !analyte) return null;
+            const bound = normalizeMeasurement(
+              {
+                ...measurement,
+                sourceValue: String(parsed),
+                parsedNumericValue: String(parsed),
+              },
+              analyte,
+            );
+            return bound.status === "normalized" ? bound.value : null;
+          })
+        : [];
       return normalized.status === "normalized"
         ? [
             {
@@ -734,6 +754,14 @@ function UnlockedVault({
               sourceValue: measurement.sourceValue,
               sourceUnit: measurement.sourceUnit,
               sourceReferenceInterval: measurement.sourceReferenceInterval,
+              sourceLowerBound:
+                sourceBounds.length === 2 && sourceBounds[0] !== null
+                  ? sourceBounds[0]
+                  : undefined,
+              sourceUpperBound:
+                sourceBounds.length === 2 && sourceBounds[1] !== null
+                  ? sourceBounds[1]
+                  : undefined,
               targetLowerBound: (() => {
                 if (!analyte) return undefined;
                 const target = resolveApplicableTargetRange(

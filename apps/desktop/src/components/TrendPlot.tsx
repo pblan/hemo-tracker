@@ -13,6 +13,8 @@ export type TrendPoint = {
   sourceReferenceInterval?: string;
   targetLowerBound?: number;
   targetUpperBound?: number;
+  sourceLowerBound?: number;
+  sourceUpperBound?: number;
   flag?: string;
   targetStatus?: "below target" | "in target" | "above target";
 };
@@ -56,10 +58,21 @@ export function TrendPlot({
         }
       : undefined;
   }, [numeric]);
+  const sourceBounds = useMemo(
+    () =>
+      numeric.map((point) => ({
+        lower: point.sourceLowerBound,
+        upper: point.sourceUpperBound,
+      })),
+    [numeric],
+  );
   const bounds = [
     ...values,
     ...(targetBounds?.lower === undefined ? [] : [targetBounds.lower]),
     ...(targetBounds?.upper === undefined ? [] : [targetBounds.upper]),
+    ...sourceBounds
+      .flatMap((source) => [source.lower, source.upper])
+      .filter((value): value is number => value !== undefined),
   ];
   const min = bounds.length ? Math.min(...bounds) : 0;
   const max = bounds.length ? Math.max(...bounds) : 1;
@@ -92,35 +105,74 @@ export function TrendPlot({
     void import("uplot")
       .then(({ default: UPlot }) => {
         if (cancelled) return;
-        const targetPlugin: uPlot.Plugin | undefined = targetBounds
-          ? {
-              hooks: {
-                drawClear: (currentPlot) => {
-                  const lower = targetBounds.lower;
-                  const upper = targetBounds.upper;
-                  if (lower === undefined && upper === undefined) return;
-                  const top =
-                    upper === undefined
-                      ? currentPlot.bbox.top
-                      : currentPlot.valToPos(upper, "y");
-                  const bottom =
-                    lower === undefined
-                      ? currentPlot.bbox.top + currentPlot.bbox.height
-                      : currentPlot.valToPos(lower, "y");
-                  const context = currentPlot.ctx;
-                  context.save();
-                  context.fillStyle = "rgba(13, 148, 136, 0.14)";
-                  context.fillRect(
-                    currentPlot.bbox.left,
-                    Math.min(top, bottom),
-                    currentPlot.bbox.width,
-                    Math.abs(bottom - top),
-                  );
-                  context.restore();
+        const targetPlugin: uPlot.Plugin | undefined =
+          targetBounds ||
+          sourceBounds.some(
+            (source) =>
+              source.lower !== undefined || source.upper !== undefined,
+          )
+            ? {
+                hooks: {
+                  drawClear: (currentPlot) => {
+                    const context = currentPlot.ctx;
+                    context.save();
+                    sourceBounds.forEach((source, index) => {
+                      if (
+                        source.lower === undefined &&
+                        source.upper === undefined
+                      )
+                        return;
+                      const timestamp = timestamps[index];
+                      const nextTimestamp = timestamps[index + 1];
+                      if (timestamp === undefined) return;
+                      const left =
+                        index === 0
+                          ? currentPlot.bbox.left
+                          : currentPlot.valToPos(timestamp, "x");
+                      const right =
+                        index === sourceBounds.length - 1
+                          ? currentPlot.bbox.left + currentPlot.bbox.width
+                          : nextTimestamp === undefined
+                            ? currentPlot.bbox.left + currentPlot.bbox.width
+                            : currentPlot.valToPos(nextTimestamp, "x");
+                      const top =
+                        source.upper === undefined
+                          ? currentPlot.bbox.top
+                          : currentPlot.valToPos(source.upper, "y");
+                      const bottom =
+                        source.lower === undefined
+                          ? currentPlot.bbox.top + currentPlot.bbox.height
+                          : currentPlot.valToPos(source.lower, "y");
+                      context.fillStyle = "rgba(234, 88, 12, 0.12)";
+                      context.fillRect(
+                        left,
+                        Math.min(top, bottom),
+                        right - left,
+                        Math.abs(bottom - top),
+                      );
+                    });
+                    if (targetBounds) {
+                      const top =
+                        targetBounds.upper === undefined
+                          ? currentPlot.bbox.top
+                          : currentPlot.valToPos(targetBounds.upper, "y");
+                      const bottom =
+                        targetBounds.lower === undefined
+                          ? currentPlot.bbox.top + currentPlot.bbox.height
+                          : currentPlot.valToPos(targetBounds.lower, "y");
+                      context.fillStyle = "rgba(13, 148, 136, 0.14)";
+                      context.fillRect(
+                        currentPlot.bbox.left,
+                        Math.min(top, bottom),
+                        currentPlot.bbox.width,
+                        Math.abs(bottom - top),
+                      );
+                    }
+                    context.restore();
+                  },
                 },
-              },
-            }
-          : undefined;
+              }
+            : undefined;
         plot = new UPlot(
           {
             width: host.clientWidth || 640,
@@ -164,7 +216,14 @@ export function TrendPlot({
       plot?.destroy();
       setPlotReady(false);
     };
-  }, [numeric, onTimeRangeChange, targetBounds, timeRange, title]);
+  }, [
+    numeric,
+    onTimeRangeChange,
+    sourceBounds,
+    targetBounds,
+    timeRange,
+    title,
+  ]);
   return (
     <Box
       borderWidth="1px"
@@ -181,6 +240,13 @@ export function TrendPlot({
         for keyboard inspection and exact values.
       </Text>
       <Box ref={plotHost} aria-hidden="true" minH="180px" />
+      {sourceBounds.some(
+        (source) => source.lower !== undefined || source.upper !== undefined,
+      ) || targetBounds ? (
+        <Text color="fg.muted" fontSize="xs">
+          Bands: laboratory interval (orange) and personal target (teal).
+        </Text>
+      ) : null}
       {!plotReady ? (
         <svg
           role="img"
