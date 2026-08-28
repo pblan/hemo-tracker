@@ -606,6 +606,12 @@ function UnlockedVault({
                                 ? ` (${measurement.sourceFlag})`
                                 : ""}
                             </Text>
+                            {measurement.updatedAt ? (
+                              <Text fontSize="xs" color="fg.muted">
+                                Corrected {measurement.updatedAt} by{" "}
+                                {measurement.updatedBy}
+                              </Text>
+                            ) : null}
                             <Button
                               size="xs"
                               variant="ghost"
