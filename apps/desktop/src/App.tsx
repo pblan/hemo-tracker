@@ -43,6 +43,7 @@ import {
   resolveApplicableTargetRange,
 } from "./measurement-normalization";
 import { TrendPlot } from "./components/TrendPlot";
+import type { TimeRange } from "./components/TrendPlot";
 
 function App() {
   const [vaultState, setVaultState] = useState<VaultState | null>(null);
@@ -349,6 +350,7 @@ function UnlockedVault({
       return [];
     }
   });
+  const [sharedTimeRange, setSharedTimeRange] = useState<TimeRange>();
   const [rangeAnalyteId, setRangeAnalyteId] = useState("");
   const [rangeLower, setRangeLower] = useState("");
   const [rangeUpper, setRangeUpper] = useState("");
@@ -735,6 +737,13 @@ function UnlockedVault({
       }),
     );
   };
+  const handleTimeRangeChange = (range: TimeRange) => {
+    setSharedTimeRange((current) =>
+      current && current[0] === range[0] && current[1] === range[1]
+        ? current
+        : range,
+    );
+  };
   const togglePinnedAnalyte = (analyteId: string) => {
     setPinnedAnalyteIds((current) => {
       if (current.includes(analyteId))
@@ -815,6 +824,8 @@ function UnlockedVault({
                     title="Local analyte trend"
                     points={trend.points}
                     onOpenReport={openReportFromTrend}
+                    timeRange={sharedTimeRange}
+                    onTimeRangeChange={handleTimeRangeChange}
                   />
                   {trend.excluded ? (
                     <Text color="orange.700" fontSize="sm" role="status">
@@ -830,6 +841,8 @@ function UnlockedVault({
                     title="Compared analyte trend"
                     points={comparison.points}
                     onOpenReport={openReportFromTrend}
+                    timeRange={sharedTimeRange}
+                    onTimeRangeChange={handleTimeRangeChange}
                   />
                   {comparison.excluded ? (
                     <Text color="orange.700" fontSize="sm" role="status">
@@ -855,6 +868,8 @@ function UnlockedVault({
                           title={pinned.name}
                           points={pinnedTrend.points}
                           onOpenReport={openReportFromTrend}
+                          timeRange={sharedTimeRange}
+                          onTimeRangeChange={handleTimeRangeChange}
                         />
                         {pinnedTrend.excluded ? (
                           <Text color="orange.700" fontSize="sm" role="status">

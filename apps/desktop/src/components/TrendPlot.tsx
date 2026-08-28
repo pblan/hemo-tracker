@@ -13,14 +13,20 @@ export type TrendPoint = {
   targetStatus?: "below target" | "in target" | "above target";
 };
 
+export type TimeRange = [number, number];
+
 export function TrendPlot({
   title,
   points,
   onOpenReport,
+  timeRange,
+  onTimeRangeChange,
 }: {
   title: string;
   points: TrendPoint[];
   onOpenReport?: (reportId: string) => void;
+  timeRange?: TimeRange;
+  onTimeRangeChange?: (range: TimeRange) => void;
 }) {
   const numeric = useMemo(
     () => points.filter((point) => point.value !== null),
@@ -62,8 +68,27 @@ export function TrendPlot({
           {
             width: host.clientWidth || 640,
             height: 180,
-            scales: { x: { time: true } },
+            scales: {
+              x: {
+                time: true,
+                range: timeRange ? () => timeRange : undefined,
+              },
+            },
             cursor: { drag: { x: true, y: false, setScale: true } },
+            hooks: {
+              setScale: [
+                (currentPlot, scaleKey) => {
+                  if (scaleKey !== "x" || !onTimeRangeChange) return;
+                  const scale = currentPlot.scales.x;
+                  if (
+                    scale &&
+                    scale.min !== undefined &&
+                    scale.max !== undefined
+                  )
+                    onTimeRangeChange([scale.min, scale.max]);
+                },
+              ],
+            },
             series: [{}, { label: title, stroke: "currentColor", width: 2 }],
             axes: [{}, { label: "Value" }],
           },
@@ -81,7 +106,7 @@ export function TrendPlot({
       plot?.destroy();
       setPlotReady(false);
     };
-  }, [numeric, title]);
+  }, [numeric, onTimeRangeChange, timeRange, title]);
   return (
     <Box
       borderWidth="1px"
