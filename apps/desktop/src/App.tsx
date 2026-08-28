@@ -16,6 +16,7 @@ import {
   chooseAndRestoreLocalVault,
   chooseAndExportPlaintextZip,
   completeLabReport,
+  correctLabMeasurement,
   chooseAndBackupLocalVault,
   createLabReport,
   createLocalAccount,
@@ -319,6 +320,10 @@ function UnlockedVault({
   const [reports, setReports] = useState<ReportSummary[]>([]);
   const [reportSearch, setReportSearch] = useState("");
   const [expandedReportId, setExpandedReportId] = useState<string | null>(null);
+  const [editingMeasurement, setEditingMeasurement] = useState<string | null>(
+    null,
+  );
+  const [correctionValue, setCorrectionValue] = useState("");
   const [restorePassphrase, setRestorePassphrase] = useState("");
 
   useEffect(() => {
@@ -458,6 +463,26 @@ function UnlockedVault({
     }
   }
 
+  async function saveCorrection(
+    measurement: ReportSummary["measurements"][number],
+  ) {
+    try {
+      await correctLabMeasurement(measurement.id, {
+        sourceLabel: measurement.sourceLabel,
+        sourceValue: correctionValue,
+        sourceUnit: measurement.sourceUnit,
+        sourceReferenceInterval: measurement.sourceReferenceInterval,
+        sourceFlag: measurement.sourceFlag,
+        analyteId: measurement.analyteId,
+      });
+      setEditingMeasurement(null);
+      const ids = await listLabReports();
+      setReports(await Promise.all(ids.map((id) => getLabReport(id))));
+    } catch {
+      onError("Hemo Tracker could not save the correction.");
+    }
+  }
+
   async function lock() {
     try {
       onLocked(await lockVault());
@@ -544,13 +569,57 @@ function UnlockedVault({
                     borderColor="border"
                   >
                     {report.measurements.map((measurement) => (
-                      <Text key={measurement.id} fontSize="sm">
-                        {measurement.sourceLabel}: {measurement.sourceValue}{" "}
-                        {measurement.sourceUnit}
-                        {measurement.sourceFlag
-                          ? ` (${measurement.sourceFlag})`
-                          : ""}
-                      </Text>
+                      <Stack key={measurement.id} gap="1">
+                        {editingMeasurement === measurement.id ? (
+                          <Stack direction="row" gap="2">
+                            <Input
+                              aria-label={`Correct ${measurement.sourceLabel}`}
+                              value={correctionValue}
+                              onChange={(event) =>
+                                setCorrectionValue(event.target.value)
+                              }
+                            />
+                            <Button
+                              size="sm"
+                              onClick={() => void saveCorrection(measurement)}
+                            >
+                              Save
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => setEditingMeasurement(null)}
+                            >
+                              Cancel
+                            </Button>
+                          </Stack>
+                        ) : (
+                          <Stack
+                            direction="row"
+                            justify="space-between"
+                            align="center"
+                          >
+                            <Text fontSize="sm">
+                              {measurement.sourceLabel}:{" "}
+                              {measurement.sourceValue} {measurement.sourceUnit}
+                              {measurement.sourceFlag
+                                ? ` (${measurement.sourceFlag})`
+                                : ""}
+                            </Text>
+                            <Button
+                              size="xs"
+                              variant="ghost"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setEditingMeasurement(measurement.id);
+                                setCorrectionValue(measurement.sourceValue);
+                              }}
+                            >
+                              Correct
+                            </Button>
+                          </Stack>
+                        )}
+                      </Stack>
                     ))}
                     {!report.measurements.length ? (
                       <Text fontSize="sm" color="fg.muted">
