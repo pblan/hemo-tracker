@@ -43,6 +43,16 @@ export const completeLabReport = (reportId: string) =>
   invoke<void>("complete_lab_report", { reportId });
 export const archiveLabReport = (reportId: string) =>
   invoke<void>("archive_lab_report", { reportId });
+export const correctLabMeasurement = (
+  measurementId: string,
+  request: Parameters<typeof addLabMeasurement>[1],
+  updatedBy = "local-user",
+) =>
+  invoke<void>("correct_lab_measurement", {
+    measurementId,
+    request,
+    updatedBy,
+  });
 export const addAnalyteDefinition = (request: {
   name: string;
   component: string;

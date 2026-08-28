@@ -100,6 +100,8 @@ pub struct LabReportMeasurement {
     pub source_reference_interval: String,
     pub source_flag: String,
     pub analyte_id: Option<String>,
+    pub updated_at: String,
+    pub updated_by: String,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -391,6 +393,8 @@ impl LocalAccountVault {
                     source_reference_interval: measurement.source_reference_interval,
                     source_flag: measurement.source_flag,
                     analyte_id: measurement.analyte_id,
+                    updated_at: String::new(),
+                    updated_by: "local-user".to_owned(),
                 },
             )
             .map_err(|_| LocalAccountError::Operation)?;
@@ -405,6 +409,35 @@ impl LocalAccountVault {
         self.unlocked_mut()?
             ._vault
             .complete_report(report_id)
+            .map_err(|_| LocalAccountError::Operation)
+    }
+
+    pub fn correct_measurement(
+        &mut self,
+        measurement_id: &str,
+        measurement: NewMeasurement,
+        updated_by: String,
+    ) -> Result<(), LocalAccountError> {
+        if updated_by.trim().is_empty() {
+            return Err(LocalAccountError::Operation);
+        }
+        self.unlocked_mut()?
+            ._vault
+            .correct_measurement(
+                measurement_id,
+                &MeasurementRecord {
+                    id: measurement_id.to_owned(),
+                    source_label: measurement.source_label,
+                    source_value: measurement.source_value,
+                    source_unit: measurement.source_unit,
+                    source_reference_interval: measurement.source_reference_interval,
+                    source_flag: measurement.source_flag,
+                    analyte_id: measurement.analyte_id,
+                    updated_at: String::new(),
+                    updated_by: updated_by.clone(),
+                },
+                &updated_by,
+            )
             .map_err(|_| LocalAccountError::Operation)
     }
 
@@ -456,6 +489,8 @@ impl LocalAccountVault {
                     source_reference_interval: measurement.source_reference_interval,
                     source_flag: measurement.source_flag,
                     analyte_id: measurement.analyte_id,
+                    updated_at: measurement.updated_at,
+                    updated_by: measurement.updated_by,
                 })
                 .collect(),
         })

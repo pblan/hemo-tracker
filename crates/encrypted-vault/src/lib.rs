@@ -274,6 +274,11 @@ impl AccountVault {
         Ok(())
     }
 
+    pub fn correct_measurement(&self, measurement_id: &str, measurement: &MeasurementRecord, updated_by: &str) -> Result<(), VaultError> {
+        let changed = self.connection.execute("UPDATE measurements SET source_label=?1, source_value=?2, source_unit=?3, source_reference_interval=?4, source_flag=?5, analyte_id=?6, updated_at=datetime('now'), updated_by=?7 WHERE id=?8", params![measurement.source_label, measurement.source_value, measurement.source_unit, measurement.source_reference_interval, measurement.source_flag, measurement.analyte_id, updated_by, measurement_id]).map_err(|_| VaultError::Operation)?;
+        if changed == 1 { Ok(()) } else { Err(VaultError::Operation) }
+    }
+
     pub fn complete_report(&self, report_id: &str) -> Result<(), VaultError> {
         let changed = self
             .connection

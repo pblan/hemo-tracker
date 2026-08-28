@@ -367,6 +367,32 @@ pub fn archive_lab_report(
         .map_err(|_| safe_error())
 }
 
+#[tauri::command]
+pub fn correct_lab_measurement(
+    state: State<'_, DesktopVaultState>,
+    measurement_id: String,
+    request: MeasurementRequest,
+    updated_by: String,
+) -> Result<(), String> {
+    let mut guard = state.vault.lock().map_err(|_| safe_error())?;
+    guard
+        .as_mut()
+        .ok_or_else(safe_error)?
+        .correct_measurement(
+            &measurement_id,
+            NewMeasurement {
+                source_label: request.source_label,
+                source_value: request.source_value,
+                source_unit: request.source_unit,
+                source_reference_interval: request.source_reference_interval,
+                source_flag: request.source_flag,
+                analyte_id: request.analyte_id,
+            },
+            updated_by,
+        )
+        .map_err(|_| safe_error())
+}
+
 fn with_vault(
     app: &AppHandle,
     state: &State<'_, DesktopVaultState>,
