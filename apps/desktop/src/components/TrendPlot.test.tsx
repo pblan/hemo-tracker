@@ -1,0 +1,28 @@
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+import { Provider } from "./ui/provider";
+import { TrendPlot } from "./TrendPlot";
+
+describe("TrendPlot", () => {
+  it("renders a plot with an equivalent table and missing/flagged values", () => {
+    render(
+      <Provider>
+        <TrendPlot
+          title="Hemoglobin"
+          points={[
+            { date: "2026-01-01", value: 13.7, unit: "g/dL" },
+            { date: "2026-02-01", value: null, unit: "g/dL", flag: "missing" },
+          ]}
+        />
+      </Provider>,
+    );
+    expect(
+      screen.getByRole("img", { name: "Hemoglobin trend plot" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("table")).toHaveAccessibleName(
+      "Accessible data table for Hemoglobin",
+    );
+    expect(screen.getByText("Missing")).toBeInTheDocument();
+    expect(screen.getByText("missing")).toBeInTheDocument();
+  });
+});
