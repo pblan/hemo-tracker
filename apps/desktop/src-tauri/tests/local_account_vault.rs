@@ -37,6 +37,11 @@ fn user_can_create_lock_and_reopen_a_local_account_vault() {
         .unlock_with_passphrase("correct horse battery staple".to_owned())
         .unwrap();
     assert_eq!(reopened.status(), VaultStatus::Unlocked);
+    let backup = directory.path().join("backup");
+    reopened.backup_to(&backup).unwrap();
+    assert!(backup.join("account.json").is_file());
+    assert!(backup.join("vault.db").is_file());
+    assert!(!backup.join("objects").exists() || backup.join("objects").is_dir());
 }
 
 #[test]
