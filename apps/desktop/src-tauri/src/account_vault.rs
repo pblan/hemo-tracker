@@ -189,6 +189,49 @@ impl LocalAccountVault {
         fs::rename(&staging, destination).map_err(|_| LocalAccountError::Operation)?;
         sync_directory(parent)
     }
+
+    pub fn restore_from_backup(
+        &mut self,
+        backup: impl AsRef<Path>,
+        passphrase_text: String,
+    ) -> Result<(), LocalAccountError> {
+        let backup = backup.as_ref();
+        if backup == self.directory || !backup.is_dir() {
+            return Err(LocalAccountError::Operation);
+        }
+        let mut candidate = LocalAccountVault::open(backup)?;
+        candidate.unlock_with_passphrase(passphrase_text.clone())?;
+        candidate
+            .unlocked_ref()?
+            ._vault
+            .integrity_check()
+            .map_err(|_| LocalAccountError::Operation)?;
+        let parent = self
+            .directory
+            .parent()
+            .ok_or(LocalAccountError::Operation)?;
+        let staging = staging_directory(&self.directory)?;
+        if staging.exists() {
+            fs::remove_dir_all(&staging).map_err(|_| LocalAccountError::Operation)?;
+        }
+        copy_directory(backup, &staging)?;
+        let previous = self.directory.with_extension("pre-restore");
+        if previous.exists() {
+            fs::remove_dir_all(&previous).map_err(|_| LocalAccountError::Operation)?;
+        }
+        fs::rename(&self.directory, &previous).map_err(|_| LocalAccountError::Operation)?;
+        if fs::rename(&staging, &self.directory).is_err() {
+            let _ = fs::rename(&previous, &self.directory);
+            return Err(LocalAccountError::Operation);
+        }
+        sync_directory(parent)?;
+        let mut restored = LocalAccountVault::open(&self.directory)?;
+        restored.unlock_with_passphrase(passphrase_text)?;
+        self.manifest = restored.manifest;
+        self.unlocked = restored.unlocked;
+        let _ = fs::remove_dir_all(previous);
+        Ok(())
+    }
     pub fn add_analyte(&mut self, analyte: NewAnalyte) -> Result<String, LocalAccountError> {
         if analyte.name.trim().is_empty()
             || analyte.component.trim().is_empty()

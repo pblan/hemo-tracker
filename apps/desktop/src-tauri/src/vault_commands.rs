@@ -530,6 +530,20 @@ pub fn choose_and_backup_local_vault(
     Ok(true)
 }
 
+#[tauri::command]
+pub fn restore_local_vault(
+    state: State<'_, DesktopVaultState>,
+    backup: String,
+    passphrase: String,
+) -> Result<(), String> {
+    let mut guard = state.vault.lock().map_err(|_| safe_error())?;
+    guard
+        .as_mut()
+        .ok_or_else(safe_error)?
+        .restore_from_backup(backup, passphrase)
+        .map_err(|_| safe_error())
+}
+
 fn account_directory(app: &AppHandle) -> Result<PathBuf, String> {
     app.path()
         .app_data_dir()
