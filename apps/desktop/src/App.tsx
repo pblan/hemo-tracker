@@ -17,6 +17,7 @@ import {
   createLabReport,
   createLocalAccount,
   getVaultState,
+  listAnalyteDefinitions,
   lockVault,
   selectAndAttachSourceFile,
   unlockWithPassphrase,
@@ -293,8 +294,18 @@ function UnlockedVault({
   const [analyteName, setAnalyteName] = useState("");
   const [analyteComponent, setAnalyteComponent] = useState("");
   const [analyteProperty, setAnalyteProperty] = useState("");
+  const [analytes, setAnalytes] = useState<
+    Awaited<ReturnType<typeof listAnalyteDefinitions>>
+  >([]);
+  const [selectedAnalyteId, setSelectedAnalyteId] = useState("");
   const [sourceFilename, setSourceFilename] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    void listAnalyteDefinitions()
+      .then(setAnalytes)
+      .catch(() => undefined);
+  }, []);
 
   async function saveReport(event: FormEvent) {
     event.preventDefault();
@@ -309,14 +320,16 @@ function UnlockedVault({
       const source = await selectAndAttachSourceFile(reportId);
       if (!source) throw new Error("source file not selected");
       setSourceFilename(source.originalFilename);
-      const analyteId = await addAnalyteDefinition({
-        name: analyteName || sourceLabel,
-        component: analyteComponent || analyteName || sourceLabel,
-        property: analyteProperty || "Result",
-        specimen: "Blood",
-        scale: "Quantitative",
-        aliases: [],
-      });
+      const analyteId =
+        selectedAnalyteId ||
+        (await addAnalyteDefinition({
+          name: analyteName || sourceLabel,
+          component: analyteComponent || analyteName || sourceLabel,
+          property: analyteProperty || "Result",
+          specimen: "Blood",
+          scale: "Quantitative",
+          aliases: [],
+        }));
       await addLabMeasurement(reportId, {
         sourceLabel,
         sourceValue,
@@ -398,6 +411,21 @@ function UnlockedVault({
             <Text color="fg.muted" fontSize="sm">
               Use a definition to group this result with later reports.
             </Text>
+            <Field.Root>
+              <Field.Label>Use a saved analyte</Field.Label>
+              <select
+                aria-label="Use a saved analyte"
+                value={selectedAnalyteId}
+                onChange={(event) => setSelectedAnalyteId(event.target.value)}
+              >
+                <option value="">Create a new definition</option>
+                {analytes.map((analyte) => (
+                  <option key={analyte.id} value={analyte.id}>
+                    {analyte.name} — {analyte.component} ({analyte.property})
+                  </option>
+                ))}
+              </select>
+            </Field.Root>
             <Input
               placeholder="Analyte name, for example Hemoglobin"
               value={analyteName}
