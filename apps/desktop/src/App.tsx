@@ -334,6 +334,7 @@ function UnlockedVault({
     null,
   );
   const [correctionValue, setCorrectionValue] = useState("");
+  const [correctionAnalyteId, setCorrectionAnalyteId] = useState("");
   const [trendAnalyteId, setTrendAnalyteId] = useState("");
   const [compareAnalyteId, setCompareAnalyteId] = useState("");
   const [pinnedAnalyteIds, setPinnedAnalyteIds] = useState<string[]>(() => {
@@ -585,9 +586,10 @@ function UnlockedVault({
           parsedCorrection.kind === "number"
             ? parsedCorrection.normalized
             : undefined,
-        analyteId: measurement.analyteId,
+        analyteId: correctionAnalyteId || measurement.analyteId,
       });
       setEditingMeasurement(null);
+      setCorrectionAnalyteId("");
       const ids = await listLabReports();
       setReports(await Promise.all(ids.map((id) => getLabReport(id))));
     } catch {
@@ -1188,6 +1190,20 @@ function UnlockedVault({
                                 setCorrectionValue(event.target.value)
                               }
                             />
+                            <select
+                              aria-label={`Correct analyte for ${measurement.sourceLabel}`}
+                              value={correctionAnalyteId}
+                              onChange={(event) =>
+                                setCorrectionAnalyteId(event.target.value)
+                              }
+                            >
+                              <option value="">Keep current analyte</option>
+                              {analytes.map((analyte) => (
+                                <option key={analyte.id} value={analyte.id}>
+                                  {analyte.name}
+                                </option>
+                              ))}
+                            </select>
                             <Button
                               size="sm"
                               onClick={() => void saveCorrection(measurement)}
@@ -1228,6 +1244,9 @@ function UnlockedVault({
                                 event.stopPropagation();
                                 setEditingMeasurement(measurement.id);
                                 setCorrectionValue(measurement.sourceValue);
+                                setCorrectionAnalyteId(
+                                  measurement.analyteId || "",
+                                );
                               }}
                             >
                               Correct
