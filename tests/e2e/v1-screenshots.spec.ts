@@ -44,19 +44,15 @@ async function mockTauri(
   status: string,
 ) {
   await page.addInitScript(
-    ({ vaultStatus }) => {
-      const analyte = fixtureAnalytes.analytes.find(
-        (item) => item.id === "hemoglobin",
-      );
-      const report = fixtureReports.reports[1];
+    ({ vaultStatus, analytes, report }) => {
+      const analyte = analytes.find((item) => item.id === "hemoglobin");
       if (!analyte || !report) throw new Error("V1 fixture is incomplete");
       Object.assign(window, {
         __TAURI_INTERNALS__: {
           invoke: async (command: string) => {
             if (command === "get_vault_state")
               return { accountExists: true, status: vaultStatus };
-            if (command === "list_analyte_definitions")
-              return fixtureAnalytes.analytes;
+            if (command === "list_analyte_definitions") return analytes;
             if (command === "list_lab_reports") return [report.id];
             if (command === "get_lab_report") return report;
             throw new Error(`Unexpected screenshot command: ${command}`);
@@ -64,6 +60,10 @@ async function mockTauri(
         },
       });
     },
-    { vaultStatus: status },
+    {
+      vaultStatus: status,
+      analytes: fixtureAnalytes.analytes,
+      report: fixtureReports.reports[1],
+    },
   );
 }
