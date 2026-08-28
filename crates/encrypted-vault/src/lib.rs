@@ -11,7 +11,7 @@ use std::{
 use thiserror::Error;
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
-const SCHEMA_VERSION: i64 = 8;
+pub const CURRENT_SCHEMA_VERSION: i64 = 8;
 const KEY_BYTES: usize = 32;
 
 #[derive(Clone, Zeroize, ZeroizeOnDrop)]
@@ -802,7 +802,7 @@ fn migrate(connection: &Connection) -> Result<(), VaultError> {
         migrate(connection)?;
     } else if version == 7 {
         connection.execute_batch("BEGIN IMMEDIATE; ALTER TABLE analyte_definitions ADD COLUMN canonical_unit TEXT; ALTER TABLE measurements ADD COLUMN parsed_numeric_value TEXT; PRAGMA user_version = 8; COMMIT;").map_err(|_| VaultError::InvalidKeyOrVault)?;
-    } else if version != SCHEMA_VERSION {
+    } else if version != CURRENT_SCHEMA_VERSION {
         return Err(VaultError::InvalidKeyOrVault);
     }
     Ok(())

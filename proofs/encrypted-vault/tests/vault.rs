@@ -1,6 +1,6 @@
 use hemo_encrypted_vault_proof::{
     LabReportDraft, NativeVaultManager, VaultCommand, VaultCommandFacade, VaultCommandResult,
-    VaultError, VaultKey, VaultProbe,
+    VaultError, VaultKey, VaultProbe, CURRENT_SCHEMA_VERSION,
 };
 use std::fs;
 use tempfile::tempdir;
@@ -21,7 +21,7 @@ fn encrypted_vault_migrates_and_round_trips_typed_reports() {
         })
         .unwrap();
 
-    assert_eq!(vault.schema_version().unwrap(), 2);
+    assert_eq!(vault.schema_version().unwrap(), CURRENT_SCHEMA_VERSION);
     assert_eq!(vault.list_lab_reports().unwrap()[0].title, CLINICAL_MARKER);
     assert!(
         !fs::read(&path)
