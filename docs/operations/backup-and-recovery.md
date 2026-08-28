@@ -8,7 +8,7 @@ Use an encrypted backup to preserve a local account vault. Keep at least one bac
 
 An encrypted backup contains the account manifest, encrypted database, encrypted source files, and format metadata. The backup does not contain a plaintext passphrase or recovery key.
 
-Store the backup and the recovery material separately. Test a restore on a clean computer before you depend on the backup.
+Store the backup and the recovery key separately. Test a restore on a clean computer before you depend on the backup.
 
 Hemo Tracker does not delete or rotate backups automatically. Keep at least two
 encrypted backups on separate storage locations. Replace an old backup only

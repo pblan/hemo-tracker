@@ -259,6 +259,21 @@ fn encrypted_backup_restores_and_plaintext_export_is_a_zip() {
         .restore_from_backup(&backup, "valid passphrase".to_owned())
         .unwrap();
     assert_eq!(vault.status(), VaultStatus::Unlocked);
+    let clean_account = parent.path().join("clean-install-account");
+    let clean_created = LocalAccountVault::create(
+        &clean_account,
+        CreateLocalAccount {
+            account_id: "clean-install".to_owned(),
+            passphrase: "valid passphrase".to_owned(),
+        },
+    )
+    .unwrap();
+    let mut clean_vault = clean_created.into_vault();
+    clean_vault
+        .restore_from_backup(&backup, "valid passphrase".to_owned())
+        .unwrap();
+    assert_eq!(clean_vault.status(), VaultStatus::Unlocked);
+    assert_eq!(clean_vault.list_lab_report_ids().unwrap().len(), 4);
 }
 
 #[test]

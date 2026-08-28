@@ -2,7 +2,7 @@
 
 ## Scope
 
-This threat model covers the unsigned local V1 desktop application on macOS and Windows. It covers the locked account vault, encrypted source files, encrypted backups, recovery material, decrypted exports, and the Tauri process boundary.
+This threat model covers the unsigned local V1 desktop application on macOS and Windows. It covers the locked account vault, encrypted source files, encrypted backups, recovery key, decrypted exports, and the Tauri process boundary.
 
 Google identity, a server, synchronization, trusted-device unlock, application signing, and signed updates are outside the V1 boundary.
 
