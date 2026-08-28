@@ -209,7 +209,6 @@ describe("desktop application shell", () => {
     vi.mocked(vaultClient.resetLocalVault).mockResolvedValue({
       recoveryCode: "HTRK1-reset-recovery-code",
     });
-    const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
     const user = userEvent.setup();
     render(
       <Provider>
@@ -230,16 +229,15 @@ describe("desktop application shell", () => {
         name: "Permanently reset to demo data",
       }),
     );
+    await user.click(
+      screen.getByRole("button", { name: "Reset to demo data" }),
+    );
 
     expect(vaultClient.resetLocalVault).toHaveBeenCalledWith(
       "correct horse battery staple",
       "RESET DEMO VAULT",
     );
-    expect(confirm).toHaveBeenCalledWith(
-      "This permanently deletes all current vault data and creates a fresh demo vault. No backup will be created. Continue?",
-    );
     expect(await screen.findByText("HTRK1-reset-recovery-code")).toBeVisible();
-    confirm.mockRestore();
   });
 
   it("navigates between focused vault pages", async () => {

@@ -2,6 +2,7 @@ import {
   Alert,
   Box,
   Button,
+  Dialog,
   Field,
   Heading,
   Input,
@@ -441,6 +442,7 @@ function UnlockedVault({
   const [restorePassphrase, setRestorePassphrase] = useState("");
   const [resetPassphrase, setResetPassphrase] = useState("");
   const [resetConfirmation, setResetConfirmation] = useState("");
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [sourcePreview, setSourcePreview] = useState<{
     filename: string;
     mediaType: string;
@@ -667,12 +669,11 @@ function UnlockedVault({
       onError("Type RESET DEMO VAULT to confirm the vault reset.");
       return;
     }
-    if (
-      !window.confirm(
-        "This permanently deletes all current vault data and creates a fresh demo vault. No backup will be created. Continue?",
-      )
-    )
-      return;
+    setResetDialogOpen(true);
+  }
+
+  async function confirmResetVault() {
+    setResetDialogOpen(false);
     try {
       const reset = await resetLocalVault(resetPassphrase, resetConfirmation);
       setResetPassphrase("");
@@ -2134,6 +2135,36 @@ function UnlockedVault({
         >
           Export plaintext ZIP (review warning)
         </Button>
+        <Dialog.Root
+          open={resetDialogOpen}
+          onOpenChange={(details) => setResetDialogOpen(details.open)}
+        >
+          <Dialog.Backdrop />
+          <Dialog.Positioner>
+            <Dialog.Content>
+              <Dialog.Header>
+                <Dialog.Title>Reset this vault?</Dialog.Title>
+              </Dialog.Header>
+              <Dialog.Body>
+                This permanently deletes the current reports, analytes, ranges,
+                source files, and keys. A fresh fictional demo vault will be
+                created. This cannot be undone.
+              </Dialog.Body>
+              <Dialog.Footer>
+                <Dialog.ActionTrigger asChild>
+                  <Button variant="outline">Cancel</Button>
+                </Dialog.ActionTrigger>
+                <Button
+                  colorPalette="red"
+                  onClick={() => void confirmResetVault()}
+                >
+                  Reset to demo data
+                </Button>
+              </Dialog.Footer>
+              <Dialog.CloseTrigger />
+            </Dialog.Content>
+          </Dialog.Positioner>
+        </Dialog.Root>
       </Stack>
     </Box>
   );
