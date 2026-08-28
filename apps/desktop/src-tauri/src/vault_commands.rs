@@ -98,6 +98,21 @@ pub struct ReportResult {
     pub source_file_count: usize,
     pub measurement_count: usize,
     pub source_files: Vec<SourcePreviewResult>,
+    pub measurements: Vec<MeasurementPreviewResult>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MeasurementPreviewResult {
+    pub id: String,
+    pub source_label: String,
+    pub source_value: String,
+    pub source_unit: String,
+    pub source_reference_interval: String,
+    pub source_flag: String,
+    pub analyte_id: Option<String>,
+    pub updated_at: String,
+    pub updated_by: String,
 }
 
 #[derive(Serialize)]
@@ -348,6 +363,21 @@ pub fn get_lab_report(
                 filename: source.original_filename,
                 media_type: source.media_type,
                 role: source.role,
+            })
+            .collect(),
+        measurements: report
+            .measurements
+            .into_iter()
+            .map(|measurement| MeasurementPreviewResult {
+                id: measurement.id,
+                source_label: measurement.source_label,
+                source_value: measurement.source_value,
+                source_unit: measurement.source_unit,
+                source_reference_interval: measurement.source_reference_interval,
+                source_flag: measurement.source_flag,
+                analyte_id: measurement.analyte_id,
+                updated_at: measurement.updated_at,
+                updated_by: measurement.updated_by,
             })
             .collect(),
     })

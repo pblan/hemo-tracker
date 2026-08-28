@@ -86,6 +86,17 @@ export type ReportSummary = {
   sourceFileCount: number;
   measurementCount: number;
   sourceFiles: { filename: string; mediaType: string; role: string }[];
+  measurements: {
+    id: string;
+    sourceLabel: string;
+    sourceValue: string;
+    sourceUnit: string;
+    sourceReferenceInterval: string;
+    sourceFlag: string;
+    analyteId?: string;
+    updatedAt: string;
+    updatedBy: string;
+  }[];
 };
 export const getLabReport = (reportId: string) =>
   invoke<ReportSummary>("get_lab_report", { reportId });

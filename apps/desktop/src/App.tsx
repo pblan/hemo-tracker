@@ -315,6 +315,7 @@ function UnlockedVault({
   const [saving, setSaving] = useState(false);
   const [reports, setReports] = useState<ReportSummary[]>([]);
   const [reportSearch, setReportSearch] = useState("");
+  const [expandedReportId, setExpandedReportId] = useState<string | null>(null);
 
   useEffect(() => {
     void listAnalyteDefinitions()
@@ -469,6 +470,12 @@ function UnlockedVault({
                 borderRadius="lg"
                 px="4"
                 py="3"
+                cursor="pointer"
+                onClick={() =>
+                  setExpandedReportId((current) =>
+                    current === report.id ? null : report.id,
+                  )
+                }
               >
                 <Stack direction="row" justify="space-between" align="center">
                   <Stack gap="0">
@@ -484,6 +491,30 @@ function UnlockedVault({
                     {report.status}
                   </Text>
                 </Stack>
+                {expandedReportId === report.id ? (
+                  <Stack
+                    gap="2"
+                    mt="3"
+                    pt="3"
+                    borderTopWidth="1px"
+                    borderColor="border"
+                  >
+                    {report.measurements.map((measurement) => (
+                      <Text key={measurement.id} fontSize="sm">
+                        {measurement.sourceLabel}: {measurement.sourceValue}{" "}
+                        {measurement.sourceUnit}
+                        {measurement.sourceFlag
+                          ? ` (${measurement.sourceFlag})`
+                          : ""}
+                      </Text>
+                    ))}
+                    {!report.measurements.length ? (
+                      <Text fontSize="sm" color="fg.muted">
+                        No measurements recorded.
+                      </Text>
+                    ) : null}
+                  </Stack>
+                ) : null}
               </Box>
             ))}
           {!reports.length ? (

@@ -89,6 +89,7 @@ describe("desktop application shell", () => {
       sourceFileCount: 1,
       measurementCount: 2,
       sourceFiles: [],
+      measurements: [],
     });
     const user = userEvent.setup();
     render(
