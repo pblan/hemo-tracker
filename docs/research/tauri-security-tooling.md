@@ -42,7 +42,7 @@ RustCrypto [`zeroize`](https://docs.rs/zeroize/latest/zeroize/) prevents the com
 
 The Rust [`getrandom` crate](https://docs.rs/getrandom/latest/getrandom/) gets random bytes from operating-system sources. It fails instead of returning known insecure bytes. Higher-level RustCrypto APIs can use the operating-system random source for keys and nonces.
 
-Do not generate keys, salts, nonces, PKCE verifiers, or recovery codes in application JavaScript when the Rust core can generate them.
+Do not generate keys, salts, nonces, PKCE verifiers, or recovery keys in application JavaScript when the Rust core can generate them.
 
 ### Operating-system credential storage
 
@@ -85,7 +85,7 @@ The update signing key must not exist on the self-hosted data server. A server a
 The following items are recommendations for a proof. They are not final decisions.
 
 1. Keep all key operations and decrypted database access in Rust commands. Do not expose raw keys to the webview.
-2. Generate account keys, device keys, salts, nonces, recovery codes, PKCE verifiers, and OAuth state with the operating-system random source.
+2. Generate account keys, device keys, salts, nonces, recovery keys, PKCE verifiers, and OAuth state with the operating-system random source.
 3. Derive a key-encryption key from the user passphrase with RustCrypto Argon2id. Measure the cost on the slowest supported device. Start at or above the current OWASP minimum.
 4. Wrap a random account data key with an audited authenticated-encryption implementation. Store a versioned envelope. Bind its account identifier and envelope version as associated data.
 5. Use a separate random key for each purpose. Do not use one key for database encryption, object encryption, and key wrapping. Derive or wrap purpose-specific keys with a documented hierarchy.
