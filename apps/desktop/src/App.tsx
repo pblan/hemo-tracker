@@ -652,6 +652,8 @@ function UnlockedVault({
               date: report.collectionTime,
               value: normalized.value,
               unit: normalized.unit,
+              sourceValue: measurement.sourceValue,
+              sourceUnit: measurement.sourceUnit,
               flag: measurement.sourceFlag,
               targetStatus: (() => {
                 if (!analyte) return undefined;

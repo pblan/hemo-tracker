@@ -14,6 +14,8 @@ describe("TrendPlot", () => {
               date: "2026-01-01",
               value: 13.7,
               unit: "g/dL",
+              sourceValue: "13.7",
+              sourceUnit: "g/dL",
               targetStatus: "in target",
             },
             { date: "2026-02-01", value: null, unit: "g/dL", flag: "missing" },
@@ -30,6 +32,7 @@ describe("TrendPlot", () => {
     expect(screen.getByText("Missing")).toBeInTheDocument();
     expect(screen.getByText("missing")).toBeInTheDocument();
     expect(screen.getByText("in target")).toBeInTheDocument();
+    expect(screen.getAllByText("13.7 g/dL")).toHaveLength(2);
   });
 
   it("renders a representative local series without failing", () => {
