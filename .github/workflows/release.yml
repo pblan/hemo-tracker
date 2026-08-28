@@ -59,6 +59,8 @@ jobs:
           find apps/desktop/src-tauri/target/release/bundle -type f \( -name '*.app' -o -name '*.exe' -o -name '*.msi' -o -name '*.dmg' \) -exec cp -R {} release-${{ matrix.artifact }}/ \; || true
           printf 'Hemo Tracker %s is unsigned. The operating system may show an unverified-publisher warning.\n' "$GITHUB_REF_NAME" > release-${{ matrix.artifact }}/UNSIGNED-BUILD.txt
           shasum -a 256 release-${{ matrix.artifact }}/* > release-${{ matrix.artifact }}/SHA256SUMS.txt
+          printf 'Component inventory for Hemo Tracker %s (%s)\n' "$GITHUB_REF_NAME" "${{ matrix.artifact }}" > release-${{ matrix.artifact }}/SBOM.txt
+          find release-${{ matrix.artifact }} -maxdepth 1 -type f -printf '%f\n' | sort >> release-${{ matrix.artifact }}/SBOM.txt
       - uses: actions/upload-artifact@v4
         with:
           name: unsigned-${{ matrix.artifact }}
