@@ -8,7 +8,7 @@ import {
   Stack,
   Text,
 } from "@chakra-ui/react";
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useState } from "react";
 
 import {
   addAnalyteDefinition,
@@ -44,6 +44,7 @@ import {
 } from "./measurement-normalization";
 import { TrendPlot } from "./components/TrendPlot";
 import type { TimeRange } from "./components/TrendPlot";
+import { previewRelinking } from "./relink-preview";
 
 function App() {
   const [vaultState, setVaultState] = useState<VaultState | null>(null);
@@ -351,6 +352,7 @@ function UnlockedVault({
     }
   });
   const [sharedTimeRange, setSharedTimeRange] = useState<TimeRange>();
+  const [relinkAnalyteId, setRelinkAnalyteId] = useState("");
   const [rangeAnalyteId, setRangeAnalyteId] = useState("");
   const [rangeLower, setRangeLower] = useState("");
   const [rangeUpper, setRangeUpper] = useState("");
@@ -663,6 +665,38 @@ function UnlockedVault({
       setDataVersion((value) => value + 1);
     } catch {
       onError("Hemo Tracker could not archive the report.");
+    }
+  }
+  const relinkTarget = analytes.find(
+    (analyte) => analyte.id === relinkAnalyteId,
+  );
+  const relinkCandidates = useMemo(
+    () => (relinkTarget ? previewRelinking(reports, relinkTarget) : []),
+    [relinkTarget, reports],
+  );
+  async function applySafeRelinking() {
+    if (!relinkTarget) return;
+    const safe = relinkCandidates.filter(
+      (candidate) => candidate.status === "safe",
+    );
+    try {
+      await Promise.all(
+        safe.map((candidate) =>
+          correctLabMeasurement(candidate.measurement.id, {
+            sourceLabel: candidate.measurement.sourceLabel,
+            sourceValue: candidate.measurement.sourceValue,
+            sourceUnit: candidate.measurement.sourceUnit,
+            sourceReferenceInterval:
+              candidate.measurement.sourceReferenceInterval,
+            sourceFlag: candidate.measurement.sourceFlag,
+            parsedNumericValue: candidate.measurement.parsedNumericValue,
+            analyteId: relinkTarget.id,
+          }),
+        ),
+      );
+      setDataVersion((value) => value + 1);
+    } catch {
+      onError("Hemo Tracker could not relink the selected measurements.");
     }
   }
   async function permanentlyDeleteReport(reportId: string) {
@@ -1310,6 +1344,72 @@ function UnlockedVault({
                 </Text>
               )}
             </Box>
+          ) : null}
+        </Stack>
+      </Box>
+      <Box borderWidth="1px" borderColor="border" borderRadius="xl" p="4">
+        <Stack gap="3">
+          <Heading as="h2" size="lg">
+            Relink existing results
+          </Heading>
+          <Text color="fg.muted" fontSize="sm">
+            Review exact-label matches before linking older results to a saved
+            analyte. Unsafe units stay blocked.
+          </Text>
+          <select
+            aria-label="Relink target analyte"
+            value={relinkAnalyteId}
+            onChange={(event) => setRelinkAnalyteId(event.target.value)}
+          >
+            <option value="">Select a target analyte</option>
+            {analytes.map((analyte) => (
+              <option key={analyte.id} value={analyte.id}>
+                {analyte.name}
+              </option>
+            ))}
+          </select>
+          {relinkTarget ? (
+            <Stack gap="2" aria-label="Relink preview">
+              <Text fontSize="sm">
+                {
+                  relinkCandidates.filter(
+                    (candidate) => candidate.status === "safe",
+                  ).length
+                }{" "}
+                safe and{" "}
+                {
+                  relinkCandidates.filter(
+                    (candidate) => candidate.status === "blocked",
+                  ).length
+                }{" "}
+                blocked matches.
+              </Text>
+              {relinkCandidates.map((candidate) => (
+                <Text
+                  key={`${candidate.reportId}-${candidate.measurement.id}`}
+                  fontSize="sm"
+                >
+                  {candidate.measurement.sourceLabel} ·{" "}
+                  {candidate.measurement.sourceValue}{" "}
+                  {candidate.measurement.sourceUnit} ·{" "}
+                  {candidate.status === "safe"
+                    ? "Safe"
+                    : `Blocked (${candidate.reason})`}
+                </Text>
+              ))}
+              <Button
+                alignSelf="start"
+                variant="outline"
+                disabled={
+                  !relinkCandidates.some(
+                    (candidate) => candidate.status === "safe",
+                  )
+                }
+                onClick={() => void applySafeRelinking()}
+              >
+                Apply safe relinking
+              </Button>
+            </Stack>
           ) : null}
         </Stack>
       </Box>

@@ -33,6 +33,15 @@ Use the correction action for a value that was entered incorrectly. Review the s
 
 The correction changes the current value or analyte link. The source file remains immutable. Hemo Tracker records the update time and local user identity.
 
+## Relink existing results
+
+1. Open **Relink existing results**.
+2. Select a target analyte.
+3. Review the safe and blocked exact-label matches.
+4. Select **Apply safe relinking**.
+
+Hemo Tracker changes only the analyte link for safe matches. It keeps the source value, unit, interval, flag, and source file. It does not apply blocked matches.
+
 ## Add data to an existing report
 
 1. Expand the report in **Report history**.
