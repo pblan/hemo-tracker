@@ -37,6 +37,7 @@ fn user_can_create_lock_and_reopen_a_local_account_vault() {
         .unlock_with_passphrase("correct horse battery staple".to_owned())
         .unwrap();
     assert_eq!(reopened.status(), VaultStatus::Unlocked);
+    assert!(reopened.backup_to(account.join("nested-backup")).is_err());
     let backup = directory.path().join("backup");
     reopened.backup_to(&backup).unwrap();
     assert!(backup.join("account.json").is_file());

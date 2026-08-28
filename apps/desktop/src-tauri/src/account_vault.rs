@@ -174,6 +174,9 @@ impl LocalAccountVault {
         if destination.exists() {
             return Err(LocalAccountError::AlreadyExists);
         }
+        if destination.starts_with(&self.directory) {
+            return Err(LocalAccountError::Operation);
+        }
         let parent = destination.parent().ok_or(LocalAccountError::Operation)?;
         fs::create_dir_all(parent).map_err(|_| LocalAccountError::Operation)?;
         let staging = destination.with_extension("backup-partial");
