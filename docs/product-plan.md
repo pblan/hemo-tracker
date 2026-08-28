@@ -14,7 +14,7 @@ The application stores source files and manual entries. It does not extract valu
 - Let the user link missing measurements to old lab reports.
 - Recompute derived views from the latest analyte definitions.
 - Block unsafe unit conversion and unsafe series joins.
-- Keep clinical content encrypted from other users and server administrators.
+- Keep clinical content encrypted from other local users while the account vault is locked.
 - Use simple interfaces and maintained standard tools.
 - Follow ASD-STE100 in maintained documentation.
 
@@ -22,13 +22,10 @@ The application stores source files and manual entries. It does not extract valu
 
 ### Accounts and devices
 
-- Sign in with Google OAuth.
-- Permit only Google emails on a server whitelist.
-- Keep Google authentication separate from data encryption.
 - Create an encryption passphrase and a user-held recovery key.
-- Approve trusted macOS and Windows devices.
-- Access an existing local vault while the server is offline.
-- Synchronize ciphertext when the server is available.
+- Create and unlock an account vault without a server.
+- Require the passphrase after the application locks or restarts.
+- Keep more than one separate local account vault when required.
 
 ### Lab reports
 
@@ -83,7 +80,7 @@ The application has five main views.
 2. **Reports** shows report metadata, source files, and the manual entry table.
 3. **Trends** shows one detailed analyte plot or up to six aligned plots.
 4. **Analytes** shows definitions, aliases, conversion rules, and personal target ranges.
-5. **Settings** shows account, devices, recovery, synchronization, export, archive, and deletion controls.
+5. **Settings** shows local account, recovery, export, archive, and deletion controls.
 
 Each overview card shows the latest source value, source unit, collection date, source flag, and a small trend. The user selects the pinned analytes.
 
@@ -102,16 +99,12 @@ Each overview card shows the latest source value, source unit, collection date, 
 - Do not use color as the only status signal.
 - Keep correlation and distribution plots outside version 1.
 
-### Corrections and conflicts
+### Corrections
 
 - Replace a corrected manual value without revision history.
 - Store `updatedAt` and `updatedBy` metadata.
 - Keep original source files immutable.
 - Keep a correction source file beside the prior files.
-- Detect a synchronization conflict at the entity level.
-- Keep both encrypted conflict versions.
-- Ask the user to select one complete version.
-- Do not merge conflict fields automatically.
 
 ### Export and deletion
 
@@ -119,8 +112,7 @@ Each overview card shows the latest source value, source unit, collection date, 
 - Create a decrypted ZIP with source files, JSON, and CSV after an explicit warning.
 - Archive lab reports in the normal interface.
 - Require confirmation before permanent deletion.
-- Mark an account for deletion before the server deletes its ciphertext.
-- Prompt the user to export data before account deletion.
+- Prompt the user to export data before permanent local account deletion.
 
 ## Excluded from version 1
 
@@ -134,20 +126,23 @@ Each overview card shows the latest source value, source unit, collection date, 
 - Free-form chart annotations.
 - Server-side clinical search, plots, or unit conversion.
 - Administrator recovery of account data.
+- Google sign-in and a server whitelist.
+- Encrypted synchronization and multi-device conflicts.
+- Self-hosted server operation.
+- Saved trusted-device unlock.
+- Signed application packages and signed updates.
 
 ## Security limits
 
-The system protects clinical content against other users, storage operators, backup disclosure, a server administrator, and a compromised server.
+The system protects clinical content against other local users and backup disclosure when the account vault remains locked and the user protects the passphrase and recovery key.
 
 The system does not protect against these threats:
 
-- Malware or an attacker on a trusted device.
-- An attacker who can replace the signed client or trusted update source.
+- Malware or an attacker on the local computer.
+- An attacker who can replace the unsigned client or local installation source.
 - Screen capture while the application shows data.
 - Loss of all trusted devices, the passphrase, and the recovery key.
-- Metadata disclosure. The server can see account identity, ciphertext size, device count, storage use, and connection time.
-
-Google can see that the user signs in to Hemo Tracker. Google does not receive the encryption passphrase or account data key.
+- Metadata disclosure through local file names, ciphertext sizes, exports, and operating-system activity.
 
 ## Quality requirements
 
@@ -155,9 +150,8 @@ Google can see that the user signs in to Hemo Tracker. Google does not receive t
 - Meet WCAG 2.2 AA where it applies.
 - Use no third-party analytics in the clinical client.
 - Keep clinical content out of logs, crash reports, notifications, and previews.
-- Use signed application releases and signed updates.
-- Keep release signing keys outside the self-hosted data server.
 - Obtain a specialist security review before the application stores real medical data.
+- State clearly that V1 packages are unsigned and have no verified publisher identity.
 
 ## Plot benchmark
 
@@ -183,16 +177,12 @@ Select the plot engine in an ADR after the benchmark.
 
 - Prove the account key lifecycle.
 - Prove recovery and passphrase change.
-- Prove native credential storage on macOS and Windows.
 - Prove SQLCipher builds, migrations, temporary-file behavior, backup, and restore.
 - Prove streaming source-file encryption.
-- Prove Google OAuth with PKCE and a loopback callback.
-- Prove signed macOS and Windows builds.
-- Prove signed Tauri updates.
 - Benchmark uPlot and Apache ECharts.
 - Get an independent review of the threat model and key design.
 
-Exit condition: Accepted ADRs name the security formats, storage tooling, OAuth flow, update process, and plot engine.
+Exit condition: Accepted ADRs name the local security formats, storage tooling, V1 distribution limit, and plot engine.
 
 ### Phase 1: Build the local vault
 
@@ -214,7 +204,17 @@ Exit condition: One trusted device can manage a complete account vault while off
 
 Exit condition: New analyte definitions and normalization rules update all derived views without source-data changes.
 
-### Phase 3: Build encrypted synchronization
+### Phase 3: Harden and release the local application
+
+- Complete accessibility checks.
+- Complete privacy and security tests.
+- Complete unsigned macOS and Windows package checks.
+- Complete local backup, recovery, and threat-model guides.
+- Complete an external security review.
+
+Exit condition: The local release gates pass on macOS and Windows, and all materials state the unsigned publisher limit.
+
+### Post-V1: Build signed encrypted synchronization
 
 - Add Google sign-in and the server whitelist.
 - Add device approval and wrapped-key transfer.
@@ -224,14 +224,3 @@ Exit condition: New analyte definitions and normalization rules update all deriv
 - Add account administration and delayed deletion.
 
 Exit condition: Two trusted devices can synchronize through a server that cannot read clinical content.
-
-### Phase 4: Harden and release
-
-- Complete accessibility checks.
-- Complete privacy and security tests.
-- Complete macOS and Windows signing.
-- Complete the signed update flow.
-- Complete deployment, backup, recovery, and threat-model guides.
-- Complete an external security review.
-
-Exit condition: The release gates pass on macOS and Windows.

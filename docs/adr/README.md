@@ -6,3 +6,5 @@ The accepted records explain decisions that constrain the Hemo Tracker architect
 - [ADR 0002: Preserve source facts and derive normalized views](0002-preserve-source-facts-and-derive-normalized-views.md)
 - [ADR 0003: Use Tauri for the desktop client](0003-use-tauri-for-the-desktop-client.md)
 - [ADR 0004: Use uPlot behind a plot adapter](0004-use-uplot-behind-a-plot-adapter.md)
+- [ADR 0005: Ship an unsigned local desktop V1](0005-ship-an-unsigned-local-desktop-v1.md)
+- [ADR 0006: Use versioned local cryptographic formats](0006-use-versioned-local-cryptographic-formats.md)
