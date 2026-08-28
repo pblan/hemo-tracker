@@ -105,10 +105,12 @@ fn user_records_and_reopens_one_complete_lab_report_with_encrypted_evidence() {
         })
         .unwrap();
     let source_marker = b"fictional-pdf-source-marker";
+    let original_source = source_marker.to_vec();
+    let source_input = Cursor::new(original_source.clone());
     vault
         .add_source_file(
             &report_id,
-            Cursor::new(source_marker),
+            source_input,
             NewSourceFile {
                 original_filename: "fictional-report.pdf".to_owned(),
                 media_type: "application/pdf".to_owned(),
@@ -132,7 +134,17 @@ fn user_records_and_reopens_one_complete_lab_report_with_encrypted_evidence() {
 
     let report = vault.get_lab_report(&report_id).unwrap();
     assert_eq!(report.status, ReportStatus::Complete);
+    assert_eq!(report.collection_time, "2026-08-20T08:30:00+02:00");
+    assert_eq!(report.report_date.as_deref(), Some("2026-08-21"));
+    assert_eq!(
+        report.laboratory.as_deref(),
+        Some("Fictional Central Laboratory")
+    );
+    assert_eq!(report.fasting_state.as_deref(), Some("fasting"));
+    assert_eq!(report.notes.as_deref(), Some("Routine fictional check"));
+    assert_eq!(report.tags, vec!["annual"]);
     assert_eq!(report.measurements[0].source_value, "13,7");
+    assert_eq!(report.measurements[0].source_unit, "g/dL");
     assert_eq!(
         report.measurements[0].source_reference_interval,
         "12,0–16,0"
@@ -154,6 +166,19 @@ fn user_records_and_reopens_one_complete_lab_report_with_encrypted_evidence() {
         report.measurements[0].source_label,
         "Hemoglobin (original label)"
     );
+    assert_eq!(report.measurements[0].source_unit, "g/dL");
+    assert_eq!(report.measurements[0].source_value, "13,7");
+    assert_eq!(
+        report.measurements[0].source_reference_interval,
+        "12,0–16,0"
+    );
+    assert_eq!(report.measurements[0].source_flag, "within range");
+    assert_eq!(
+        report.source_files[0].original_filename,
+        "fictional-report.pdf"
+    );
+
+    assert_eq!(original_source, source_marker);
 
     assert_directory_does_not_contain(&account, source_marker);
     assert_directory_does_not_contain(&account, b"13,7");

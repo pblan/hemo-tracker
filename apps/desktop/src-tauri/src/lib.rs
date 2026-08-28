@@ -30,4 +30,18 @@ mod tests {
 
         assert_eq!(config["productName"], "Hemo Tracker");
     }
+
+    #[test]
+    fn default_capability_allows_native_file_open_dialog() {
+        let capability: serde_json::Value =
+            serde_json::from_str(include_str!("../capabilities/default.json")).unwrap();
+
+        assert!(
+            capability["permissions"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|permission| permission == "dialog:allow-open")
+        );
+    }
 }
