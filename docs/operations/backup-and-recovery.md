@@ -12,7 +12,7 @@ Store the backup and the recovery material separately. Test a restore on a clean
 
 ## Plaintext export
 
-A decrypted export is a plaintext ZIP copy. It contains one JSON file for each report, a `measurements.csv` file, and decrypted source files. Use it only when you need to share data with a trusted person or tool. Check the destination before export. Delete the export after use. Do not place it in a shared folder or cloud service unless that service is approved for the data.
+A decrypted export is a plaintext ZIP copy. It contains one JSON file for each report, a `measurements.csv` file, and decrypted source files. Use it only when you need to share data with a trusted person or tool. Check the destination before export. Hemo Tracker writes the ZIP to a temporary sibling file and publishes it only after the ZIP is complete. It does not overwrite an existing destination. Delete the export after use. Do not place it in a shared folder or cloud service unless that service is approved for the data.
 
 Restore validates the backup before it replaces the active vault. The application stages the replacement and keeps the prior vault until the replacement opens and passes integrity checks.
 
