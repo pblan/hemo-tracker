@@ -4,6 +4,8 @@ This directory contains the V1 user guides. Issue 26 adds the procedures and cur
 
 Start with the [project README](../../README.md) until the V1 quickstart is available.
 
+Use the [macOS installation guide](install-macos.md) or [Windows installation guide](install-windows.md) for unsigned builds.
+
 ## Hemo Tracker user guide
 
 Hemo Tracker stores laboratory reports in an encrypted local vault. It does not give medical advice.
