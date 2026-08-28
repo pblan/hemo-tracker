@@ -429,3 +429,40 @@ fn decode_array<const N: usize>(value: &str) -> Result<[u8; N], KeyLifecycleErro
         .try_into()
         .map_err(|_| KeyLifecycleError::InvalidCredentialsOrEnvelope)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn passphrase_change_rewraps_the_same_account_key() {
+        let old = Passphrase::new("old passphrase");
+        let new = Passphrase::new("new passphrase");
+        let bundle = AccountKeyBundle::create("test-account", &old).unwrap();
+        let changed = bundle
+            .passphrase_envelope()
+            .change_passphrase(&old, &new)
+            .unwrap();
+        let unlocked = changed.unlock_with_passphrase(&new).unwrap();
+        assert!(
+            bundle
+                .unlocked_keys()
+                .derive_purpose_key(Purpose::Database, 0)
+                .matches(&unlocked.derive_purpose_key(Purpose::Database, 0))
+        );
+    }
+
+    #[test]
+    fn unsupported_kdf_parameters_are_rejected_before_unlock() {
+        let passphrase = Passphrase::new("test passphrase");
+        let bundle = AccountKeyBundle::create("test-account", &passphrase).unwrap();
+        let mut value: serde_json::Value =
+            serde_json::from_str(&bundle.passphrase_envelope().to_json()).unwrap();
+        value["protector"]["memory_kib"] = serde_json::json!(1);
+        let tampered = KeyEnvelope::from_json(&value.to_string()).unwrap();
+        assert!(matches!(
+            tampered.unlock_with_passphrase(&passphrase),
+            Err(KeyLifecycleError::UnsupportedEnvelope)
+        ));
+    }
+}

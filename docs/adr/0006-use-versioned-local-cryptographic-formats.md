@@ -32,6 +32,10 @@ Write source ciphertext to an opaque partial path. Synchronize it and rename it 
 
 A passphrase change creates a new passphrase envelope. It does not re-encrypt clinical data. Recovery-key replacement creates a new recovery envelope. A purpose-key generation change applies only to new writes until a verified migration completes.
 
+V1 accepts only the Argon2id parameters recorded above. It rejects an envelope
+with another memory cost, iteration count, lane count, or format version. V1
+does not perform an automatic parameter migration during unlock.
+
 The webview receives typed domain results. It does not receive raw keys, SQL, vault paths, source-file paths, or cipher configuration.
 
 Functionality work must preserve these formats and boundaries. An independent security review must approve the key hierarchy, envelope encoding, nonce rules, SQLCipher build, source-file container, recovery flow, and failure handling before V1 is released for real medical data.

@@ -99,3 +99,8 @@ A purpose-key rotation increments the generation for one purpose. New writes use
 An account data key rotates only after suspected key compromise or a cryptographic format migration. This rotation requires re-encryption of every purpose-protected object and creation of new passphrase and recovery envelopes. The application must keep the old account data key available until it verifies every migrated object. It must then remove the old envelopes and key material.
 
 The security ADR must define recovery-key presentation and backup, device enrollment, key revocation, parameter migration, and the maximum accepted KDF cost. An independent security reviewer must review the hierarchy, envelope encoding, authenticated data, nonce rules, recovery design, and error behavior.
+
+V1 has no automatic parameter migration. The key-lifecycle module rejects an
+envelope when its Argon2id memory, iteration, lane, format, or cipher values do
+not match the accepted V1 values. The module has tests for passphrase rewrap and
+unsupported KDF parameters.
