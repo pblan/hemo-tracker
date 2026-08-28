@@ -23,6 +23,7 @@ import {
   unlockWithRecovery,
   type VaultState,
 } from "./vault-client";
+import { parseMeasurementInput } from "./measurement-parser";
 
 function App() {
   const [vaultState, setVaultState] = useState<VaultState | null>(null);
@@ -285,6 +286,7 @@ function UnlockedVault({
   const [laboratory, setLaboratory] = useState("");
   const [sourceLabel, setSourceLabel] = useState("");
   const [sourceValue, setSourceValue] = useState("");
+  const [valueHint, setValueHint] = useState<string | null>(null);
   const [sourceUnit, setSourceUnit] = useState("");
   const [sourceReferenceInterval, setSourceReferenceInterval] = useState("");
   const [sourceFlag, setSourceFlag] = useState("");
@@ -443,9 +445,28 @@ function UnlockedVault({
             <Field.Label>Source value</Field.Label>
             <Input
               value={sourceValue}
-              onChange={(event) => setSourceValue(event.target.value)}
+              onChange={(event) => {
+                const next = event.target.value;
+                setSourceValue(next);
+                const parsed = parseMeasurementInput(next, "de-DE");
+                setValueHint(
+                  parsed.kind === "ambiguous"
+                    ? "This value can have more than one meaning. Confirm the intended format."
+                    : parsed.kind === "number" || parsed.kind === "date"
+                      ? `Normalized preview: ${parsed.normalized}`
+                      : null,
+                );
+              }}
             />
           </Field.Root>
+          {valueHint ? (
+            <Text
+              fontSize="sm"
+              color={valueHint.startsWith("This") ? "orange.600" : "fg.muted"}
+            >
+              {valueHint}
+            </Text>
+          ) : null}
           <Field.Root required>
             <Field.Label>Source unit</Field.Label>
             <Input
