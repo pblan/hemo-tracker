@@ -86,6 +86,7 @@ describe("desktop application shell", () => {
       id: "report-1",
       collectionTime: "2026-08-20T08:30:00+02:00",
       laboratory: "Fictional Central Laboratory",
+      tags: ["demo"],
       status: "complete",
       sourceFileCount: 1,
       measurementCount: 2,
@@ -114,6 +115,7 @@ describe("desktop application shell", () => {
     expect(
       await screen.findByText("Fictional Central Laboratory"),
     ).toBeVisible();
+    expect(screen.getByText(/Fictional demo data is included/i)).toBeVisible();
     await user.type(
       screen.getByRole("textbox", { name: "Search reports" }),
       "other",

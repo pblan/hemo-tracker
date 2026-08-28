@@ -84,6 +84,10 @@ The application has five main views.
 
 Each overview card shows the latest source value, source unit, collection date, source flag, and a small trend. The user selects the pinned analytes.
 
+Each new local vault contains three clearly marked fictional demo reports. The
+demo reports make the overview and trend views inspectable before the user
+records personal data. The user can archive or permanently delete them.
+
 ### Plots
 
 - Use the true collection time on the horizontal axis.

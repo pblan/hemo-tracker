@@ -13,7 +13,7 @@ use hemo_source_file_encryption::{
 use serde::{Deserialize, Serialize};
 use std::{
     fs::{self, File, OpenOptions},
-    io::{Read, Write},
+    io::{Cursor, Read, Write},
     path::{Path, PathBuf},
 };
 use thiserror::Error;
@@ -479,7 +479,13 @@ impl LocalAccountVault {
             manifest,
             unlocked: Some(unlocked),
         };
-        vault.seed_default_analytes()?;
+        if let Err(error) = vault
+            .seed_default_analytes()
+            .and_then(|_| vault.seed_demo_data())
+        {
+            let _ = fs::remove_dir_all(&vault.directory);
+            return Err(error);
+        }
         Ok(CreatedLocalAccount {
             vault,
             recovery_code,
@@ -864,6 +870,95 @@ impl LocalAccountVault {
                 canonical_unit: Some(canonical_unit.to_owned()),
                 personal_target_ranges: Vec::new(),
             })?;
+        }
+        Ok(())
+    }
+
+    fn seed_demo_data(&mut self) -> Result<(), LocalAccountError> {
+        let analytes = self.list_analytes()?;
+        let analyte_id = |name: &str| {
+            analytes
+                .iter()
+                .find(|analyte| analyte.name == name)
+                .map(|analyte| analyte.id.clone())
+                .ok_or(LocalAccountError::Operation)
+        };
+        let hemoglobin_id = analyte_id("Hemoglobin")?;
+        let glucose_id = analyte_id("Glucose")?;
+        let creatinine_id = analyte_id("Creatinine")?;
+        let samples = [
+            ("2026-01-15T08:00:00Z", "13.4", "90", "1.02"),
+            ("2026-04-22T08:30:00Z", "13.8", "4.99567", "90.3"),
+            ("2026-07-18T07:45:00Z", "14.1", "96", "1.08"),
+        ];
+        for (index, (collection_time, hemoglobin, glucose, creatinine)) in
+            samples.into_iter().enumerate()
+        {
+            let report_id = self.create_lab_report_draft(CreateLabReportDraft {
+                collection_time: collection_time.to_owned(),
+                report_date: Some(collection_time[..10].to_owned()),
+                laboratory: Some("Fictional Demo Laboratory".to_owned()),
+                ordering_clinician: None,
+                fasting_state: Some("unknown".to_owned()),
+                notes: Some(
+                    "Fictional demo data. Replace or archive this report before recording personal data."
+                        .to_owned(),
+                ),
+                tags: vec!["demo".to_owned()],
+            })?;
+            self.add_source_file(
+                &report_id,
+                Cursor::new(format!(
+                    "Hemo Tracker fictional demo report {}. This file is not a laboratory report.\n",
+                    index + 1
+                )),
+                NewSourceFile {
+                    original_filename: format!("demo-lab-report-{}.txt", index + 1),
+                    media_type: "text/plain".to_owned(),
+                    role: "primary".to_owned(),
+                },
+            )?;
+            for (label, value, unit, interval, analyte) in [
+                (
+                    "Hemoglobin",
+                    hemoglobin,
+                    "g/dL",
+                    "12-16 g/dL",
+                    hemoglobin_id.as_str(),
+                ),
+                (
+                    "Glucose",
+                    glucose,
+                    if index == 1 { "mmol/L" } else { "mg/dL" },
+                    if index == 1 {
+                        "4.0-5.6 mmol/L"
+                    } else {
+                        "70-100 mg/dL"
+                    },
+                    glucose_id.as_str(),
+                ),
+                (
+                    "Creatinine",
+                    creatinine,
+                    "mg/dL",
+                    "0.6-1.2 mg/dL",
+                    creatinine_id.as_str(),
+                ),
+            ] {
+                self.add_measurement(
+                    &report_id,
+                    NewMeasurement {
+                        source_label: label.to_owned(),
+                        source_value: value.to_owned(),
+                        source_unit: unit.to_owned(),
+                        source_reference_interval: interval.to_owned(),
+                        source_flag: String::new(),
+                        parsed_numeric_value: Some(value.to_owned()),
+                        analyte_id: Some(analyte.to_owned()),
+                    },
+                )?;
+            }
+            self.complete_lab_report(&report_id)?;
         }
         Ok(())
     }

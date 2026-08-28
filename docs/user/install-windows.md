@@ -8,4 +8,6 @@
 
 Do not disable global Windows security protections. If the installer is not from a trusted release source, cancel the installation.
 
-The first start creates a local encrypted vault. Keep the passphrase and recovery key separate.
+The first start creates a local encrypted vault with three fictional demo
+reports. Keep the passphrase and recovery key separate. Archive or delete the
+demo reports before you record personal data.

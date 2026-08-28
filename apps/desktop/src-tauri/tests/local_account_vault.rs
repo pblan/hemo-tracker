@@ -21,6 +21,19 @@ fn user_can_create_lock_and_reopen_a_local_account_vault() {
     let mut vault = created.into_vault();
 
     assert_eq!(vault.status(), VaultStatus::Unlocked);
+    let demo_report_ids = vault.list_lab_report_ids().unwrap();
+    assert_eq!(demo_report_ids.len(), 3);
+    let demo_report = vault.get_lab_report(&demo_report_ids[0]).unwrap();
+    assert_eq!(demo_report.status, ReportStatus::Complete);
+    assert_eq!(demo_report.tags, vec!["demo"]);
+    assert_eq!(demo_report.source_files.len(), 1);
+    assert_eq!(demo_report.measurements.len(), 3);
+    assert!(
+        demo_report
+            .notes
+            .as_deref()
+            .is_some_and(|notes| notes.contains("Fictional demo data"))
+    );
     assert!(recovery_code.starts_with("HTRK1-"));
 
     vault.lock();
@@ -37,6 +50,7 @@ fn user_can_create_lock_and_reopen_a_local_account_vault() {
         .unlock_with_passphrase("correct horse battery staple".to_owned())
         .unwrap();
     assert_eq!(reopened.status(), VaultStatus::Unlocked);
+    assert_eq!(reopened.list_lab_report_ids().unwrap().len(), 3);
     assert!(reopened.backup_to(account.join("nested-backup")).is_err());
     let backup = directory.path().join("backup");
     reopened.backup_to(&backup).unwrap();

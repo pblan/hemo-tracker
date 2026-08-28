@@ -813,6 +813,9 @@ function UnlockedVault({
   };
   const trend = buildTrend(trendAnalyteId);
   const comparison = buildTrend(compareAnalyteId);
+  const demoReportCount = reports.filter((report) =>
+    report.tags.includes("demo"),
+  ).length;
   const openReportFromTrend = (reportId: string) => {
     setExpandedReportId(reportId);
     requestAnimationFrame(() =>
@@ -1133,6 +1136,23 @@ function UnlockedVault({
               onChange={(event) => setReportSearch(event.target.value)}
             />
           </Stack>
+          {demoReportCount ? (
+            <Box
+              role="note"
+              borderWidth="1px"
+              borderColor="orange.300"
+              bg="orange.50"
+              color="orange.900"
+              borderRadius="lg"
+              px="4"
+              py="3"
+            >
+              Fictional demo data is included so you can explore Hemo Tracker.
+              It is not your health data. Archive or permanently delete these
+              demo reports before you rely on the report history for personal
+              records.
+            </Box>
+          ) : null}
           {reports
             .filter(
               (report) =>

@@ -122,6 +122,8 @@ pub struct ReportResult {
     pub id: String,
     pub collection_time: String,
     pub laboratory: Option<String>,
+    pub notes: Option<String>,
+    pub tags: Vec<String>,
     pub status: String,
     pub source_file_count: usize,
     pub measurement_count: usize,
@@ -432,6 +434,8 @@ pub fn get_lab_report(
         id: report.id,
         collection_time: report.collection_time,
         laboratory: report.laboratory,
+        notes: report.notes,
+        tags: report.tags,
         status: match report.status {
             crate::account_vault::ReportStatus::Draft => "draft",
             crate::account_vault::ReportStatus::Complete => "complete",

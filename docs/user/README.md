@@ -28,6 +28,11 @@ Hemo Tracker stores laboratory reports in an encrypted local vault. It does not 
 
 Result: The report is stored in the encrypted local vault. The original source file is not changed.
 
+Each new vault also contains three clearly marked fictional demo reports. Use
+these reports to inspect the trend and report controls before you record real
+data. Archive or permanently delete the demo reports when you no longer need
+them.
+
 ## Correct a measurement
 
 Use the correction action for a value that was entered incorrectly. Review the source file before you confirm the correction. You can also select a different saved analyte to relink an existing result to a newer definition.
@@ -120,3 +125,6 @@ Permanent deletion removes the report and its encrypted source files. This actio
 Hemo Tracker is a record-keeping tool. It does not diagnose conditions or give medical advice. Check laboratory results with a qualified health professional.
 
 The unsigned V1 application is intended for local use. Keep the device, passphrase, recovery key, backups, and exported files secure. A decrypted export is a plaintext copy. The operating system can show an unverified-publisher warning for an unsigned build. Do not disable global operating-system protections.
+
+The demo reports in a new vault are fictional. They do not describe your
+health and must not guide a medical decision.

@@ -64,6 +64,11 @@ _Avoid_: Final report, frozen report
 A lab report that the application hides from normal views without permanent deletion.
 _Avoid_: Deleted report
 
+**Demo report**:
+A clearly tagged fictional report that a new local vault contains for interface
+inspection. It is not health data and can be archived or permanently deleted.
+_Avoid_: Sample result, test data
+
 **Trusted device**:
 A user device that holds an approved device key and can unlock the account vault.
 _Avoid_: Logged-in device

@@ -99,6 +99,8 @@ export type ReportSummary = {
   id: string;
   collectionTime: string;
   laboratory?: string;
+  notes?: string;
+  tags: string[];
   status: "draft" | "complete" | "archived";
   sourceFileCount: number;
   measurementCount: number;
