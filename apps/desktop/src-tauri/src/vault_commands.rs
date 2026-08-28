@@ -1,6 +1,6 @@
 use crate::account_vault::{
-    CreateLabReportDraft, CreateLocalAccount, LocalAccountVault, NewMeasurement, NewSourceFile,
-    VaultStatus,
+    CreateLabReportDraft, CreateLocalAccount, LocalAccountVault, NewAnalyte, NewMeasurement,
+    NewSourceFile, VaultStatus,
 };
 use serde::Serialize;
 use std::fs::File;
@@ -50,6 +50,19 @@ pub struct MeasurementRequest {
     pub source_reference_interval: String,
     pub source_flag: String,
     pub analyte_id: Option<String>,
+}
+
+#[derive(serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AnalyteRequest {
+    pub name: String,
+    pub component: String,
+    pub property: String,
+    pub specimen: String,
+    pub scale: String,
+    pub method: Option<String>,
+    pub aliases: Vec<String>,
+    pub loinc_code: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -213,6 +226,28 @@ pub fn add_lab_measurement(
                 analyte_id: request.analyte_id,
             },
         )
+        .map_err(|_| safe_error())
+}
+
+#[tauri::command]
+pub fn add_analyte_definition(
+    state: State<'_, DesktopVaultState>,
+    request: AnalyteRequest,
+) -> Result<String, String> {
+    let mut guard = state.vault.lock().map_err(|_| safe_error())?;
+    guard
+        .as_mut()
+        .ok_or_else(safe_error)?
+        .add_analyte(NewAnalyte {
+            name: request.name,
+            component: request.component,
+            property: request.property,
+            specimen: request.specimen,
+            scale: request.scale,
+            method: request.method,
+            aliases: request.aliases,
+            loinc_code: request.loinc_code,
+        })
         .map_err(|_| safe_error())
 }
 

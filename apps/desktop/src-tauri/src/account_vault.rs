@@ -1,6 +1,6 @@
 use hemo_encrypted_vault::{
-    AccountVault, CreateReport, MeasurementRecord, NativeVaultManager, ReportState,
-    SourceFileRecord, VaultKey,
+    AccountVault, AnalyteDefinition, CreateReport, MeasurementRecord, NativeVaultManager,
+    ReportState, SourceFileRecord, VaultKey,
 };
 use hemo_key_lifecycle::{
     AccountKeyBundle, KeyEnvelope, Passphrase, Purpose, PurposeKey, RecoveryCode, RecoveryKey,
@@ -62,6 +62,18 @@ pub struct NewMeasurement {
     pub source_reference_interval: String,
     pub source_flag: String,
     pub analyte_id: Option<String>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct NewAnalyte {
+    pub name: String,
+    pub component: String,
+    pub property: String,
+    pub specimen: String,
+    pub scale: String,
+    pub method: Option<String>,
+    pub aliases: Vec<String>,
+    pub loinc_code: Option<String>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -152,6 +164,39 @@ struct UnlockedAccount {
 }
 
 impl LocalAccountVault {
+    pub fn add_analyte(&mut self, analyte: NewAnalyte) -> Result<String, LocalAccountError> {
+        if analyte.name.trim().is_empty()
+            || analyte.component.trim().is_empty()
+            || analyte.property.trim().is_empty()
+            || analyte.specimen.trim().is_empty()
+            || analyte.scale.trim().is_empty()
+        {
+            return Err(LocalAccountError::Operation);
+        }
+        let id = random_identifier()?;
+        self.unlocked_mut()?
+            ._vault
+            .upsert_analyte(&AnalyteDefinition {
+                id: id.clone(),
+                name: analyte.name,
+                component: analyte.component,
+                property: analyte.property,
+                specimen: analyte.specimen,
+                scale: analyte.scale,
+                method: analyte.method,
+                aliases: analyte.aliases,
+                loinc_code: analyte.loinc_code,
+            })
+            .map_err(|_| LocalAccountError::Operation)?;
+        Ok(id)
+    }
+
+    pub fn list_analytes(&self) -> Result<Vec<AnalyteDefinition>, LocalAccountError> {
+        self.unlocked_ref()?
+            ._vault
+            .list_analytes()
+            .map_err(|_| LocalAccountError::Operation)
+    }
     pub fn create(
         directory: impl AsRef<Path>,
         input: CreateLocalAccount,

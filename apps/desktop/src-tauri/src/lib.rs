@@ -15,6 +15,7 @@ pub fn run() {
             vault_commands::create_lab_report,
             vault_commands::select_and_attach_source_file,
             vault_commands::add_lab_measurement,
+            vault_commands::add_analyte_definition,
             vault_commands::complete_lab_report,
         ])
         .run(tauri::generate_context!())
