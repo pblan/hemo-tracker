@@ -1129,8 +1129,7 @@ function UnlockedVault({
                   width="100%"
                   height="480"
                 />
-              ) : sourcePreview.mediaType.startsWith("image/") &&
-                sourcePreview.mediaType !== "image/heic" ? (
+              ) : sourcePreview.mediaType.startsWith("image/") ? (
                 <img
                   src={sourcePreview.url}
                   alt={`Preview of ${sourcePreview.filename}`}
