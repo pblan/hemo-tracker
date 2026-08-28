@@ -336,6 +336,18 @@ function UnlockedVault({
   const [correctionValue, setCorrectionValue] = useState("");
   const [trendAnalyteId, setTrendAnalyteId] = useState("");
   const [compareAnalyteId, setCompareAnalyteId] = useState("");
+  const [pinnedAnalyteIds, setPinnedAnalyteIds] = useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem("hemo-tracker:pinned-analytes");
+      const parsed: unknown = stored ? JSON.parse(stored) : [];
+      return Array.isArray(parsed) &&
+        parsed.every((id) => typeof id === "string")
+        ? parsed.slice(0, 6)
+        : [];
+    } catch {
+      return [];
+    }
+  });
   const [rangeAnalyteId, setRangeAnalyteId] = useState("");
   const [rangeLower, setRangeLower] = useState("");
   const [rangeUpper, setRangeUpper] = useState("");
@@ -369,6 +381,17 @@ function UnlockedVault({
       .then(setReports)
       .catch(() => undefined);
   }, [saving, dataVersion]);
+  useEffect(() => {
+    try {
+      if (typeof localStorage?.setItem === "function")
+        localStorage.setItem(
+          "hemo-tracker:pinned-analytes",
+          JSON.stringify(pinnedAnalyteIds),
+        );
+    } catch {
+      // Local preferences are optional and must not block vault use.
+    }
+  }, [pinnedAnalyteIds]);
 
   async function saveReport(event: FormEvent) {
     event.preventDefault();
@@ -710,6 +733,13 @@ function UnlockedVault({
       }),
     );
   };
+  const togglePinnedAnalyte = (analyteId: string) => {
+    setPinnedAnalyteIds((current) => {
+      if (current.includes(analyteId))
+        return current.filter((id) => id !== analyteId);
+      return current.length < 6 ? [...current, analyteId] : current;
+    });
+  };
 
   return (
     <Stack gap="6">
@@ -736,6 +766,31 @@ function UnlockedVault({
               </option>
             ))}
           </select>
+          <Stack gap="2" aria-label="Pinned analytes">
+            <Text fontWeight="semibold" fontSize="sm">
+              Pin analytes for this overview (up to 6)
+            </Text>
+            <Stack
+              direction={{ base: "column", sm: "row" }}
+              wrap="wrap"
+              gap="2"
+            >
+              {analytes.map((analyte) => (
+                <label key={analyte.id}>
+                  <input
+                    type="checkbox"
+                    checked={pinnedAnalyteIds.includes(analyte.id)}
+                    onChange={() => togglePinnedAnalyte(analyte.id)}
+                    disabled={
+                      !pinnedAnalyteIds.includes(analyte.id) &&
+                      pinnedAnalyteIds.length >= 6
+                    }
+                  />{" "}
+                  {analyte.name}
+                </label>
+              ))}
+            </Stack>
+          </Stack>
           <select
             aria-label="Compare analyte"
             value={compareAnalyteId}
@@ -750,20 +805,24 @@ function UnlockedVault({
                 </option>
               ))}
           </select>
-          {trendAnalyteId ? (
+          {trendAnalyteId || pinnedAnalyteIds.length ? (
             <Stack gap="4">
-              <TrendPlot
-                title="Local analyte trend"
-                points={trend.points}
-                onOpenReport={openReportFromTrend}
-              />
-              {trend.excluded ? (
-                <Text color="orange.700" fontSize="sm" role="status">
-                  {trend.excluded} result could not be normalized and is not
-                  connected to this series.
-                </Text>
+              {trendAnalyteId ? (
+                <Stack gap="2">
+                  <TrendPlot
+                    title="Local analyte trend"
+                    points={trend.points}
+                    onOpenReport={openReportFromTrend}
+                  />
+                  {trend.excluded ? (
+                    <Text color="orange.700" fontSize="sm" role="status">
+                      {trend.excluded} result could not be normalized and is not
+                      connected to this series.
+                    </Text>
+                  ) : null}
+                </Stack>
               ) : null}
-              {compareAnalyteId ? (
+              {trendAnalyteId && compareAnalyteId ? (
                 <Stack gap="2">
                   <TrendPlot
                     title="Compared analyte trend"
@@ -776,6 +835,34 @@ function UnlockedVault({
                       normalized and is not connected to this series.
                     </Text>
                   ) : null}
+                </Stack>
+              ) : null}
+              {pinnedAnalyteIds.length ? (
+                <Stack gap="4" aria-label="Pinned analyte overview">
+                  <Heading as="h3" size="md">
+                    Pinned analytes
+                  </Heading>
+                  {pinnedAnalyteIds.map((analyteId) => {
+                    const pinned = analytes.find(
+                      (item) => item.id === analyteId,
+                    );
+                    const pinnedTrend = buildTrend(analyteId);
+                    return pinned ? (
+                      <Stack key={analyteId} gap="2">
+                        <TrendPlot
+                          title={pinned.name}
+                          points={pinnedTrend.points}
+                          onOpenReport={openReportFromTrend}
+                        />
+                        {pinnedTrend.excluded ? (
+                          <Text color="orange.700" fontSize="sm" role="status">
+                            {pinnedTrend.excluded} result could not be
+                            normalized for this pinned series.
+                          </Text>
+                        ) : null}
+                      </Stack>
+                    ) : null;
+                  })}
                 </Stack>
               ) : null}
             </Stack>
