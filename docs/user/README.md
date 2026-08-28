@@ -58,6 +58,8 @@ The table also shows missing and flagged results. A plot does not give medical a
 
 Hemo Tracker uses the analyte canonical unit for a connected trend. It excludes a result when the value is not numeric or the unit is invalid or incompatible. The interface shows the number of excluded results. The source report keeps the original value and unit.
 
+The table can classify a result as below target, in target, or above target. Hemo Tracker does this only when one personal target range applies to the collection date and its unit can be normalized safely. It does not classify the result when ranges overlap or an applicability note needs human interpretation. **Not evaluated** does not mean that the result is healthy or unhealthy.
+
 Select **Compare with another analyte** to show a second local series. Use the source units and flags to check that the two series are meaningful to compare. Hemo Tracker does not convert incompatible units.
 
 ## Add a personal target range

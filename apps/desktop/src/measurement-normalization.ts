@@ -1,6 +1,10 @@
 import { UcumLhcUtils } from "@lhncbc/ucum-lhc";
 
-import type { AnalyteDefinition, ReportSummary } from "./vault-client";
+import type {
+  AnalyteDefinition,
+  PersonalTargetRange,
+  ReportSummary,
+} from "./vault-client";
 
 const RULE_ID = "ucum-lhc@7.1.9:automatic";
 const ucum = UcumLhcUtils.getInstance();
@@ -114,5 +118,68 @@ export function normalizeMeasurement(
     value: conversion.toVal as number,
     unit: target.ucumCode ?? analyte.canonicalUnit,
     ruleId: RULE_ID,
+  };
+}
+
+export type ApplicableTargetRange =
+  | {
+      status: "applicable";
+      lowerBound?: number;
+      upperBound?: number;
+      unit: string;
+      rangeId: string;
+    }
+  | {
+      status: "unavailable";
+      reason: "none" | "ambiguous" | "context-unverified" | "incompatible-unit";
+    };
+
+export function resolveApplicableTargetRange(
+  date: string,
+  ranges: PersonalTargetRange[],
+  analyte: AnalyteDefinition,
+): ApplicableTargetRange {
+  const calendarDate = date.slice(0, 10);
+  const dated = ranges.filter(
+    (range) =>
+      (!range.validFrom || calendarDate >= range.validFrom) &&
+      (!range.validTo || calendarDate <= range.validTo),
+  );
+  if (dated.some((range) => range.context?.trim()))
+    return { status: "unavailable", reason: "context-unverified" };
+  if (dated.length === 0) return { status: "unavailable", reason: "none" };
+  if (dated.length > 1) return { status: "unavailable", reason: "ambiguous" };
+
+  const range = dated[0];
+  if (!range) return { status: "unavailable", reason: "none" };
+  const normalizeBound = (sourceValue: string | undefined) => {
+    if (!sourceValue) return undefined;
+    const result = normalizeMeasurement(
+      {
+        id: `target-range:${range.id}`,
+        sourceLabel: analyte.name,
+        sourceValue,
+        sourceUnit: range.unit,
+        sourceReferenceInterval: "",
+        sourceFlag: "",
+        parsedNumericValue: sourceValue.replace(",", "."),
+        analyteId: analyte.id,
+        updatedAt: "",
+        updatedBy: "local-user",
+      },
+      analyte,
+    );
+    return result.status === "normalized" ? result.value : null;
+  };
+  const lowerBound = normalizeBound(range.lowerBound);
+  const upperBound = normalizeBound(range.upperBound);
+  if (lowerBound === null || upperBound === null)
+    return { status: "unavailable", reason: "incompatible-unit" };
+  return {
+    status: "applicable",
+    lowerBound,
+    upperBound,
+    unit: analyte.canonicalUnit ?? range.unit,
+    rangeId: range.id,
   };
 }

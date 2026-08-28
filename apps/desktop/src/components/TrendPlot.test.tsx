@@ -10,7 +10,12 @@ describe("TrendPlot", () => {
         <TrendPlot
           title="Hemoglobin"
           points={[
-            { date: "2026-01-01", value: 13.7, unit: "g/dL" },
+            {
+              date: "2026-01-01",
+              value: 13.7,
+              unit: "g/dL",
+              targetStatus: "in target",
+            },
             { date: "2026-02-01", value: null, unit: "g/dL", flag: "missing" },
           ]}
         />
@@ -24,6 +29,7 @@ describe("TrendPlot", () => {
     );
     expect(screen.getByText("Missing")).toBeInTheDocument();
     expect(screen.getByText("missing")).toBeInTheDocument();
+    expect(screen.getByText("in target")).toBeInTheDocument();
   });
 
   it("renders a representative local series without failing", () => {

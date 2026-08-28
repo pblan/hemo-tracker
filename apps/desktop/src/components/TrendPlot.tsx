@@ -5,6 +5,7 @@ export type TrendPoint = {
   value: number | null;
   unit: string;
   flag?: string;
+  targetStatus?: "below target" | "in target" | "above target";
 };
 
 export function TrendPlot({
@@ -64,6 +65,7 @@ export function TrendPlot({
             <Table.ColumnHeader>Date</Table.ColumnHeader>
             <Table.ColumnHeader>Value</Table.ColumnHeader>
             <Table.ColumnHeader>Flag</Table.ColumnHeader>
+            <Table.ColumnHeader>Personal target</Table.ColumnHeader>
           </Table.Row>
         </Table.Header>
         <Table.Body>
@@ -76,6 +78,7 @@ export function TrendPlot({
                   : `${point.value} ${point.unit}`}
               </Table.Cell>
               <Table.Cell>{point.flag || "—"}</Table.Cell>
+              <Table.Cell>{point.targetStatus || "Not evaluated"}</Table.Cell>
             </Table.Row>
           ))}
         </Table.Body>

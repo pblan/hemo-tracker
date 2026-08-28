@@ -35,7 +35,10 @@ import {
 import { parseMeasurementInput } from "./measurement-parser";
 import { validateMeasurementRow } from "./measurement-validation";
 import { validatePersonalTargetRange } from "./personal-target-range-validation";
-import { normalizeMeasurement } from "./measurement-normalization";
+import {
+  normalizeMeasurement,
+  resolveApplicableTargetRange,
+} from "./measurement-normalization";
 import { TrendPlot } from "./components/TrendPlot";
 
 function App() {
@@ -578,6 +581,26 @@ function UnlockedVault({
               value: normalized.value,
               unit: normalized.unit,
               flag: measurement.sourceFlag,
+              targetStatus: (() => {
+                if (!analyte) return undefined;
+                const target = resolveApplicableTargetRange(
+                  report.collectionTime,
+                  analyte.personalTargetRanges,
+                  analyte,
+                );
+                if (target.status !== "applicable") return undefined;
+                if (
+                  target.lowerBound !== undefined &&
+                  normalized.value < target.lowerBound
+                )
+                  return "below target" as const;
+                if (
+                  target.upperBound !== undefined &&
+                  normalized.value > target.upperBound
+                )
+                  return "above target" as const;
+                return "in target" as const;
+              })(),
             },
           ]
         : [];

@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { normalizeMeasurement } from "./measurement-normalization";
+import {
+  normalizeMeasurement,
+  resolveApplicableTargetRange,
+} from "./measurement-normalization";
 import type { AnalyteDefinition, ReportSummary } from "./vault-client";
 
 const analyte: AnalyteDefinition = {
@@ -131,5 +134,53 @@ describe("normalizeMeasurement", () => {
         loincCode: "38483-4",
       }),
     ).toEqual({ status: "blocked", reason: "incompatible-unit" });
+  });
+
+  it("normalizes one date-applicable personal target range", () => {
+    expect(
+      resolveApplicableTargetRange(
+        "2026-06-01T08:00:00Z",
+        [
+          {
+            id: "range-1",
+            lowerBound: "12000",
+            upperBound: "16000",
+            unit: "mg/L",
+            validFrom: "2026-01-01",
+            validTo: "2026-12-31",
+          },
+        ],
+        analyte,
+      ),
+    ).toEqual({
+      status: "applicable",
+      lowerBound: 1.2,
+      upperBound: 1.6,
+      unit: "g/dL",
+      rangeId: "range-1",
+    });
+  });
+
+  it("does not evaluate contextual or overlapping personal ranges", () => {
+    const baseRange = {
+      id: "range-1",
+      lowerBound: "12",
+      upperBound: "16",
+      unit: "g/L",
+    };
+    expect(
+      resolveApplicableTargetRange(
+        "2026-06-01",
+        [{ ...baseRange, context: "Fasting" }],
+        analyte,
+      ),
+    ).toEqual({ status: "unavailable", reason: "context-unverified" });
+    expect(
+      resolveApplicableTargetRange(
+        "2026-06-01",
+        [baseRange, { ...baseRange, id: "range-2" }],
+        analyte,
+      ),
+    ).toEqual({ status: "unavailable", reason: "ambiguous" });
   });
 });
