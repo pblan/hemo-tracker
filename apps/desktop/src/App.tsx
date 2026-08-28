@@ -474,7 +474,8 @@ function UnlockedVault({
                       {report.laboratory || "Laboratory report"}
                     </Text>
                     <Text color="fg.muted" fontSize="sm">
-                      {report.collectionTime}
+                      {report.collectionTime} · {report.measurementCount}{" "}
+                      measurements · {report.sourceFileCount} source files
                     </Text>
                   </Stack>
                   <Text fontSize="sm" textTransform="capitalize">
