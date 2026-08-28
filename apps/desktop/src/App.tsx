@@ -29,6 +29,7 @@ import {
   readSourceFile,
   type ReportSummary,
   lockVault,
+  permanentlyDeleteLabReport,
   selectAndAttachSourceFile,
   unlockWithPassphrase,
   unlockWithRecovery,
@@ -636,6 +637,21 @@ function UnlockedVault({
       onError("Hemo Tracker could not archive the report.");
     }
   }
+  async function permanentlyDeleteReport(reportId: string) {
+    if (
+      !window.confirm(
+        "Permanently delete this archived report and its encrypted source files? This cannot be undone.",
+      )
+    )
+      return;
+    try {
+      await permanentlyDeleteLabReport(reportId, true);
+      setExpandedReportId(null);
+      setSaving((value) => !value);
+    } catch {
+      onError("Hemo Tracker could not permanently delete the report.");
+    }
+  }
   const buildTrend = (analyteId: string) => {
     const analyte = analytes.find((item) => item.id === analyteId);
     const candidates = reports.flatMap((report) =>
@@ -991,6 +1007,19 @@ function UnlockedVault({
                           }}
                         >
                           Archive report
+                        </Button>
+                      ) : null}
+                      {report.status === "archived" ? (
+                        <Button
+                          size="xs"
+                          variant="ghost"
+                          colorPalette="red"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            void permanentlyDeleteReport(report.id);
+                          }}
+                        >
+                          Permanently delete
                         </Button>
                       ) : null}
                     </Stack>
