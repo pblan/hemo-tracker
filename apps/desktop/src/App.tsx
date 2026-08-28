@@ -305,6 +305,7 @@ function UnlockedVault({
   const [analyteName, setAnalyteName] = useState("");
   const [analyteComponent, setAnalyteComponent] = useState("");
   const [analyteProperty, setAnalyteProperty] = useState("");
+  const [healthyRange, setHealthyRange] = useState("");
   const [analytes, setAnalytes] = useState<
     Awaited<ReturnType<typeof listAnalyteDefinitions>>
   >([]);
@@ -377,6 +378,7 @@ function UnlockedVault({
           specimen: "Blood",
           scale: "Quantitative",
           aliases: [],
+          healthyRange: healthyRange || undefined,
         }));
       await addLabMeasurement(reportId, {
         sourceLabel,
@@ -569,6 +571,11 @@ function UnlockedVault({
               placeholder="Property, for example concentration"
               value={analyteProperty}
               onChange={(event) => setAnalyteProperty(event.target.value)}
+            />
+            <Input
+              placeholder="Healthy range (informational, for example 120–180 g/L)"
+              value={healthyRange}
+              onChange={(event) => setHealthyRange(event.target.value)}
             />
           </Stack>
           <Field.Root required>
