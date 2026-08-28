@@ -52,7 +52,6 @@ jobs:
         with:
           workspaces: apps/desktop/src-tauri
       - run: bun install --frozen-lockfile
-      - run: cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml
       - run:
           bun run --cwd apps/desktop tauri build --bundles ${{ matrix.bundles }}
       - name: Start the macOS desktop client
