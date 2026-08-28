@@ -74,6 +74,7 @@ pub struct NewAnalyte {
     pub method: Option<String>,
     pub aliases: Vec<String>,
     pub loinc_code: Option<String>,
+    pub healthy_range: Option<String>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -210,6 +211,7 @@ impl LocalAccountVault {
                 method: analyte.method,
                 aliases: analyte.aliases,
                 loinc_code: analyte.loinc_code,
+                healthy_range: analyte.healthy_range,
             })
             .map_err(|_| LocalAccountError::Operation)?;
         Ok(id)
@@ -610,6 +612,7 @@ impl LocalAccountVault {
                 method: None,
                 aliases: Vec::new(),
                 loinc_code: loinc.map(str::to_owned),
+                healthy_range: None,
             })?;
         }
         Ok(())

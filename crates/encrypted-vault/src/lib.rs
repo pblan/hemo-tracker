@@ -11,7 +11,7 @@ use std::{
 use thiserror::Error;
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
-const SCHEMA_VERSION: i64 = 5;
+const SCHEMA_VERSION: i64 = 6;
 const KEY_BYTES: usize = 32;
 
 #[derive(Clone, Zeroize, ZeroizeOnDrop)]
@@ -102,6 +102,7 @@ pub struct AnalyteDefinition {
     pub method: Option<String>,
     pub aliases: Vec<String>,
     pub loinc_code: Option<String>,
+    pub healthy_range: Option<String>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -149,13 +150,13 @@ impl AccountVault {
     }
     pub fn upsert_analyte(&self, analyte: &AnalyteDefinition) -> Result<(), VaultError> {
         let aliases = serde_json::to_string(&analyte.aliases).map_err(|_| VaultError::Operation)?;
-        self.connection.execute("INSERT INTO analyte_definitions (id,name,component,property,specimen,scale,method,aliases_json,loinc_code) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9) ON CONFLICT(id) DO UPDATE SET name=excluded.name,component=excluded.component,property=excluded.property,specimen=excluded.specimen,scale=excluded.scale,method=excluded.method,aliases_json=excluded.aliases_json,loinc_code=excluded.loinc_code", params![analyte.id, analyte.name, analyte.component, analyte.property, analyte.specimen, analyte.scale, analyte.method, aliases, analyte.loinc_code]).map_err(|_| VaultError::Operation)?;
+        self.connection.execute("INSERT INTO analyte_definitions (id,name,component,property,specimen,scale,method,aliases_json,loinc_code,healthy_range) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10) ON CONFLICT(id) DO UPDATE SET name=excluded.name,component=excluded.component,property=excluded.property,specimen=excluded.specimen,scale=excluded.scale,method=excluded.method,aliases_json=excluded.aliases_json,loinc_code=excluded.loinc_code,healthy_range=excluded.healthy_range", params![analyte.id, analyte.name, analyte.component, analyte.property, analyte.specimen, analyte.scale, analyte.method, aliases, analyte.loinc_code, analyte.healthy_range]).map_err(|_| VaultError::Operation)?;
         Ok(())
     }
 
     pub fn list_analytes(&self) -> Result<Vec<AnalyteDefinition>, VaultError> {
-        let mut statement = self.connection.prepare("SELECT id,name,component,property,specimen,scale,method,aliases_json,loinc_code FROM analyte_definitions ORDER BY name").map_err(|_| VaultError::Operation)?;
-        statement.query_map([], |row| Ok(AnalyteDefinition { id: row.get(0)?, name: row.get(1)?, component: row.get(2)?, property: row.get(3)?, specimen: row.get(4)?, scale: row.get(5)?, method: row.get(6)?, aliases: serde_json::from_str(&row.get::<_, String>(7)?).unwrap_or_default(), loinc_code: row.get(8)? })).map_err(|_| VaultError::Operation)?.collect::<Result<Vec<_>, _>>().map_err(|_| VaultError::Operation)
+        let mut statement = self.connection.prepare("SELECT id,name,component,property,specimen,scale,method,aliases_json,loinc_code,healthy_range FROM analyte_definitions ORDER BY name").map_err(|_| VaultError::Operation)?;
+        statement.query_map([], |row| Ok(AnalyteDefinition { id: row.get(0)?, name: row.get(1)?, component: row.get(2)?, property: row.get(3)?, specimen: row.get(4)?, scale: row.get(5)?, method: row.get(6)?, aliases: serde_json::from_str(&row.get::<_, String>(7)?).unwrap_or_default(), loinc_code: row.get(8)?, healthy_range: row.get(9)? })).map_err(|_| VaultError::Operation)?.collect::<Result<Vec<_>, _>>().map_err(|_| VaultError::Operation)
     }
 
     fn open(path: impl AsRef<Path>, key: &VaultKey) -> Result<Self, VaultError> {
@@ -662,7 +663,7 @@ fn migrate(connection: &Connection) -> Result<(), VaultError> {
                  CREATE TABLE analyte_definitions (
                      id TEXT PRIMARY KEY, name TEXT NOT NULL, component TEXT NOT NULL,
                      property TEXT NOT NULL, specimen TEXT NOT NULL, scale TEXT NOT NULL,
-                     method TEXT, aliases_json TEXT NOT NULL, loinc_code TEXT
+                     method TEXT, aliases_json TEXT NOT NULL, loinc_code TEXT, healthy_range TEXT
                  );
                  CREATE TABLE measurements (
                      id TEXT PRIMARY KEY,
@@ -675,7 +676,7 @@ fn migrate(connection: &Connection) -> Result<(), VaultError> {
                      analyte_id TEXT, updated_at TEXT NOT NULL, updated_by TEXT NOT NULL
                  );
                  CREATE TABLE archived_reports (report_id TEXT PRIMARY KEY REFERENCES reports(id) ON DELETE CASCADE, archived_at TEXT NOT NULL);
-                 PRAGMA user_version = 5;
+                 PRAGMA user_version = 6;
                  COMMIT;",
             )
             .map_err(|_| VaultError::InvalidKeyOrVault)?;
@@ -705,7 +706,7 @@ fn migrate(connection: &Connection) -> Result<(), VaultError> {
                  CREATE TABLE analyte_definitions (
                      id TEXT PRIMARY KEY, name TEXT NOT NULL, component TEXT NOT NULL,
                      property TEXT NOT NULL, specimen TEXT NOT NULL, scale TEXT NOT NULL,
-                     method TEXT, aliases_json TEXT NOT NULL, loinc_code TEXT
+                     method TEXT, aliases_json TEXT NOT NULL, loinc_code TEXT, healthy_range TEXT
                  );
                  CREATE TABLE measurements (
                      id TEXT PRIMARY KEY,
@@ -718,7 +719,7 @@ fn migrate(connection: &Connection) -> Result<(), VaultError> {
                      analyte_id TEXT, updated_at TEXT NOT NULL, updated_by TEXT NOT NULL
                  );
                  CREATE TABLE archived_reports (report_id TEXT PRIMARY KEY REFERENCES reports(id) ON DELETE CASCADE, archived_at TEXT NOT NULL);
-                 PRAGMA user_version = 5;
+                 PRAGMA user_version = 6;
                  COMMIT;",
             )
             .map_err(|_| VaultError::InvalidKeyOrVault)?;
@@ -730,6 +731,8 @@ fn migrate(connection: &Connection) -> Result<(), VaultError> {
         connection.execute_batch("BEGIN IMMEDIATE; CREATE TABLE archived_reports (report_id TEXT PRIMARY KEY REFERENCES reports(id) ON DELETE CASCADE, archived_at TEXT NOT NULL); PRAGMA user_version = 4; COMMIT;").map_err(|_| VaultError::InvalidKeyOrVault)?;
     } else if version == 4 {
         connection.execute_batch("BEGIN IMMEDIATE; ALTER TABLE measurements ADD COLUMN updated_at TEXT NOT NULL DEFAULT ''; ALTER TABLE measurements ADD COLUMN updated_by TEXT NOT NULL DEFAULT 'local-user'; PRAGMA user_version = 5; COMMIT;").map_err(|_| VaultError::InvalidKeyOrVault)?;
+    } else if version == 5 {
+        connection.execute_batch("BEGIN IMMEDIATE; ALTER TABLE analyte_definitions ADD COLUMN healthy_range TEXT; PRAGMA user_version = 6; COMMIT;").map_err(|_| VaultError::InvalidKeyOrVault)?;
     } else if version != SCHEMA_VERSION {
         return Err(VaultError::InvalidKeyOrVault);
     }

@@ -62,6 +62,7 @@ export const addAnalyteDefinition = (request: {
   method?: string;
   aliases: string[];
   loincCode?: string;
+  healthyRange?: string;
 }) => invoke<string>("add_analyte_definition", { request });
 export type AnalyteDefinition = {
   id: string;
@@ -73,6 +74,7 @@ export type AnalyteDefinition = {
   method?: string;
   aliases: string[];
   loincCode?: string;
+  healthyRange?: string;
 };
 export const listAnalyteDefinitions = () =>
   invoke<AnalyteDefinition[]>("list_analyte_definitions");

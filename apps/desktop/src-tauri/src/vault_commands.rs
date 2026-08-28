@@ -63,6 +63,7 @@ pub struct AnalyteRequest {
     pub method: Option<String>,
     pub aliases: Vec<String>,
     pub loinc_code: Option<String>,
+    pub healthy_range: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -77,6 +78,7 @@ pub struct AnalyteResult {
     pub method: Option<String>,
     pub aliases: Vec<String>,
     pub loinc_code: Option<String>,
+    pub healthy_range: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -282,6 +284,7 @@ pub fn add_analyte_definition(
             method: request.method,
             aliases: request.aliases,
             loinc_code: request.loinc_code,
+            healthy_range: request.healthy_range,
         })
         .map_err(|_| safe_error())
 }
@@ -308,6 +311,7 @@ pub fn list_analyte_definitions(
                     method: item.method,
                     aliases: item.aliases,
                     loinc_code: item.loinc_code,
+                    healthy_range: item.healthy_range,
                 })
                 .collect()
         })

@@ -109,6 +109,7 @@ fn user_records_and_reopens_one_complete_lab_report_with_encrypted_evidence() {
             method: None,
             aliases: vec!["Hb".to_owned()],
             loinc_code: Some("718-7".to_owned()),
+            healthy_range: Some("120-180 g/L (example only)".to_owned()),
         })
         .unwrap();
     assert!(vault.list_analytes().unwrap().len() >= 5);
