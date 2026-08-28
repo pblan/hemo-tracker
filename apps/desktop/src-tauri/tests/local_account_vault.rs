@@ -133,6 +133,17 @@ fn user_records_and_reopens_one_complete_lab_report_with_encrypted_evidence() {
         )
         .unwrap();
     vault
+        .add_source_file(
+            &report_id,
+            fs::File::open(&source_path).unwrap(),
+            NewSourceFile {
+                original_filename: "fictional-report-page-2.pdf".to_owned(),
+                media_type: "application/pdf".to_owned(),
+                role: "supplement".to_owned(),
+            },
+        )
+        .unwrap();
+    vault
         .add_measurement(
             &report_id,
             NewMeasurement {
@@ -168,6 +179,7 @@ fn user_records_and_reopens_one_complete_lab_report_with_encrypted_evidence() {
         report.source_files[0].original_filename,
         "fictional-report.pdf"
     );
+    assert_eq!(report.source_files.len(), 2);
 
     vault.lock();
     drop(vault);
