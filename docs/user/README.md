@@ -33,6 +33,15 @@ The correction changes the current value. The source file remains immutable. Hem
 
 Use **Report history** after you unlock the vault. Enter a laboratory name in **Search reports** to filter the list. The list shows the collection time and report state.
 
+## Save an encrypted backup
+
+1. Unlock the local vault.
+2. Select **Save encrypted backup**.
+3. Select a destination in the native save dialog.
+4. Store the backup separately from the computer.
+
+Hemo Tracker encrypts the backup. The backup does not contain the passphrase or recovery key. Keep the backup and recovery material separate.
+
 ## Read a trend
 
 A trend plot shows the change for one analyte. Read the data table below the plot when you need exact values. The table also shows missing and flagged results. A plot does not give medical advice.
