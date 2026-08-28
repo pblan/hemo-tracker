@@ -63,6 +63,7 @@ export function TrendPlot({
             width: host.clientWidth || 640,
             height: 180,
             scales: { x: { time: true } },
+            cursor: { drag: { x: true, y: false, setScale: true } },
             series: [{}, { label: title, stroke: "currentColor", width: 2 }],
             axes: [{}, { label: "Value" }],
           },
@@ -91,6 +92,10 @@ export function TrendPlot({
     >
       <Text fontWeight="semibold" mb="3">
         {title}
+      </Text>
+      <Text color="fg.muted" fontSize="sm" mb="2">
+        Drag across the plot to zoom the collection-time range. Use the table
+        for keyboard inspection and exact values.
       </Text>
       <Box ref={plotHost} aria-hidden="true" minH="180px" />
       {!plotReady ? (
