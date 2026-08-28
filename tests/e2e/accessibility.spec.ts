@@ -40,7 +40,7 @@ test("unlocked webview has no automated WCAG violations", async ({ page }) => {
   );
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: "Record a lab report" }),
+    page.getByRole("heading", { name: "Analyte trend" }),
   ).toBeVisible();
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations).toEqual([]);

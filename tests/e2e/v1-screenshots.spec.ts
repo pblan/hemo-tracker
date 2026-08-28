@@ -31,9 +31,8 @@ test("capture unlocked overview", async ({ page }) => {
   await mockTauri(page, "unlocked");
   await page.goto("/");
   await page.getByLabel("Trend analyte").selectOption("hemoglobin");
-  await page.getByLabel("Target range analyte").selectOption("hemoglobin");
   await expect(
-    page.getByText("Fictional Central Laboratory").first(),
+    page.getByText("Local analyte trend", { exact: true }).first(),
   ).toBeVisible();
   await page.screenshot({
     path: path.join(screenshotDirectory, "desktop-unlocked-overview.png"),
