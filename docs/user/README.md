@@ -15,11 +15,11 @@ Hemo Tracker stores laboratory reports in an encrypted local vault. It does not 
 
 After unlocking, use the application menu to move between focused pages:
 
-- **Overview**: quick view of trends, ranges, reports, and recording actions.
+- **Overview**: quick view of selected analyte trends.
 - **Trends**: inspect and compare analytes with an accessible data table.
-- **Analytes**: review saved definitions and canonical units.
+- **Analytes**: create and review saved definitions, canonical units, and personal target ranges.
 - **Reports**: search reports, inspect source files, and relink results.
-- **Record**: add reports, source files, and manually entered measurements.
+- **Record**: add reports, source files, and manually entered measurements. Select an existing analyte for each measurement, or leave it unlinked and relink it later.
 - **Settings**: manage backups, restore, export, locking, and demo reset.
 
 The selected item is marked as the current page. Navigation is local and does

@@ -12,6 +12,7 @@ vi.mock("./vault-client", () => ({
   lockVault: vi.fn(),
   resetLocalVault: vi.fn(),
   addPersonalTargetRange: vi.fn(),
+  addAnalyteDefinition: vi.fn(),
   listAnalyteDefinitions: vi.fn(),
   listLabReports: vi.fn(),
   getLabReport: vi.fn(),
@@ -110,9 +111,7 @@ describe("desktop application shell", () => {
     expect(vaultClient.unlockWithPassphrase).toHaveBeenCalledWith(
       "valid passphrase",
     );
-    expect(
-      await screen.findByRole("heading", { name: "Record a lab report" }),
-    ).toBeVisible();
+    await user.click(await screen.findByRole("button", { name: "Reports" }));
     expect(
       await screen.findByText("Fictional Central Laboratory"),
     ).toBeVisible();
@@ -124,6 +123,10 @@ describe("desktop application shell", () => {
     expect(
       screen.queryByText("Fictional Central Laboratory"),
     ).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Record" }));
+    expect(
+      await screen.findByRole("heading", { name: "Record a lab report" }),
+    ).toBeVisible();
   });
 
   it("clears a rejected passphrase before the user retries", async () => {
@@ -176,6 +179,7 @@ describe("desktop application shell", () => {
       </Provider>,
     );
 
+    await user.click(await screen.findByRole("button", { name: "Analytes" }));
     const analyteSelect = await screen.findByLabelText("Target range analyte");
     await within(analyteSelect).findByRole("option", { name: "Hemoglobin" });
     await user.selectOptions(analyteSelect, "hemoglobin");
@@ -201,6 +205,43 @@ describe("desktop application shell", () => {
     );
   });
 
+  it("manages analyte definitions outside report entry", async () => {
+    vi.mocked(vaultClient.getVaultState).mockResolvedValue({
+      accountExists: true,
+      status: "unlocked",
+    });
+    vi.mocked(vaultClient.addAnalyteDefinition).mockResolvedValue("ferritin");
+    const user = userEvent.setup();
+    render(
+      <Provider>
+        <App />
+      </Provider>,
+    );
+
+    await user.click(await screen.findByRole("button", { name: "Analytes" }));
+    await user.type(screen.getByLabelText("Analyte name"), "Ferritin");
+    await user.type(screen.getByLabelText("Analyte component"), "Ferritin");
+    await user.type(
+      screen.getByLabelText("Analyte property"),
+      "Mass concentration",
+    );
+    await user.type(screen.getByLabelText("Canonical unit"), "µg/L");
+    await user.click(
+      screen.getByRole("button", { name: "Save analyte definition" }),
+    );
+
+    expect(vaultClient.addAnalyteDefinition).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "Ferritin",
+        canonicalUnit: "µg/L",
+      }),
+    );
+    await user.click(screen.getByRole("button", { name: "Record" }));
+    expect(
+      screen.queryByRole("button", { name: "Save analyte definition" }),
+    ).not.toBeInTheDocument();
+  });
+
   it("resets an unlocked vault and presents the new recovery key", async () => {
     vi.mocked(vaultClient.getVaultState).mockResolvedValue({
       accountExists: true,
@@ -216,6 +257,7 @@ describe("desktop application shell", () => {
       </Provider>,
     );
 
+    await user.click(await screen.findByRole("button", { name: "Settings" }));
     await user.type(
       await screen.findByLabelText("Current passphrase"),
       "correct horse battery staple",

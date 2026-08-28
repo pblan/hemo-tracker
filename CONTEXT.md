@@ -14,6 +14,7 @@ _Avoid_: Document, attachment
 
 **Measurement**:
 One recorded result in a lab report. It keeps the original value, unit, range, flag, and source label.
+It can link to an analyte definition, but it does not create or change one.
 _Avoid_: Value, blood parameter, result row
 
 **Analyte**:
@@ -26,6 +27,7 @@ _Avoid_: Analyte name, label
 
 **Analyte definition**:
 The editable catalog entry that describes an analyte identity, aliases, display rules, and safe normalization rules.
+It exists independently of any report. Users manage definitions in the analyte catalog before linking measurements.
 _Avoid_: Parameter definition, schema
 
 **Source value**:

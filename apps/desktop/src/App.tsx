@@ -401,7 +401,9 @@ function UnlockedVault({
   const [analytes, setAnalytes] = useState<
     Awaited<ReturnType<typeof listAnalyteDefinitions>>
   >([]);
-  const [selectedAnalyteId, setSelectedAnalyteId] = useState("");
+  const [measurementAnalyteId, setMeasurementAnalyteId] = useState("");
+  const [secondMeasurementAnalyteId, setSecondMeasurementAnalyteId] =
+    useState("");
   const [sourceFilename, setSourceFilename] = useState<string | null>(null);
   const [sourceRole, setSourceRole] = useState("primary");
   const [saving, setSaving] = useState(false);
@@ -454,6 +456,8 @@ function UnlockedVault({
   const [additionalLabel, setAdditionalLabel] = useState("");
   const [additionalValue, setAdditionalValue] = useState("");
   const [additionalUnit, setAdditionalUnit] = useState("");
+  const [additionalMeasurementAnalyteId, setAdditionalMeasurementAnalyteId] =
+    useState("");
 
   useEffect(() => {
     void listAnalyteDefinitions()
@@ -531,7 +535,7 @@ function UnlockedVault({
           parsedSourceValue.kind === "number"
             ? parsedSourceValue.normalized
             : undefined,
-        analyteId: selectedAnalyteId || undefined,
+        analyteId: measurementAnalyteId || undefined,
       });
       if (extraMeasurement) {
         const parsedSecondValue = parseMeasurementInput(secondValue, "de-DE");
@@ -545,7 +549,7 @@ function UnlockedVault({
             parsedSecondValue.kind === "number"
               ? parsedSecondValue.normalized
               : undefined,
-          analyteId: selectedAnalyteId || undefined,
+          analyteId: secondMeasurementAnalyteId || undefined,
         });
       }
       await completeLabReport(reportId);
@@ -777,12 +781,13 @@ function UnlockedVault({
         sourceFlag: "",
         parsedNumericValue:
           parsed.kind === "number" ? parsed.normalized : undefined,
-        analyteId: selectedAnalyteId || undefined,
+        analyteId: additionalMeasurementAnalyteId || undefined,
       });
       setAddingMeasurementReportId(null);
       setAdditionalLabel("");
       setAdditionalValue("");
       setAdditionalUnit("");
+      setAdditionalMeasurementAnalyteId("");
       setDataVersion((value) => value + 1);
     } catch {
       onError("Hemo Tracker could not save the measurement.");
@@ -1024,7 +1029,7 @@ function UnlockedVault({
       <Stack gap="6" minW="0">
         <Box
           id="analytes"
-          hidden={activePage !== "overview" && activePage !== "analytes"}
+          hidden={activePage !== "analytes"}
           bg="bg.panel"
           borderWidth="1px"
           borderColor="border"
@@ -1263,7 +1268,7 @@ function UnlockedVault({
         </Box>
         <Box
           id="ranges"
-          hidden={activePage !== "overview" && activePage !== "trends"}
+          hidden={activePage !== "analytes"}
           as="form"
           bg="bg.panel"
           borderWidth="1px"
@@ -1387,7 +1392,7 @@ function UnlockedVault({
         </Box>
         <Box
           id="reports"
-          hidden={activePage !== "overview" && activePage !== "reports"}
+          hidden={activePage !== "reports"}
           bg="bg.panel"
           borderWidth="1px"
           borderColor="border"
@@ -1549,6 +1554,22 @@ function UnlockedVault({
                           direction={{ base: "column", sm: "row" }}
                           gap="2"
                         >
+                          <select
+                            aria-label="Additional measurement analyte"
+                            value={additionalMeasurementAnalyteId}
+                            onChange={(event) =>
+                              setAdditionalMeasurementAnalyteId(
+                                event.target.value,
+                              )
+                            }
+                          >
+                            <option value="">No analyte link</option>
+                            {analytes.map((analyte) => (
+                              <option key={analyte.id} value={analyte.id}>
+                                {analyte.name}
+                              </option>
+                            ))}
+                          </select>
                           <Input
                             aria-label="Additional measurement label"
                             placeholder="Analyte label"
@@ -1719,7 +1740,7 @@ function UnlockedVault({
         </Box>
         <Box
           id="tools"
-          hidden={activePage !== "overview" && activePage !== "reports"}
+          hidden={activePage !== "reports"}
           borderWidth="1px"
           borderColor="border"
           borderRadius="xl"
@@ -1792,7 +1813,7 @@ function UnlockedVault({
         </Box>
         <Box
           id="record"
-          hidden={activePage !== "overview" && activePage !== "record"}
+          hidden={activePage !== "record"}
           bgGradient="to-r"
           gradientFrom="teal.700"
           gradientTo="cyan.600"
@@ -1846,8 +1867,10 @@ function UnlockedVault({
                 <Field.Label>Use a saved analyte</Field.Label>
                 <select
                   aria-label="Use a saved analyte"
-                  value={selectedAnalyteId}
-                  onChange={(event) => setSelectedAnalyteId(event.target.value)}
+                  value={measurementAnalyteId}
+                  onChange={(event) =>
+                    setMeasurementAnalyteId(event.target.value)
+                  }
                 >
                   <option value="">No analyte link</option>
                   {analytes.map((analyte) => (
@@ -1880,6 +1903,23 @@ function UnlockedVault({
                 <Heading as="h4" size="sm">
                   Second result
                 </Heading>
+                <Field.Root>
+                  <Field.Label>Saved analyte link</Field.Label>
+                  <select
+                    aria-label="Second measurement analyte"
+                    value={secondMeasurementAnalyteId}
+                    onChange={(event) =>
+                      setSecondMeasurementAnalyteId(event.target.value)
+                    }
+                  >
+                    <option value="">No analyte link</option>
+                    {analytes.map((analyte) => (
+                      <option key={analyte.id} value={analyte.id}>
+                        {analyte.name}
+                      </option>
+                    ))}
+                  </select>
+                </Field.Root>
                 <Input
                   placeholder="Source label"
                   value={secondLabel}
@@ -2034,7 +2074,7 @@ function UnlockedVault({
           </Stack>
         </Box>
         <Stack
-          hidden={activePage !== "overview" && activePage !== "settings"}
+          hidden={activePage !== "settings"}
           direction={{ base: "column", sm: "row" }}
           gap="3"
         >
@@ -2054,7 +2094,7 @@ function UnlockedVault({
           </Button>
         </Stack>
         <Box
-          hidden={activePage !== "overview" && activePage !== "settings"}
+          hidden={activePage !== "settings"}
           borderWidth="1px"
           borderColor="border"
           borderRadius="xl"
@@ -2083,7 +2123,7 @@ function UnlockedVault({
           </Stack>
         </Box>
         <Box
-          hidden={activePage !== "overview" && activePage !== "settings"}
+          hidden={activePage !== "settings"}
           borderWidth="1px"
           borderColor="red.300"
           borderRadius="xl"
@@ -2128,7 +2168,7 @@ function UnlockedVault({
           </Stack>
         </Box>
         <Button
-          hidden={activePage !== "overview" && activePage !== "settings"}
+          hidden={activePage !== "settings"}
           alignSelf="start"
           variant="outline"
           onClick={() => void exportPlaintext()}
