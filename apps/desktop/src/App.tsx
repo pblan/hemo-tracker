@@ -375,6 +375,9 @@ function UnlockedVault({
   onError: (message: string) => void;
   onNotice: (message: string) => void;
 }) {
+  type Page =
+    "overview" | "trends" | "analytes" | "reports" | "record" | "settings";
+  const [activePage, setActivePage] = useState<Page>("overview");
   const [collectionTime, setCollectionTime] = useState("");
   const [laboratory, setLaboratory] = useState("");
   const [sourceLabel, setSourceLabel] = useState("");
@@ -961,26 +964,72 @@ function UnlockedVault({
       >
         <Stack direction={{ base: "column", sm: "row" }} gap="1">
           {[
-            ["trend", "Trends"],
-            ["ranges", "Ranges"],
+            ["overview", "Overview"],
+            ["trends", "Trends"],
+            ["analytes", "Analytes"],
             ["reports", "Reports"],
             ["record", "Record"],
-            ["tools", "Tools"],
-          ].map(([id, label]) => (
+            ["settings", "Settings"],
+          ].map(([page, label]) => (
             <Button
-              key={id}
-              asChild
-              variant="ghost"
+              key={page}
+              variant={activePage === page ? "subtle" : "ghost"}
               size="sm"
               justifyContent="start"
+              aria-current={activePage === page ? "page" : undefined}
+              onClick={() => setActivePage(page as Page)}
             >
-              <a href={`#${id}`}>{label}</a>
+              {label}
             </Button>
           ))}
         </Stack>
       </Box>
       <Box
+        id="analytes"
+        hidden={activePage !== "overview" && activePage !== "analytes"}
+        bg="bg.panel"
+        borderWidth="1px"
+        borderColor="border"
+        borderRadius="2xl"
+        p={{ base: "5", md: "6" }}
+      >
+        <Stack gap="4">
+          <Stack gap="1">
+            <Heading as="h2" size="lg">
+              Analyte settings
+            </Heading>
+            <Text color="fg.muted" fontSize="sm">
+              Review the saved definitions, canonical units, and personal ranges
+              used by trends.
+            </Text>
+          </Stack>
+          {analytes.length ? (
+            <Stack as="ul" gap="2" pl="5">
+              {analytes.map((analyte) => (
+                <Box as="li" key={analyte.id}>
+                  <Text fontWeight="semibold">{analyte.name}</Text>
+                  <Text color="fg.muted" fontSize="sm">
+                    {analyte.component} · {analyte.property} ·{" "}
+                    {analyte.canonicalUnit || "source units"}
+                  </Text>
+                </Box>
+              ))}
+            </Stack>
+          ) : (
+            <Text color="fg.muted">No analyte definitions saved yet.</Text>
+          )}
+          <Button
+            alignSelf="start"
+            variant="outline"
+            onClick={() => setActivePage("record")}
+          >
+            Add an analyte while recording a report
+          </Button>
+        </Stack>
+      </Box>
+      <Box
         id="trend"
+        hidden={activePage !== "overview" && activePage !== "trends"}
         bg="bg.panel"
         borderWidth="1px"
         borderColor="border"
@@ -1130,6 +1179,7 @@ function UnlockedVault({
       </Box>
       <Box
         id="ranges"
+        hidden={activePage !== "overview" && activePage !== "trends"}
         as="form"
         bg="bg.panel"
         borderWidth="1px"
@@ -1253,6 +1303,7 @@ function UnlockedVault({
       </Box>
       <Box
         id="reports"
+        hidden={activePage !== "overview" && activePage !== "reports"}
         bg="bg.panel"
         borderWidth="1px"
         borderColor="border"
@@ -1578,6 +1629,7 @@ function UnlockedVault({
       </Box>
       <Box
         id="tools"
+        hidden={activePage !== "overview" && activePage !== "reports"}
         borderWidth="1px"
         borderColor="border"
         borderRadius="xl"
@@ -1650,6 +1702,7 @@ function UnlockedVault({
       </Box>
       <Box
         id="record"
+        hidden={activePage !== "overview" && activePage !== "record"}
         bgGradient="to-r"
         gradientFrom="teal.700"
         gradientTo="cyan.600"
@@ -1904,7 +1957,11 @@ function UnlockedVault({
           </Button>
         </Stack>
       </Box>
-      <Stack direction={{ base: "column", sm: "row" }} gap="3">
+      <Stack
+        hidden={activePage !== "overview" && activePage !== "settings"}
+        direction={{ base: "column", sm: "row" }}
+        gap="3"
+      >
         <Button
           alignSelf="start"
           variant="outline"
@@ -1916,7 +1973,13 @@ function UnlockedVault({
           Lock vault
         </Button>
       </Stack>
-      <Box borderWidth="1px" borderColor="border" borderRadius="xl" p="4">
+      <Box
+        hidden={activePage !== "overview" && activePage !== "settings"}
+        borderWidth="1px"
+        borderColor="border"
+        borderRadius="xl"
+        p="4"
+      >
         <Stack gap="3">
           <Text fontWeight="semibold">Restore an encrypted backup</Text>
           <Text color="fg.muted" fontSize="sm">
@@ -1940,6 +2003,7 @@ function UnlockedVault({
         </Stack>
       </Box>
       <Box
+        hidden={activePage !== "overview" && activePage !== "settings"}
         borderWidth="1px"
         borderColor="red.300"
         borderRadius="xl"
@@ -1984,6 +2048,7 @@ function UnlockedVault({
         </Stack>
       </Box>
       <Button
+        hidden={activePage !== "overview" && activePage !== "settings"}
         alignSelf="start"
         variant="outline"
         onClick={() => void exportPlaintext()}

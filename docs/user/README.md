@@ -11,6 +11,20 @@ Use the [macOS installation guide](install-macos.md) or [Windows installation gu
 
 Hemo Tracker stores laboratory reports in an encrypted local vault. It does not give medical advice.
 
+## Application menu
+
+After unlocking, use the application menu to move between focused pages:
+
+- **Overview**: quick view of trends, ranges, reports, and recording actions.
+- **Trends**: inspect and compare analytes with an accessible data table.
+- **Analytes**: review saved definitions and canonical units.
+- **Reports**: search reports, inspect source files, and relink results.
+- **Record**: add reports, source files, and manually entered measurements.
+- **Settings**: manage backups, restore, export, locking, and demo reset.
+
+The selected item is marked as the current page. Navigation is local and does
+not upload or synchronize data.
+
 ## Quick start
 
 ![Hemo Tracker locked-vault screen with passphrase and recovery-key unlock forms.](../assets/screenshots/v1/desktop-locked-vault.png)

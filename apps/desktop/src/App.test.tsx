@@ -241,4 +241,41 @@ describe("desktop application shell", () => {
     expect(await screen.findByText("HTRK1-reset-recovery-code")).toBeVisible();
     confirm.mockRestore();
   });
+
+  it("navigates between focused vault pages", async () => {
+    vi.mocked(vaultClient.getVaultState).mockResolvedValue({
+      accountExists: true,
+      status: "unlocked",
+    });
+    vi.mocked(vaultClient.listAnalyteDefinitions).mockResolvedValue([
+      {
+        id: "hemoglobin",
+        name: "Hemoglobin",
+        component: "Hemoglobin",
+        property: "MCnc",
+        specimen: "Blood",
+        scale: "Quantitative",
+        aliases: [],
+        personalTargetRanges: [],
+      },
+    ]);
+    const user = userEvent.setup();
+    render(
+      <Provider>
+        <App />
+      </Provider>,
+    );
+
+    await user.click(await screen.findByRole("button", { name: "Analytes" }));
+    expect(
+      screen.getByRole("heading", { name: "Analyte settings" }),
+    ).toBeVisible();
+    expect(screen.getByRole("button", { name: "Analytes" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(
+      screen.queryByRole("heading", { name: "Record a lab report" }),
+    ).not.toBeInTheDocument();
+  });
 });
