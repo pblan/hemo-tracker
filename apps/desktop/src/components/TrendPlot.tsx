@@ -89,6 +89,7 @@ export function TrendPlot({
     .join(" ");
   const plotHost = useRef<HTMLDivElement>(null);
   const [plotReady, setPlotReady] = useState(false);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   useEffect(() => {
     const host = plotHost.current;
     if (!host || numeric.length < 2) {
@@ -185,6 +186,14 @@ export function TrendPlot({
             },
             cursor: { drag: { x: true, y: false, setScale: true } },
             hooks: {
+              setCursor: [
+                (currentPlot) =>
+                  setHoveredIndex(
+                    currentPlot.cursor.idx === undefined
+                      ? null
+                      : currentPlot.cursor.idx,
+                  ),
+              ],
               setScale: [
                 (currentPlot, scaleKey) => {
                   if (scaleKey !== "x" || !onTimeRangeChange) return;
@@ -240,6 +249,17 @@ export function TrendPlot({
         for keyboard inspection and exact values.
       </Text>
       <Box ref={plotHost} aria-hidden="true" minH="180px" />
+      {hoveredIndex !== null && numeric[hoveredIndex] ? (
+        <Text role="status" aria-live="polite" fontSize="sm">
+          Selected {numeric[hoveredIndex].date}: source{" "}
+          {numeric[hoveredIndex].sourceValue || "not recorded"}{" "}
+          {numeric[hoveredIndex].sourceUnit || ""}; normalized{" "}
+          {numeric[hoveredIndex].value} {numeric[hoveredIndex].unit}
+          {numeric[hoveredIndex].flag
+            ? `; flag ${numeric[hoveredIndex].flag}`
+            : ""}
+        </Text>
+      ) : null}
       {sourceBounds.some(
         (source) => source.lower !== undefined || source.upper !== undefined,
       ) || targetBounds ? (
