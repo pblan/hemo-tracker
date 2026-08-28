@@ -151,9 +151,11 @@ const reports = reportDates.map((collectionTime, reportIndex) => ({
     ];
     const isMissing = reportIndex === 6 && analyte.id === "ferritin";
     const isCorrected = reportIndex === 9 && analyte.id === "hemoglobin";
-    const value = isMissing ? "" : isCorrected ? "14.1" : baseValue;
     const unit =
       analyte.id === "glucose" && reportIndex % 2 ? "mmol/L" : baseUnit;
+    const alternateValue =
+      analyte.id === "glucose" && unit === "mmol/L" ? "5.27" : baseValue;
+    const value = isMissing ? "" : isCorrected ? "14.1" : alternateValue;
     return {
       id: `fixture-measurement-${reportIndex + 1}-${String(analyteIndex + 1).padStart(2, "0")}`,
       analyteId: analyte.id,
