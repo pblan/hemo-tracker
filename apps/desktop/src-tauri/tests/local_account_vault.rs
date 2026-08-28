@@ -102,6 +102,12 @@ fn encrypted_backup_restores_and_plaintext_export_is_a_zip() {
     .unwrap();
     let mut vault = created.into_vault();
     vault.backup_to(&backup).unwrap();
+    assert!(
+        vault
+            .restore_from_backup(&backup, "wrong passphrase".to_owned())
+            .is_err()
+    );
+    assert_eq!(vault.status(), VaultStatus::Unlocked);
     fs::create_dir(&corrupt_backup).unwrap();
     fs::write(corrupt_backup.join("account.json"), b"not-json").unwrap();
     assert!(
