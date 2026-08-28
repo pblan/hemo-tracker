@@ -27,6 +27,7 @@ import {
   listLabReports,
   getLabReport,
   readSourceFile,
+  resetLocalVault,
   type ReportSummary,
   lockVault,
   permanentlyDeleteLabReport,
@@ -112,7 +113,19 @@ function App() {
           <UnlockVault onUnlocked={setVaultState} onError={setError} />
         ) : null}
         {vaultState?.status === "unlocked" && !recoveryCode ? (
-          <UnlockedVault onLocked={setVaultState} onError={setError} />
+          <UnlockedVault
+            onLocked={setVaultState}
+            onReset={(code) => {
+              try {
+                localStorage.removeItem("hemo-tracker:pinned-analytes");
+              } catch {
+                // A stale vault-scoped preference must not block reset.
+              }
+              setRecoveryCode(code);
+              setVaultState({ accountExists: true, status: "unlocked" });
+            }}
+            onError={setError}
+          />
         ) : null}
       </Stack>
     </Box>
@@ -310,9 +323,11 @@ function UnlockVault({
 
 function UnlockedVault({
   onLocked,
+  onReset,
   onError,
 }: {
   onLocked: (state: VaultState) => void;
+  onReset: (recoveryCode: string) => void;
   onError: (message: string) => void;
 }) {
   const [collectionTime, setCollectionTime] = useState("");
@@ -375,6 +390,8 @@ function UnlockedVault({
   const [rangeNotes, setRangeNotes] = useState("");
   const [rangeMessage, setRangeMessage] = useState("");
   const [restorePassphrase, setRestorePassphrase] = useState("");
+  const [resetPassphrase, setResetPassphrase] = useState("");
+  const [resetConfirmation, setResetConfirmation] = useState("");
   const [sourcePreview, setSourcePreview] = useState<{
     filename: string;
     mediaType: string;
@@ -566,6 +583,32 @@ function UnlockedVault({
       setRestorePassphrase("");
     } catch {
       onError("Hemo Tracker could not restore that encrypted backup.");
+    }
+  }
+
+  async function resetVault() {
+    if (!resetPassphrase) {
+      onError("Enter the current passphrase before you reset the vault.");
+      return;
+    }
+    if (resetConfirmation !== "RESET DEMO VAULT") {
+      onError("Type RESET DEMO VAULT to confirm the vault reset.");
+      return;
+    }
+    if (
+      !window.confirm(
+        "This permanently deletes all current vault data and creates a fresh demo vault. No backup will be created. Continue?",
+      )
+    )
+      return;
+    try {
+      const reset = await resetLocalVault(resetPassphrase, resetConfirmation);
+      setResetPassphrase("");
+      setResetConfirmation("");
+      onReset(reset.recoveryCode);
+    } catch {
+      setResetPassphrase("");
+      onError("Hemo Tracker could not reset the local vault.");
     }
   }
 
@@ -1801,6 +1844,50 @@ function UnlockedVault({
             onClick={() => void restoreVault()}
           >
             Choose backup and restore
+          </Button>
+        </Stack>
+      </Box>
+      <Box
+        borderWidth="1px"
+        borderColor="red.300"
+        borderRadius="xl"
+        p="4"
+        bg="red.50"
+        _dark={{ bg: "red.950" }}
+      >
+        <Stack gap="3">
+          <Heading as="h2" size="md">
+            Reset vault to demo data
+          </Heading>
+          <Text fontSize="sm">
+            This permanently deletes all reports, source files, analytes,
+            personal ranges, and keys. It does not create a backup. Use this
+            only when you want a clean fictional demo vault.
+          </Text>
+          <Field.Root required>
+            <Field.Label>Current passphrase</Field.Label>
+            <Input
+              type="password"
+              autoComplete="current-password"
+              value={resetPassphrase}
+              onChange={(event) => setResetPassphrase(event.target.value)}
+            />
+          </Field.Root>
+          <Field.Root required>
+            <Field.Label>Type RESET DEMO VAULT</Field.Label>
+            <Input
+              value={resetConfirmation}
+              onChange={(event) => setResetConfirmation(event.target.value)}
+              spellCheck={false}
+              autoCapitalize="characters"
+            />
+          </Field.Root>
+          <Button
+            alignSelf="start"
+            colorPalette="red"
+            onClick={() => void resetVault()}
+          >
+            Permanently reset to demo data
           </Button>
         </Stack>
       </Box>

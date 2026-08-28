@@ -12,6 +12,7 @@ pub fn run() {
             vault_commands::unlock_with_passphrase,
             vault_commands::unlock_with_recovery,
             vault_commands::lock_vault,
+            vault_commands::reset_local_vault,
             vault_commands::create_lab_report,
             vault_commands::select_and_attach_source_file,
             vault_commands::add_lab_measurement,

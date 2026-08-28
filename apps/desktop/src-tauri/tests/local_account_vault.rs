@@ -60,6 +60,72 @@ fn user_can_create_lock_and_reopen_a_local_account_vault() {
 }
 
 #[test]
+fn user_can_reset_an_unlocked_vault_to_a_fresh_demo_set() {
+    let directory = tempdir().unwrap();
+    let account = directory.path().join("account");
+    let created = LocalAccountVault::create(
+        &account,
+        CreateLocalAccount {
+            account_id: "reset-test".to_owned(),
+            passphrase: "correct horse battery staple".to_owned(),
+        },
+    )
+    .unwrap();
+    let original_recovery_code = created.recovery_code().to_owned();
+    let mut vault = created.into_vault();
+    vault
+        .create_lab_report_draft(CreateLabReportDraft {
+            collection_time: "2026-08-28T10:00:00Z".to_owned(),
+            report_date: None,
+            laboratory: Some("Personal laboratory".to_owned()),
+            ordering_clinician: None,
+            fasting_state: None,
+            notes: None,
+            tags: Vec::new(),
+        })
+        .unwrap();
+    assert_eq!(vault.list_lab_report_ids().unwrap().len(), 4);
+
+    assert!(
+        vault
+            .reset_to_demo("wrong passphrase".to_owned(), "RESET DEMO VAULT")
+            .is_err()
+    );
+    assert_eq!(vault.list_lab_report_ids().unwrap().len(), 4);
+    assert!(
+        vault
+            .reset_to_demo("correct horse battery staple".to_owned(), "RESET")
+            .is_err()
+    );
+    assert_eq!(vault.list_lab_report_ids().unwrap().len(), 4);
+
+    let new_recovery_code = vault
+        .reset_to_demo(
+            "correct horse battery staple".to_owned(),
+            "RESET DEMO VAULT",
+        )
+        .unwrap();
+    assert!(new_recovery_code.starts_with("HTRK1-"));
+    assert_ne!(new_recovery_code, original_recovery_code);
+    assert_eq!(vault.status(), VaultStatus::Unlocked);
+    let reports = vault
+        .list_lab_report_ids()
+        .unwrap()
+        .into_iter()
+        .map(|id| vault.get_lab_report(&id).unwrap())
+        .collect::<Vec<_>>();
+    assert_eq!(reports.len(), 3);
+    assert!(reports.iter().all(|report| report.tags == vec!["demo"]));
+    assert!(reports.iter().all(|report| report.measurements.len() == 3));
+    assert!(reports.iter().all(|report| {
+        report
+            .notes
+            .as_deref()
+            .is_some_and(|notes| notes.contains("Fictional demo data"))
+    }));
+}
+
+#[test]
 fn recovery_unlocks_the_vault_and_wrong_credentials_do_not_damage_it() {
     let directory = tempdir().unwrap();
     let account = directory.path().join("account");

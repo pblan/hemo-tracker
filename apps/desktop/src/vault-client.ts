@@ -15,6 +15,8 @@ export const unlockWithPassphrase = (passphrase: string) =>
 export const unlockWithRecovery = (recoveryCode: string) =>
   invoke<VaultState>("unlock_with_recovery", { recoveryCode });
 export const lockVault = () => invoke<VaultState>("lock_vault");
+export const resetLocalVault = (passphrase: string, confirmation: string) =>
+  invoke<CreatedVault>("reset_local_vault", { passphrase, confirmation });
 export const createLabReport = (request: {
   collectionTime: string;
   reportDate?: string;

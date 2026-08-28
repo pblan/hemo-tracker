@@ -234,6 +234,21 @@ pub fn lock_vault(
 }
 
 #[tauri::command]
+pub fn reset_local_vault(
+    state: State<'_, DesktopVaultState>,
+    passphrase: String,
+    confirmation: String,
+) -> Result<CreatedVaultResult, String> {
+    let mut guard = state.vault.lock().map_err(|_| safe_error())?;
+    let recovery_code = guard
+        .as_mut()
+        .ok_or_else(safe_error)?
+        .reset_to_demo(passphrase, &confirmation)
+        .map_err(|_| safe_error())?;
+    Ok(CreatedVaultResult { recovery_code })
+}
+
+#[tauri::command]
 pub fn create_lab_report(
     state: State<'_, DesktopVaultState>,
     request: CreateReportRequest,

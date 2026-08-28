@@ -18,12 +18,13 @@ use std::{
     path::{Path, PathBuf},
 };
 use thiserror::Error;
-use zeroize::Zeroize;
+use zeroize::{Zeroize, Zeroizing};
 
 const MANIFEST_NAME: &str = "account.json";
 const VAULT_NAME: &str = "vault.db";
 const FORMAT: &str = "hemo-tracker-local-account";
 const VERSION: u8 = 1;
+const RESET_CONFIRMATION: &str = "RESET DEMO VAULT";
 /// Keep interactive imports bounded while retaining streaming encryption.
 const MAX_SOURCE_FILE_BYTES: u64 = 512 * 1024 * 1024;
 
@@ -391,6 +392,87 @@ impl LocalAccountVault {
         self.unlocked = restored.unlocked;
         let _ = fs::remove_dir_all(previous);
         Ok(())
+    }
+
+    pub fn reset_to_demo(
+        &mut self,
+        passphrase_text: String,
+        confirmation: &str,
+    ) -> Result<String, LocalAccountError> {
+        let passphrase_text = Zeroizing::new(passphrase_text);
+        if confirmation != RESET_CONFIRMATION {
+            return Err(LocalAccountError::Operation);
+        }
+        self.unlocked_ref()?;
+        let passphrase = Passphrase::new(passphrase_text.as_str());
+        let envelope = KeyEnvelope::from_json(&self.manifest.passphrase_envelope)
+            .map_err(|_| LocalAccountError::InvalidCredentials)?;
+        envelope
+            .unlock_with_passphrase(&passphrase)
+            .map_err(|_| LocalAccountError::InvalidCredentials)?;
+
+        let parent = self
+            .directory
+            .parent()
+            .ok_or(LocalAccountError::Operation)?;
+        let staging = staging_directory(&self.directory)?;
+        let created = LocalAccountVault::create(
+            &staging,
+            CreateLocalAccount {
+                account_id: self.manifest.account_id.clone(),
+                passphrase: passphrase_text.as_str().to_owned(),
+            },
+        )?;
+        let recovery_code = created.recovery_code().to_owned();
+        drop(created);
+
+        let previous = self.directory.with_extension("pre-reset");
+        if previous.exists() {
+            fs::remove_dir_all(&previous).map_err(|_| LocalAccountError::Operation)?;
+        }
+        let active_unlocked = self.unlocked.take();
+        if fs::rename(&self.directory, &previous).is_err() {
+            self.unlocked = active_unlocked;
+            let _ = fs::remove_dir_all(&staging);
+            return Err(LocalAccountError::Operation);
+        }
+        if fs::rename(&staging, &self.directory).is_err() {
+            let _ = fs::rename(&previous, &self.directory);
+            self.unlocked = active_unlocked;
+            let _ = sync_directory(parent);
+            return Err(LocalAccountError::Operation);
+        }
+        if let Err(error) = sync_directory(parent) {
+            let _ = fs::remove_dir_all(&self.directory);
+            let _ = fs::rename(&previous, &self.directory);
+            let _ = sync_directory(parent);
+            self.unlocked = active_unlocked;
+            return Err(error);
+        }
+
+        let mut restored = match LocalAccountVault::open(&self.directory) {
+            Ok(restored) => restored,
+            Err(error) => {
+                let _ = fs::remove_dir_all(&self.directory);
+                let _ = fs::rename(&previous, &self.directory);
+                let _ = sync_directory(parent);
+                self.unlocked = active_unlocked;
+                return Err(error);
+            }
+        };
+        if let Err(error) = restored.unlock_with_passphrase(passphrase_text.as_str().to_owned()) {
+            let _ = fs::remove_dir_all(&self.directory);
+            let _ = fs::rename(&previous, &self.directory);
+            let _ = sync_directory(parent);
+            self.unlocked = active_unlocked;
+            return Err(error);
+        }
+        self.manifest = restored.manifest;
+        self.unlocked = restored.unlocked;
+        drop(active_unlocked);
+        let _ = fs::remove_dir_all(&previous);
+        let _ = sync_directory(parent);
+        Ok(recovery_code)
     }
     pub fn add_analyte(&mut self, analyte: NewAnalyte) -> Result<String, LocalAccountError> {
         if analyte.name.trim().is_empty()

@@ -11,3 +11,4 @@ The accepted records explain decisions that constrain the Hemo Tracker architect
 - [ADR 0007: Keep source facts immutable and corrections explicit](0007-source-facts-and-corrections.md)
 - [ADR 0008: Use NLM UCUM for automatic normalization](0008-use-nlm-ucum-for-automatic-normalization.md)
 - [ADR 0009: Seed fictional demo reports in new vaults](0009-seed-fictional-demo-reports.md)
+- [ADR 0010: Reset the local vault to a fresh demo set](0010-reset-to-seeded-demo-vault.md)

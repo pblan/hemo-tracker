@@ -70,6 +70,22 @@ Use **Report history** after you unlock the vault. Enter a laboratory name in **
 
 Hemo Tracker encrypts the backup. The backup does not contain the passphrase or recovery key. Keep the backup and recovery material separate.
 
+## Reset the vault to demo data
+
+Use this workflow only when you want to remove the current local data and
+return to the fictional first-run data.
+
+1. Unlock the vault.
+2. Open **Reset vault to demo data** in the local data controls.
+3. Enter the current passphrase.
+4. Type `RESET DEMO VAULT`.
+5. Read the warning. Select **Permanently reset to demo data**.
+6. Store the new recovery key when Hemo Tracker shows it.
+
+Reset does not create a backup. It permanently removes reports, source files,
+analytes, personal ranges, and the old recovery key. It keeps non-vault app
+preferences. The replacement contains three fictional demo reports.
+
 ## Read a trend
 
 ![Hemo Tracker unlocked overview with a hemoglobin trend, personal target ranges, fictional demo-data notice, report history, report entry, and local data controls.](../assets/screenshots/v1/desktop-unlocked-overview.png)

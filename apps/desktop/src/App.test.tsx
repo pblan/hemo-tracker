@@ -10,6 +10,7 @@ vi.mock("./vault-client", () => ({
   createLocalAccount: vi.fn(),
   getVaultState: vi.fn(),
   lockVault: vi.fn(),
+  resetLocalVault: vi.fn(),
   addPersonalTargetRange: vi.fn(),
   listAnalyteDefinitions: vi.fn(),
   listLabReports: vi.fn(),
@@ -198,5 +199,46 @@ describe("desktop application shell", () => {
     expect(await screen.findByRole("status")).toHaveTextContent(
       "Personal target range added.",
     );
+  });
+
+  it("resets an unlocked vault and presents the new recovery key", async () => {
+    vi.mocked(vaultClient.getVaultState).mockResolvedValue({
+      accountExists: true,
+      status: "unlocked",
+    });
+    vi.mocked(vaultClient.resetLocalVault).mockResolvedValue({
+      recoveryCode: "HTRK1-reset-recovery-code",
+    });
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
+    const user = userEvent.setup();
+    render(
+      <Provider>
+        <App />
+      </Provider>,
+    );
+
+    await user.type(
+      await screen.findByLabelText("Current passphrase"),
+      "correct horse battery staple",
+    );
+    await user.type(
+      screen.getByLabelText("Type RESET DEMO VAULT"),
+      "RESET DEMO VAULT",
+    );
+    await user.click(
+      screen.getByRole("button", {
+        name: "Permanently reset to demo data",
+      }),
+    );
+
+    expect(vaultClient.resetLocalVault).toHaveBeenCalledWith(
+      "correct horse battery staple",
+      "RESET DEMO VAULT",
+    );
+    expect(confirm).toHaveBeenCalledWith(
+      "This permanently deletes all current vault data and creates a fresh demo vault. No backup will be created. Continue?",
+    );
+    expect(await screen.findByText("HTRK1-reset-recovery-code")).toBeVisible();
+    confirm.mockRestore();
   });
 });
