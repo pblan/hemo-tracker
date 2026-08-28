@@ -291,6 +291,12 @@ function UnlockedVault({
   const [sourceUnit, setSourceUnit] = useState("");
   const [sourceReferenceInterval, setSourceReferenceInterval] = useState("");
   const [sourceFlag, setSourceFlag] = useState("");
+  const [extraMeasurement, setExtraMeasurement] = useState(false);
+  const [secondLabel, setSecondLabel] = useState("");
+  const [secondValue, setSecondValue] = useState("");
+  const [secondUnit, setSecondUnit] = useState("");
+  const [secondInterval, setSecondInterval] = useState("");
+  const [secondFlag, setSecondFlag] = useState("");
   const [analyteName, setAnalyteName] = useState("");
   const [analyteComponent, setAnalyteComponent] = useState("");
   const [analyteProperty, setAnalyteProperty] = useState("");
@@ -338,6 +344,16 @@ function UnlockedVault({
         sourceFlag,
         analyteId,
       });
+      if (extraMeasurement) {
+        await addLabMeasurement(reportId, {
+          sourceLabel: secondLabel,
+          sourceValue: secondValue,
+          sourceUnit: secondUnit,
+          sourceReferenceInterval: secondInterval,
+          sourceFlag: secondFlag,
+          analyteId,
+        });
+      }
       await completeLabReport(reportId);
       setCollectionTime("");
       setLaboratory("");
@@ -450,6 +466,52 @@ function UnlockedVault({
               onChange={(event) => setCollectionTime(event.target.value)}
             />
           </Field.Root>
+          {!extraMeasurement ? (
+            <Button
+              type="button"
+              variant="outline"
+              alignSelf="start"
+              onClick={() => setExtraMeasurement(true)}
+            >
+              + Add another result
+            </Button>
+          ) : (
+            <Stack gap="4" borderTopWidth="1px" borderColor="border" pt="5">
+              <Heading as="h4" size="sm">
+                Second result
+              </Heading>
+              <Input
+                placeholder="Source label"
+                value={secondLabel}
+                onChange={(event) => setSecondLabel(event.target.value)}
+                required
+              />
+              <Input
+                placeholder="Source value"
+                value={secondValue}
+                onChange={(event) => setSecondValue(event.target.value)}
+                required
+              />
+              <Input
+                placeholder="Unit"
+                value={secondUnit}
+                onChange={(event) => setSecondUnit(event.target.value)}
+                required
+              />
+              <Input
+                placeholder="Reference interval"
+                value={secondInterval}
+                onChange={(event) => setSecondInterval(event.target.value)}
+                required
+              />
+              <Input
+                placeholder="Flag"
+                value={secondFlag}
+                onChange={(event) => setSecondFlag(event.target.value)}
+                required
+              />
+            </Stack>
+          )}
           <Field.Root>
             <Field.Label>Laboratory</Field.Label>
             <Input
