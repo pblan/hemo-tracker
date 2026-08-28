@@ -348,6 +348,12 @@ function UnlockedVault({
     mediaType: string;
     url: string;
   } | null>(null);
+  const [addingMeasurementReportId, setAddingMeasurementReportId] = useState<
+    string | null
+  >(null);
+  const [additionalLabel, setAdditionalLabel] = useState("");
+  const [additionalValue, setAdditionalValue] = useState("");
+  const [additionalUnit, setAdditionalUnit] = useState("");
 
   useEffect(() => {
     void listAnalyteDefinitions()
@@ -586,6 +592,39 @@ function UnlockedVault({
       });
     } catch {
       onError("Hemo Tracker could not open the encrypted source file.");
+    }
+  }
+  async function saveAdditionalMeasurement(reportId: string) {
+    const validationErrors = validateMeasurementRow({
+      sourceLabel: additionalLabel,
+      sourceValue: additionalValue,
+      sourceUnit: additionalUnit,
+      sourceReferenceInterval: "",
+      sourceFlag: "",
+    });
+    if (validationErrors.length) {
+      onError(validationErrors[0] ?? "Complete the measurement fields.");
+      return;
+    }
+    try {
+      const parsed = parseMeasurementInput(additionalValue, "de-DE");
+      await addLabMeasurement(reportId, {
+        sourceLabel: additionalLabel,
+        sourceValue: additionalValue,
+        sourceUnit: additionalUnit,
+        sourceReferenceInterval: "",
+        sourceFlag: "",
+        parsedNumericValue:
+          parsed.kind === "number" ? parsed.normalized : undefined,
+        analyteId: selectedAnalyteId || undefined,
+      });
+      setAddingMeasurementReportId(null);
+      setAdditionalLabel("");
+      setAdditionalValue("");
+      setAdditionalUnit("");
+      setSaving((value) => !value);
+    } catch {
+      onError("Hemo Tracker could not save the measurement.");
     }
   }
   const buildTrend = (analyteId: string) => {
@@ -896,6 +935,78 @@ function UnlockedVault({
                     borderTopWidth="1px"
                     borderColor="border"
                   >
+                    <Stack direction={{ base: "column", sm: "row" }} gap="2">
+                      <select
+                        aria-label={`Source file role for ${report.laboratory || "report"}`}
+                        value={sourceRole}
+                        onChange={(event) => setSourceRole(event.target.value)}
+                      >
+                        <option value="supplement">Supplement</option>
+                        <option value="correction">Correction</option>
+                        <option value="primary">Primary</option>
+                      </select>
+                      <Button
+                        size="xs"
+                        variant="outline"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          void selectAndAttachSourceFile(
+                            report.id,
+                            sourceRole,
+                          ).then((source) => {
+                            if (source) setSaving((value) => !value);
+                          });
+                        }}
+                      >
+                        Attach source file
+                      </Button>
+                      <Button
+                        size="xs"
+                        variant="outline"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setAddingMeasurementReportId(report.id);
+                        }}
+                      >
+                        Add measurement
+                      </Button>
+                    </Stack>
+                    {addingMeasurementReportId === report.id ? (
+                      <Stack direction={{ base: "column", sm: "row" }} gap="2">
+                        <Input
+                          aria-label="Additional measurement label"
+                          placeholder="Analyte label"
+                          value={additionalLabel}
+                          onChange={(event) =>
+                            setAdditionalLabel(event.target.value)
+                          }
+                        />
+                        <Input
+                          aria-label="Additional measurement value"
+                          placeholder="Value"
+                          value={additionalValue}
+                          onChange={(event) =>
+                            setAdditionalValue(event.target.value)
+                          }
+                        />
+                        <Input
+                          aria-label="Additional measurement unit"
+                          placeholder="Unit"
+                          value={additionalUnit}
+                          onChange={(event) =>
+                            setAdditionalUnit(event.target.value)
+                          }
+                        />
+                        <Button
+                          size="xs"
+                          onClick={() =>
+                            void saveAdditionalMeasurement(report.id)
+                          }
+                        >
+                          Save
+                        </Button>
+                      </Stack>
+                    ) : null}
                     {report.sourceFiles.map((source) => (
                       <Button
                         key={source.id}
