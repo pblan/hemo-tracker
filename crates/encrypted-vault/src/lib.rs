@@ -11,7 +11,7 @@ use std::{
 use thiserror::Error;
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
-const SCHEMA_VERSION: i64 = 4;
+const SCHEMA_VERSION: i64 = 5;
 const KEY_BYTES: usize = 32;
 
 #[derive(Clone, Zeroize, ZeroizeOnDrop)]
@@ -87,6 +87,8 @@ pub struct MeasurementRecord {
     pub source_reference_interval: String,
     pub source_flag: String,
     pub analyte_id: Option<String>,
+    pub updated_at: String,
+    pub updated_by: String,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -255,8 +257,8 @@ impl AccountVault {
             .execute(
                 "INSERT INTO measurements (
                     id, report_id, source_label, source_value, source_unit,
-                    source_reference_interval, source_flag, analyte_id
-                 ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+                    source_reference_interval, source_flag, analyte_id, updated_at, updated_by
+                 ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, datetime('now'), 'local-user')",
                 params![
                     measurement.id,
                     report_id,
@@ -361,7 +363,7 @@ impl AccountVault {
             .connection
             .prepare(
                 "SELECT id, source_label, source_value, source_unit,
-                    source_reference_interval, source_flag, analyte_id
+                    source_reference_interval, source_flag, analyte_id, updated_at, updated_by
              FROM measurements WHERE report_id = ?1 ORDER BY rowid",
             )
             .map_err(|_| VaultError::Operation)?;
@@ -375,6 +377,8 @@ impl AccountVault {
                     source_reference_interval: row.get(4)?,
                     source_flag: row.get(5)?,
                     analyte_id: row.get(6)?,
+                    updated_at: row.get(7)?,
+                    updated_by: row.get(8)?,
                 })
             })
             .map_err(|_| VaultError::Operation)?
@@ -658,10 +662,10 @@ fn migrate(connection: &Connection) -> Result<(), VaultError> {
                      source_unit TEXT NOT NULL,
                      source_reference_interval TEXT NOT NULL,
                      source_flag TEXT NOT NULL,
-                     analyte_id TEXT
+                     analyte_id TEXT, updated_at TEXT NOT NULL, updated_by TEXT NOT NULL
                  );
                  CREATE TABLE archived_reports (report_id TEXT PRIMARY KEY REFERENCES reports(id) ON DELETE CASCADE, archived_at TEXT NOT NULL);
-                 PRAGMA user_version = 4;
+                 PRAGMA user_version = 5;
                  COMMIT;",
             )
             .map_err(|_| VaultError::InvalidKeyOrVault)?;
@@ -701,10 +705,10 @@ fn migrate(connection: &Connection) -> Result<(), VaultError> {
                      source_unit TEXT NOT NULL,
                      source_reference_interval TEXT NOT NULL,
                      source_flag TEXT NOT NULL,
-                     analyte_id TEXT
+                     analyte_id TEXT, updated_at TEXT NOT NULL, updated_by TEXT NOT NULL
                  );
                  CREATE TABLE archived_reports (report_id TEXT PRIMARY KEY REFERENCES reports(id) ON DELETE CASCADE, archived_at TEXT NOT NULL);
-                 PRAGMA user_version = 4;
+                 PRAGMA user_version = 5;
                  COMMIT;",
             )
             .map_err(|_| VaultError::InvalidKeyOrVault)?;
@@ -714,6 +718,8 @@ fn migrate(connection: &Connection) -> Result<(), VaultError> {
             .map_err(|_| VaultError::InvalidKeyOrVault)?;
     } else if version == 3 {
         connection.execute_batch("BEGIN IMMEDIATE; CREATE TABLE archived_reports (report_id TEXT PRIMARY KEY REFERENCES reports(id) ON DELETE CASCADE, archived_at TEXT NOT NULL); PRAGMA user_version = 4; COMMIT;").map_err(|_| VaultError::InvalidKeyOrVault)?;
+    } else if version == 4 {
+        connection.execute_batch("BEGIN IMMEDIATE; ALTER TABLE measurements ADD COLUMN updated_at TEXT NOT NULL DEFAULT ''; ALTER TABLE measurements ADD COLUMN updated_by TEXT NOT NULL DEFAULT 'local-user'; PRAGMA user_version = 5; COMMIT;").map_err(|_| VaultError::InvalidKeyOrVault)?;
     } else if version != SCHEMA_VERSION {
         return Err(VaultError::InvalidKeyOrVault);
     }
