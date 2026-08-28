@@ -544,6 +544,29 @@ pub fn restore_local_vault(
         .map_err(|_| safe_error())
 }
 
+#[tauri::command]
+pub fn choose_and_restore_local_vault(
+    app: AppHandle,
+    state: State<'_, DesktopVaultState>,
+    passphrase: String,
+) -> Result<bool, String> {
+    let Some(path) = app
+        .dialog()
+        .file()
+        .set_title("Select encrypted Hemo Tracker backup")
+        .blocking_pick_folder()
+    else {
+        return Ok(false);
+    };
+    let mut guard = state.vault.lock().map_err(|_| safe_error())?;
+    guard
+        .as_mut()
+        .ok_or_else(safe_error)?
+        .restore_from_backup(path.into_path().map_err(|_| safe_error())?, passphrase)
+        .map_err(|_| safe_error())?;
+    Ok(true)
+}
+
 fn account_directory(app: &AppHandle) -> Result<PathBuf, String> {
     app.path()
         .app_data_dir()

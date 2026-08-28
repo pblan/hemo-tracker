@@ -13,6 +13,7 @@ import { type FormEvent, useEffect, useState } from "react";
 import {
   addAnalyteDefinition,
   addLabMeasurement,
+  chooseAndRestoreLocalVault,
   completeLabReport,
   chooseAndBackupLocalVault,
   createLabReport,
@@ -317,6 +318,7 @@ function UnlockedVault({
   const [reports, setReports] = useState<ReportSummary[]>([]);
   const [reportSearch, setReportSearch] = useState("");
   const [expandedReportId, setExpandedReportId] = useState<string | null>(null);
+  const [restorePassphrase, setRestorePassphrase] = useState("");
 
   useEffect(() => {
     void listAnalyteDefinitions()
@@ -420,6 +422,20 @@ function UnlockedVault({
       await chooseAndBackupLocalVault();
     } catch {
       onError("Hemo Tracker could not create the encrypted backup.");
+    }
+  }
+
+  async function restoreVault() {
+    if (!restorePassphrase) {
+      onError("Enter the backup passphrase before you restore.");
+      return;
+    }
+    try {
+      const restored = await chooseAndRestoreLocalVault(restorePassphrase);
+      if (restored) onError("The encrypted backup was restored.");
+      setRestorePassphrase("");
+    } catch {
+      onError("Hemo Tracker could not restore that encrypted backup.");
     }
   }
 
@@ -803,6 +819,29 @@ function UnlockedVault({
           Lock vault
         </Button>
       </Stack>
+      <Box borderWidth="1px" borderColor="border" borderRadius="xl" p="4">
+        <Stack gap="3">
+          <Text fontWeight="semibold">Restore an encrypted backup</Text>
+          <Text color="fg.muted" fontSize="sm">
+            This replaces the current vault after integrity checks. Keep the
+            current vault until you confirm the restored data.
+          </Text>
+          <Input
+            type="password"
+            aria-label="Backup passphrase"
+            placeholder="Backup passphrase"
+            value={restorePassphrase}
+            onChange={(event) => setRestorePassphrase(event.target.value)}
+          />
+          <Button
+            alignSelf="start"
+            variant="outline"
+            onClick={() => void restoreVault()}
+          >
+            Choose backup and restore
+          </Button>
+        </Stack>
+      </Box>
     </Stack>
   );
 }
