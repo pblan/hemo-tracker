@@ -1,8 +1,9 @@
 # User documentation
 
-This directory contains the V1 user guides. Issue 26 adds the procedures and current product screenshots after the related product workflows are complete.
+This directory contains the V1 user guides and current product screenshots.
 
-Start with the [project README](../../README.md) until the V1 quickstart is available.
+Start with this quickstart. Read the [project README](../../README.md) for
+developer commands and project structure.
 
 Use the [macOS installation guide](install-macos.md) or [Windows installation guide](install-windows.md) for unsigned builds.
 
