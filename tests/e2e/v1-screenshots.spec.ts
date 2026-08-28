@@ -32,7 +32,9 @@ test("capture unlocked overview", async ({ page }) => {
   await page.goto("/");
   await page.getByLabel("Trend analyte").selectOption("hemoglobin");
   await page.getByLabel("Target range analyte").selectOption("hemoglobin");
-  await expect(page.getByText("Fictional Central Laboratory")).toBeVisible();
+  await expect(
+    page.getByText("Fictional Central Laboratory").first(),
+  ).toBeVisible();
   await page.screenshot({
     path: path.join(screenshotDirectory, "desktop-unlocked-overview.png"),
     fullPage: true,
@@ -44,17 +46,22 @@ async function mockTauri(
   status: string,
 ) {
   await page.addInitScript(
-    ({ vaultStatus, analytes, report }) => {
+    ({ vaultStatus, analytes, reports }) => {
       const analyte = analytes.find((item) => item.id === "hemoglobin");
-      if (!analyte || !report) throw new Error("V1 fixture is incomplete");
+      if (!analyte || !reports.length)
+        throw new Error("V1 fixture is incomplete");
       Object.assign(window, {
         __TAURI_INTERNALS__: {
-          invoke: async (command: string) => {
+          invoke: async (command: string, args?: { reportId?: string }) => {
             if (command === "get_vault_state")
               return { accountExists: true, status: vaultStatus };
             if (command === "list_analyte_definitions") return analytes;
-            if (command === "list_lab_reports") return [report.id];
-            if (command === "get_lab_report") return report;
+            if (command === "list_lab_reports")
+              return reports.map((item) => item.id);
+            if (command === "get_lab_report")
+              return (
+                reports.find((item) => item.id === args?.reportId) ?? reports[0]
+              );
             throw new Error(`Unexpected screenshot command: ${command}`);
           },
         },
@@ -63,7 +70,7 @@ async function mockTauri(
     {
       vaultStatus: status,
       analytes: fixtureAnalytes.analytes,
-      report: fixtureReports.reports[1],
+      reports: fixtureReports.reports,
     },
   );
 }
