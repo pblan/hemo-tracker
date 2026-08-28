@@ -2,7 +2,7 @@ use hemo_tracker_desktop_lib::account_vault::{
     CreateLabReportDraft, CreateLocalAccount, LocalAccountVault, NewMeasurement, NewSourceFile,
     ReportStatus, VaultStatus,
 };
-use std::{fs, io::Cursor};
+use std::fs;
 use tempfile::tempdir;
 
 #[test]
@@ -105,12 +105,12 @@ fn user_records_and_reopens_one_complete_lab_report_with_encrypted_evidence() {
         })
         .unwrap();
     let source_marker = b"fictional-pdf-source-marker";
-    let original_source = source_marker.to_vec();
-    let source_input = Cursor::new(original_source.clone());
+    let source_path = parent.path().join("original-report.pdf");
+    fs::write(&source_path, source_marker).unwrap();
     vault
         .add_source_file(
             &report_id,
-            source_input,
+            fs::File::open(&source_path).unwrap(),
             NewSourceFile {
                 original_filename: "fictional-report.pdf".to_owned(),
                 media_type: "application/pdf".to_owned(),
@@ -178,7 +178,7 @@ fn user_records_and_reopens_one_complete_lab_report_with_encrypted_evidence() {
         "fictional-report.pdf"
     );
 
-    assert_eq!(original_source, source_marker);
+    assert_eq!(fs::read(&source_path).unwrap(), source_marker);
 
     assert_directory_does_not_contain(&account, source_marker);
     assert_directory_does_not_contain(&account, b"13,7");
