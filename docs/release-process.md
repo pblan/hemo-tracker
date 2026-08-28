@@ -8,7 +8,15 @@ Do not describe a V1 package as signed, notarized, trusted, or production-ready 
 
 ## Pipeline roles
 
-The routine CI workflow runs formatting, lint, type checks, unit tests, and the webview smoke test. It runs on each pull request and each push to `main`. It cancels an older run for the same branch. The target duration is less than two minutes.
+The routine CI workflow runs formatting, lint, type checks, unit tests, and
+fixture verification. It runs on each pull request and each push to `main`. It
+cancels an older run for the same branch. The target duration is less than two
+minutes.
+
+The path-filtered UI validation workflow runs the webview smoke, screenshot,
+and accessibility tests when desktop UI, fixture, or end-to-end test files
+change. It installs Chromium only for that workflow and has a five-minute
+timeout.
 
 The native validation workflow builds, packages, and starts the macOS and Windows clients. It runs when native or packaging inputs change. A maintainer can also start it manually. Routine documentation and TypeScript-only changes do not start native packaging.
 

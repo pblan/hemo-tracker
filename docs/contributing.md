@@ -25,3 +25,7 @@ The documentation workflow runs only when documentation files or its checker cha
 ## Source checks
 
 See the [root README](../README.md#commands) for the maintained development commands.
+
+The UI validation workflow runs the Playwright webview and accessibility tests
+when desktop UI, fixture, or end-to-end test files change. It is separate from
+the fast routine CI workflow.
