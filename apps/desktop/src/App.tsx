@@ -33,6 +33,7 @@ import {
 } from "./vault-client";
 import { parseMeasurementInput } from "./measurement-parser";
 import { validateMeasurementRow } from "./measurement-validation";
+import { TrendPlot } from "./components/TrendPlot";
 
 function App() {
   const [vaultState, setVaultState] = useState<VaultState | null>(null);
@@ -324,6 +325,7 @@ function UnlockedVault({
     null,
   );
   const [correctionValue, setCorrectionValue] = useState("");
+  const [trendAnalyteId, setTrendAnalyteId] = useState("");
   const [restorePassphrase, setRestorePassphrase] = useState("");
 
   useEffect(() => {
@@ -490,8 +492,54 @@ function UnlockedVault({
       onError("Hemo Tracker could not lock the local vault.");
     }
   }
+  const trendPoints = reports
+    .flatMap((report) =>
+      report.measurements
+        .filter((measurement) => measurement.analyteId === trendAnalyteId)
+        .map((measurement) => ({
+          id: measurement.id,
+          date: report.collectionTime,
+          value: Number(measurement.sourceValue.replace(",", ".")),
+          unit: measurement.sourceUnit,
+          flag: measurement.sourceFlag,
+        })),
+    )
+    .filter((point) => Number.isFinite(point.value));
+
   return (
     <Stack gap="6">
+      <Box
+        bg="bg.panel"
+        borderWidth="1px"
+        borderColor="border"
+        borderRadius="2xl"
+        p={{ base: "5", md: "6" }}
+      >
+        <Stack gap="3">
+          <Heading as="h2" size="lg">
+            Analyte trend
+          </Heading>
+          <select
+            aria-label="Trend analyte"
+            value={trendAnalyteId}
+            onChange={(event) => setTrendAnalyteId(event.target.value)}
+          >
+            <option value="">Select an analyte</option>
+            {analytes.map((analyte) => (
+              <option key={analyte.id} value={analyte.id}>
+                {analyte.name}
+              </option>
+            ))}
+          </select>
+          {trendAnalyteId ? (
+            <TrendPlot title="Local analyte trend" points={trendPoints} />
+          ) : (
+            <Text color="fg.muted" fontSize="sm">
+              Select an analyte to view recorded numeric values.
+            </Text>
+          )}
+        </Stack>
+      </Box>
       <Box
         bg="bg.panel"
         borderWidth="1px"
