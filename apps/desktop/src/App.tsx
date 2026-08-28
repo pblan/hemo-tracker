@@ -28,6 +28,7 @@ import {
   type VaultState,
 } from "./vault-client";
 import { parseMeasurementInput } from "./measurement-parser";
+import { validateMeasurementRow } from "./measurement-validation";
 
 function App() {
   const [vaultState, setVaultState] = useState<VaultState | null>(null);
@@ -328,6 +329,30 @@ function UnlockedVault({
 
   async function saveReport(event: FormEvent) {
     event.preventDefault();
+    const validationErrors = validateMeasurementRow({
+      sourceLabel,
+      sourceValue,
+      sourceUnit,
+      sourceReferenceInterval,
+      sourceFlag,
+    });
+    if (validationErrors.length) {
+      onError(validationErrors[0] ?? "Complete the measurement fields.");
+      return;
+    }
+    if (
+      extraMeasurement &&
+      validateMeasurementRow({
+        sourceLabel: secondLabel,
+        sourceValue: secondValue,
+        sourceUnit: secondUnit,
+        sourceReferenceInterval: secondInterval,
+        sourceFlag: secondFlag,
+      }).length
+    ) {
+      onError("Complete all fields in the second measurement row.");
+      return;
+    }
     if (valueHint?.startsWith("This value") && !formatConfirmed) {
       onError("Confirm the measurement format before saving.");
       return;
