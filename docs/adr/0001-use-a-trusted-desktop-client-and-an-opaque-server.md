@@ -4,6 +4,8 @@ status: accepted
 
 # Use a trusted desktop client and an opaque server
 
+ADR 0005 narrows this decision for V1. The local V1 has no server and uses unsigned packages. This ADR governs the Post-V1 signed synchronization milestone.
+
 Hemo Tracker must protect clinical content from other users and from an administrator who controls the self-hosted server. A server-hosted web client cannot meet this requirement because the administrator can replace the client code. Use a separately installed and signed desktop client. The client owns decryption and clinical processing. The server stores identity data, permitted operations metadata, wrapped keys, and opaque ciphertext only.
 
 ## Considered options

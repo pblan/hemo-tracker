@@ -10,7 +10,7 @@ The desktop client owns all clinical behavior. It decrypts data, validates measu
 
 The desktop client uses Tauri 2, React 19, TypeScript, Vite, Chakra UI, TanStack Query, Zod, and Bun tooling. Tests use Vitest and Playwright.
 
-Rust owns key operations, decrypted database access, source-file encryption, native credential storage, and other security-sensitive native functions. The webview does not receive raw encryption keys or SQL access.
+Rust owns key operations, decrypted database access, source-file encryption, and other security-sensitive native functions. The webview does not receive raw encryption keys or SQL access. Native credential storage is deferred until signed application identities are available after V1.
 
 The plot adapter uses uPlot as accepted in ADR 0004.
 
@@ -29,15 +29,15 @@ It owns these behaviors:
 - Encrypted source-file storage.
 - Search and filtering.
 - Export and backup.
-- Entity versions for synchronization.
+- Entity versions that keep later synchronization possible.
 
 A SQLCipher adapter implements local storage. Tests use an in-memory adapter only when it exercises the same interface rules.
 
 ### Key module
 
-The key module creates and unwraps account, device, database, and source-file keys. It owns versioned key envelopes, recovery, passphrase change, random values, and domain separation.
+The key module creates and unwraps account, database, and source-file keys. It owns versioned key envelopes, recovery, passphrase change, random values, and domain separation. Device-unlock keys are deferred until after V1.
 
-Candidate tools include RustCrypto Argon2id, XChaCha20-Poly1305, `getrandom`, and `zeroize`. The security proof must select exact formats and parameters before an ADR accepts them.
+ADR 0006 selects Argon2id, XChaCha20-Poly1305, HKDF-SHA-256, SQLCipher, and libsodium secretstream. It defines their V1 formats, versions, parameters, and domain-separation labels.
 
 ### Normalization module
 
@@ -102,7 +102,7 @@ V1 creates unsigned local packages for macOS and Windows. The user guides must e
 
 ## Security verification
 
-The project must complete these proofs before it stores real medical data:
+Feature development uses deterministic fictional data. It preserves the implemented encryption and native-boundary code. The project must complete these security checks before V1 is released for real medical data:
 
 - Key creation, wrapping, recovery, passphrase change, and rotation.
 - SQLCipher files, journals, temporary files, backups, and crash behavior.

@@ -4,6 +4,8 @@ status: accepted
 
 # Use Tauri for the desktop client
 
+ADR 0005 narrows this decision for V1. Native credential storage, OAuth callbacks, signed packages, and signed updates are Post-V1 requirements.
+
 Hemo Tracker needs a signed macOS and Windows client with a React interface and a narrow native security module. Use Tauri 2 with React 19, TypeScript, Vite, Chakra UI, TanStack Query, and Zod. Keep keys, decrypted database access, and source-file encryption in Rust commands. This choice keeps the useful parts of the Mood Tracker stack without adding Next.js server rendering inside a desktop application.
 
 ## Considered options

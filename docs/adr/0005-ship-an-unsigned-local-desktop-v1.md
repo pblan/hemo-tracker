@@ -12,6 +12,8 @@ The product must make useful progress without weakening the local data-protectio
 
 ## Decision
 
+This decision narrows the V1 timing in ADR 0001 and ADR 0003. Their server, identity, native credential, signing, and update requirements remain accepted for the Post-V1 milestone. They are not requirements for the local V1 release.
+
 V1 is an unsigned local-first desktop application for macOS and Windows. It has no runtime server dependency. The user creates an account vault with a passphrase and recovery key. The user unlocks the account vault with the passphrase in V1.
 
 V1 includes lab reports, source files, flexible measurements, analyte definitions, unit normalization, personal target ranges, trends, encrypted backup, and local export.

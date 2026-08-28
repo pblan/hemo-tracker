@@ -173,18 +173,19 @@ Select the plot engine in an ADR after the benchmark.
 
 ## Delivery plan
 
-### Phase 0: Prove security and plot choices
+Delivery prioritizes complete user workflows before security hardening. Keep the implemented proofs, encryption code, and narrow native boundaries. Do not remove or weaken them to accelerate feature work. Security hardening and independent review remain mandatory release gates.
+
+### Phase 0: Fix the technical baseline
 
 - Prove the account key lifecycle.
 - Prove recovery and passphrase change.
 - Prove SQLCipher builds, migrations, temporary-file behavior, backup, and restore.
 - Prove streaming source-file encryption.
 - Benchmark uPlot and Apache ECharts.
-- Get an independent review of the threat model and key design.
 
 Exit condition: Accepted ADRs name the local security formats, storage tooling, V1 distribution limit, and plot engine.
 
-### Phase 1: Build the local vault
+### Phase 1: Build complete local functionality
 
 - Create the Tauri application shell.
 - Create the narrow Rust vault module.
@@ -192,25 +193,26 @@ Exit condition: Accepted ADRs name the local security formats, storage tooling, 
 - Add analyte definitions and the seed catalog.
 - Add lab reports, source files, and manual measurements.
 - Add archive, correction, export, and local backup.
-
-Exit condition: One trusted device can manage a complete account vault while offline.
-
-### Phase 2: Build trends
-
 - Add safe normalization.
 - Add comparability checks.
 - Add the overview, trend plots, range bands, target bands, and accessible tables.
 - Add bulk analyte relinking with a preview.
 
-Exit condition: New analyte definitions and normalization rules update all derived views without source-data changes.
+Exit condition: One local computer can manage a complete account vault offline. New analyte definitions and normalization rules update all derived views without source-data changes.
 
-### Phase 3: Harden and release the local application
+### Phase 2: Harden security and quality
 
 - Complete accessibility checks.
 - Complete privacy and security tests.
+- Complete an external security review.
+
+Exit condition: All release-blocking findings are resolved. The implemented security boundaries and encrypted formats remain intact.
+
+### Phase 3: Document and release the local application
+
 - Complete unsigned macOS and Windows package checks.
 - Complete local backup, recovery, and threat-model guides.
-- Complete an external security review.
+- Capture current screenshots from deterministic fictional data.
 
 Exit condition: The local release gates pass on macOS and Windows, and all materials state the unsigned publisher limit.
 
