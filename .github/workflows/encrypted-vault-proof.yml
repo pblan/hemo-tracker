@@ -5,11 +5,13 @@ on:
   pull_request:
     paths:
       - ".github/workflows/encrypted-vault-proof.yml"
+      - "crates/encrypted-vault/**"
       - "proofs/encrypted-vault/**"
   push:
     branches: [main]
     paths:
       - ".github/workflows/encrypted-vault-proof.yml"
+      - "crates/encrypted-vault/**"
       - "proofs/encrypted-vault/**"
 
 permissions:
@@ -38,7 +40,9 @@ jobs:
           components: clippy, rustfmt
       - uses: swatinem/rust-cache@v2
         with:
-          workspaces: proofs/encrypted-vault
+          workspaces: |
+            crates/encrypted-vault -> target
+            proofs/encrypted-vault -> target
       - run:
           cargo fmt --manifest-path proofs/encrypted-vault/Cargo.toml -- --check
       - run:

@@ -95,4 +95,29 @@ describe("desktop application shell", () => {
       await screen.findByRole("heading", { name: "Your vault is unlocked" }),
     ).toBeVisible();
   });
+
+  it("clears a rejected passphrase before the user retries", async () => {
+    vi.mocked(vaultClient.getVaultState).mockResolvedValue({
+      accountExists: true,
+      status: "locked",
+    });
+    vi.mocked(vaultClient.unlockWithPassphrase).mockRejectedValue(
+      new Error("invalid"),
+    );
+    const user = userEvent.setup();
+    render(
+      <Provider>
+        <App />
+      </Provider>,
+    );
+
+    const passphrase = await screen.findByLabelText("Passphrase");
+    await user.type(passphrase, "wrong passphrase");
+    await user.click(screen.getByRole("button", { name: "Unlock vault" }));
+
+    expect(
+      await screen.findByText("The passphrase or local vault is invalid."),
+    ).toBeVisible();
+    expect(passphrase).toHaveValue("");
+  });
 });

@@ -1,6 +1,7 @@
-use hemo_encrypted_vault_proof::{AccountVault, NativeVaultManager, VaultKey};
-use hemo_key_lifecycle_proof::{
-    AccountKeyBundle, KeyEnvelope, Passphrase, Purpose, RecoveryCode, RecoveryKey, UnlockedKeys,
+use hemo_encrypted_vault::{AccountVault, NativeVaultManager, VaultKey};
+use hemo_key_lifecycle::{
+    AccountKeyBundle, KeyEnvelope, Passphrase, Purpose, PurposeKey, RecoveryCode, RecoveryKey,
+    UnlockedKeys,
 };
 use serde::{Deserialize, Serialize};
 use std::{
@@ -73,6 +74,7 @@ pub struct LocalAccountVault {
 struct UnlockedAccount {
     _keys: UnlockedKeys,
     _vault: AccountVault,
+    _source_file_key: PurposeKey,
 }
 
 impl LocalAccountVault {
@@ -80,41 +82,74 @@ impl LocalAccountVault {
         directory: impl AsRef<Path>,
         input: CreateLocalAccount,
     ) -> Result<CreatedLocalAccount, LocalAccountError> {
+        Self::create_with_manifest_writer(directory.as_ref(), input, write_manifest)
+    }
+
+    fn create_with_manifest_writer(
+        directory: &Path,
+        input: CreateLocalAccount,
+        manifest_writer: impl FnOnce(&Path, &AccountManifest) -> Result<(), LocalAccountError>,
+    ) -> Result<CreatedLocalAccount, LocalAccountError> {
         if input.account_id.is_empty() || input.account_id.contains('\0') {
             return Err(LocalAccountError::InvalidAccount);
         }
 
-        let directory = directory.as_ref().to_owned();
-        fs::create_dir_all(&directory).map_err(|_| LocalAccountError::Operation)?;
-        let manifest_path = directory.join(MANIFEST_NAME);
-        if manifest_path.exists() {
+        let directory = directory.to_owned();
+        if directory.exists() {
             return Err(LocalAccountError::AlreadyExists);
         }
+        let parent = directory.parent().ok_or(LocalAccountError::Operation)?;
+        fs::create_dir_all(parent).map_err(|_| LocalAccountError::Operation)?;
+        let staging = staging_directory(&directory)?;
+        fs::create_dir(&staging).map_err(|_| LocalAccountError::Operation)?;
 
-        let mut passphrase_text = input.passphrase;
-        let passphrase = Passphrase::new(&passphrase_text);
-        passphrase_text.zeroize();
-        let bundle = AccountKeyBundle::create(&input.account_id, &passphrase)
-            .map_err(|_| LocalAccountError::Operation)?;
-        let manifest = AccountManifest {
-            format: FORMAT.to_owned(),
-            version: VERSION,
-            account_id: input.account_id,
-            passphrase_envelope: bundle.passphrase_envelope().to_json(),
-            recovery_envelope: bundle.recovery_envelope().to_json(),
+        let mut published = false;
+        let result = (|| {
+            let mut passphrase_text = input.passphrase;
+            let passphrase = Passphrase::new(&passphrase_text);
+            passphrase_text.zeroize();
+            let bundle = AccountKeyBundle::create(&input.account_id, &passphrase)
+                .map_err(|_| LocalAccountError::Operation)?;
+            let manifest = AccountManifest {
+                format: FORMAT.to_owned(),
+                version: VERSION,
+                account_id: input.account_id,
+                passphrase_envelope: bundle.passphrase_envelope().to_json(),
+                recovery_envelope: bundle.recovery_envelope().to_json(),
+            };
+            let staged = unlock_account(&staging, bundle.unlocked_keys())?;
+            staged
+                ._vault
+                .integrity_check()
+                .map_err(|_| LocalAccountError::Operation)?;
+            drop(staged);
+            manifest_writer(&staging.join(MANIFEST_NAME), &manifest)?;
+            sync_directory(&staging)?;
+            fs::rename(&staging, &directory).map_err(|_| LocalAccountError::Operation)?;
+            published = true;
+            sync_directory(parent)?;
+            let unlocked = unlock_account(&directory, bundle.unlocked_keys())?;
+            Ok((bundle, manifest, unlocked))
+        })();
+
+        let (bundle, manifest, unlocked) = match result {
+            Ok(value) => value,
+            Err(error) => {
+                let _ = fs::remove_dir_all(&staging);
+                if published {
+                    let _ = fs::remove_dir_all(&directory);
+                    let _ = sync_directory(parent);
+                }
+                return Err(error);
+            }
         };
-        let vault = open_encrypted_vault(&directory, bundle.unlocked_keys())?;
-        write_manifest(&manifest_path, &manifest)?;
         let recovery_code = bundle.recovery_key().to_code();
 
         Ok(CreatedLocalAccount {
             vault: Self {
                 directory,
                 manifest,
-                unlocked: Some(UnlockedAccount {
-                    _keys: bundle.unlocked_keys().clone(),
-                    _vault: vault,
-                }),
+                unlocked: Some(unlocked),
             },
             recovery_code,
         })
@@ -176,24 +211,41 @@ impl LocalAccountVault {
     }
 
     fn finish_unlock(&mut self, keys: UnlockedKeys) -> Result<(), LocalAccountError> {
-        let vault = open_encrypted_vault(&self.directory, &keys)
+        let unlocked = unlock_account(&self.directory, &keys)
             .map_err(|_| LocalAccountError::InvalidCredentials)?;
-        self.unlocked = Some(UnlockedAccount {
-            _keys: keys,
-            _vault: vault,
-        });
+        self.unlocked = Some(unlocked);
         Ok(())
     }
 }
 
-fn open_encrypted_vault(
+fn unlock_account(
     directory: &Path,
     keys: &UnlockedKeys,
-) -> Result<AccountVault, LocalAccountError> {
-    let purpose_key = keys.derive_purpose_key(Purpose::Database, 0);
-    let key = VaultKey::from_bytes(*purpose_key.bytes());
-    NativeVaultManager::open(directory.join(VAULT_NAME), &key)
-        .map_err(|_| LocalAccountError::InvalidCredentials)
+) -> Result<UnlockedAccount, LocalAccountError> {
+    let database_key = keys.derive_purpose_key(Purpose::Database, 0);
+    let source_file_key = keys.derive_purpose_key(Purpose::SourceFiles, 0);
+    let vault_key = VaultKey::from_bytes(*database_key.bytes());
+    let vault = NativeVaultManager::open(directory.join(VAULT_NAME), &vault_key)
+        .map_err(|_| LocalAccountError::InvalidCredentials)?;
+    Ok(UnlockedAccount {
+        _keys: keys.clone(),
+        _vault: vault,
+        _source_file_key: source_file_key,
+    })
+}
+
+fn staging_directory(directory: &Path) -> Result<PathBuf, LocalAccountError> {
+    let mut random = [0_u8; 8];
+    getrandom::fill(&mut random).map_err(|_| LocalAccountError::Operation)?;
+    let suffix = random
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect::<String>();
+    let name = directory
+        .file_name()
+        .ok_or(LocalAccountError::Operation)?
+        .to_string_lossy();
+    Ok(directory.with_file_name(format!(".{name}.creating-{suffix}")))
 }
 
 fn validate_manifest(manifest: &AccountManifest) -> Result<(), LocalAccountError> {
@@ -231,4 +283,27 @@ fn sync_directory(directory: &Path) -> Result<(), LocalAccountError> {
             .map_err(|_| LocalAccountError::Operation)?;
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn failed_creation_removes_staged_files_and_allows_retry() {
+        let parent = tempfile::tempdir().unwrap();
+        let directory = parent.path().join("account");
+        let input = || CreateLocalAccount {
+            account_id: "failure-retry".to_owned(),
+            passphrase: "valid passphrase".to_owned(),
+        };
+
+        let failed = LocalAccountVault::create_with_manifest_writer(&directory, input(), |_, _| {
+            Err(LocalAccountError::Operation)
+        });
+
+        assert!(failed.is_err());
+        assert!(!directory.exists());
+        assert!(LocalAccountVault::create(&directory, input()).is_ok());
+    }
 }

@@ -1342,7 +1342,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 
 [[package]]
-name = "hemo-encrypted-vault-proof"
+name = "hemo-encrypted-vault"
 version = "0.1.0"
 dependencies = [
  "getrandom 0.3.4",
@@ -1352,7 +1352,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "hemo-key-lifecycle-proof"
+name = "hemo-key-lifecycle"
 version = "0.1.0"
 dependencies = [
  "argon2",
@@ -1372,8 +1372,9 @@ dependencies = [
 name = "hemo-tracker-desktop"
 version = "0.1.0"
 dependencies = [
- "hemo-encrypted-vault-proof",
- "hemo-key-lifecycle-proof",
+ "getrandom 0.3.4",
+ "hemo-encrypted-vault",
+ "hemo-key-lifecycle",
  "serde",
  "serde_json",
  "tauri",

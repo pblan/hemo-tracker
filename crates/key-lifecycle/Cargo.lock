@@ -171,13 +171,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "hemo-key-lifecycle-proof"
-version = "0.1.0"
-dependencies = [
- "hemo-key-lifecycle",
-]
-
-[[package]]
 name = "hkdf"
 version = "0.12.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"

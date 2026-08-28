@@ -196,20 +196,24 @@ function UnlockVault({
   const [recoveryCode, setRecoveryCode] = useState("");
   async function withPassphrase(event: FormEvent) {
     event.preventDefault();
+    onError("");
     try {
       onUnlocked(await unlockWithPassphrase(passphrase));
-      setPassphrase("");
     } catch {
       onError("The passphrase or local vault is invalid.");
+    } finally {
+      setPassphrase("");
     }
   }
   async function withRecovery(event: FormEvent) {
     event.preventDefault();
+    onError("");
     try {
       onUnlocked(await unlockWithRecovery(recoveryCode));
-      setRecoveryCode("");
     } catch {
       onError("The recovery key or local vault is invalid.");
+    } finally {
+      setRecoveryCode("");
     }
   }
   return (

@@ -4,8 +4,9 @@ use tempfile::tempdir;
 #[test]
 fn user_can_create_lock_and_reopen_a_local_account_vault() {
     let directory = tempdir().unwrap();
+    let account = directory.path().join("account");
     let created = LocalAccountVault::create(
-        directory.path(),
+        &account,
         CreateLocalAccount {
             account_id: "personal".to_owned(),
             passphrase: "correct horse battery staple".to_owned(),
@@ -26,7 +27,7 @@ fn user_can_create_lock_and_reopen_a_local_account_vault() {
     assert_eq!(vault.status(), VaultStatus::Unlocked);
 
     drop(vault);
-    let mut reopened = LocalAccountVault::open(directory.path()).unwrap();
+    let mut reopened = LocalAccountVault::open(&account).unwrap();
     assert_eq!(reopened.status(), VaultStatus::Locked);
     reopened
         .unlock_with_passphrase("correct horse battery staple".to_owned())
@@ -37,8 +38,9 @@ fn user_can_create_lock_and_reopen_a_local_account_vault() {
 #[test]
 fn recovery_unlocks_the_vault_and_wrong_credentials_do_not_damage_it() {
     let directory = tempdir().unwrap();
+    let account = directory.path().join("account");
     let created = LocalAccountVault::create(
-        directory.path(),
+        &account,
         CreateLocalAccount {
             account_id: "recovery-test".to_owned(),
             passphrase: "valid passphrase".to_owned(),
@@ -48,10 +50,17 @@ fn recovery_unlocks_the_vault_and_wrong_credentials_do_not_damage_it() {
     let recovery_code = created.recovery_code().to_owned();
     drop(created);
 
-    let mut vault = LocalAccountVault::open(directory.path()).unwrap();
+    let mut vault = LocalAccountVault::open(&account).unwrap();
     assert!(
         vault
             .unlock_with_passphrase("wrong passphrase".to_owned())
+            .is_err()
+    );
+    assert_eq!(vault.status(), VaultStatus::Locked);
+
+    assert!(
+        vault
+            .unlock_with_recovery("HTRK1-invalid".to_owned())
             .is_err()
     );
     assert_eq!(vault.status(), VaultStatus::Locked);

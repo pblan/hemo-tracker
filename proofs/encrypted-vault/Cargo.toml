@@ -5,10 +5,7 @@ edition = "2024"
 publish = false
 
 [dependencies]
-getrandom = "=0.3.4"
-rusqlite = { version = "=0.40.1", features = ["backup", "bundled-sqlcipher-vendored-openssl"] }
-thiserror = "=2.0.20"
-zeroize = { version = "=1.9.0", features = ["derive"] }
+hemo-encrypted-vault = { path = "../../crates/encrypted-vault", features = ["proofs"] }
 
 [dev-dependencies]
 tempfile = "=3.22.0"

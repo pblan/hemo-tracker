@@ -34,7 +34,10 @@ bun run dev:desktop
 
 - `apps/desktop` contains the Tauri and React desktop client.
 - `apps/server` contains deferred post-V1 server scaffolding.
+- `crates` contains the production key-lifecycle and encrypted-vault modules.
 - `packages/contracts` contains shared validation contracts.
+- `proofs` contains focused verification programs for accepted technical
+  choices.
 
 ## Project documents
 

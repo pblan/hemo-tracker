@@ -5,11 +5,13 @@ on:
   pull_request:
     paths:
       - ".github/workflows/key-lifecycle-proof.yml"
+      - "crates/key-lifecycle/**"
       - "proofs/key-lifecycle/**"
   push:
     branches: [main]
     paths:
       - ".github/workflows/key-lifecycle-proof.yml"
+      - "crates/key-lifecycle/**"
       - "proofs/key-lifecycle/**"
 
 permissions:
@@ -30,7 +32,9 @@ jobs:
           components: clippy, rustfmt
       - uses: swatinem/rust-cache@v2
         with:
-          workspaces: proofs/key-lifecycle
+          workspaces: |
+            crates/key-lifecycle -> target
+            proofs/key-lifecycle -> target
       - run:
           cargo fmt --manifest-path proofs/key-lifecycle/Cargo.toml -- --check
       - run:
