@@ -51,7 +51,8 @@ jobs:
         with:
           workspaces: apps/desktop/src-tauri
       - run: bun install --frozen-lockfile
-      - run: bun run --cwd apps/desktop tauri build --bundles ${{ matrix.bundles }}
+      - run:
+          bun run --cwd apps/desktop tauri build --bundles ${{ matrix.bundles }}
       - name: Package unsigned artifacts
         shell: bash
         run: |
