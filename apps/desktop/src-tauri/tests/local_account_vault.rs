@@ -157,6 +157,19 @@ fn user_records_and_reopens_one_complete_lab_report_with_encrypted_evidence() {
         )
         .unwrap();
     vault.complete_lab_report(&report_id).unwrap();
+    vault
+        .add_measurement(
+            &report_id,
+            NewMeasurement {
+                source_label: "Glucose".to_owned(),
+                source_value: "5,6".to_owned(),
+                source_unit: "mmol/L".to_owned(),
+                source_reference_interval: "3,9–5,5".to_owned(),
+                source_flag: "high".to_owned(),
+                analyte_id: None,
+            },
+        )
+        .unwrap();
 
     let report = vault.get_lab_report(&report_id).unwrap();
     assert_eq!(report.status, ReportStatus::Complete);
@@ -169,6 +182,7 @@ fn user_records_and_reopens_one_complete_lab_report_with_encrypted_evidence() {
     assert_eq!(report.fasting_state.as_deref(), Some("fasting"));
     assert_eq!(report.notes.as_deref(), Some("Routine fictional check"));
     assert_eq!(report.tags, vec!["annual"]);
+    assert_eq!(report.measurements.len(), 2);
     assert_eq!(report.measurements[0].source_value, "13,7");
     assert_eq!(report.measurements[0].source_unit, "g/dL");
     assert_eq!(
@@ -212,7 +226,7 @@ fn user_records_and_reopens_one_complete_lab_report_with_encrypted_evidence() {
     reopened.archive_lab_report(&report_id).unwrap();
     let archived = reopened.get_lab_report(&report_id).unwrap();
     assert_eq!(archived.status, ReportStatus::Archived);
-    assert_eq!(archived.measurements.len(), 1);
+    assert_eq!(archived.measurements.len(), 2);
     reopened.lock();
     let mut reopened_again = LocalAccountVault::open(&account).unwrap();
     reopened_again
