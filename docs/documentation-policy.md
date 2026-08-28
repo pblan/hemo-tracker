@@ -18,6 +18,7 @@ docs/
   operations/    Self-hosting and recovery procedures
   adr/           Accepted architecture decisions
   proofs/        Security and technology proof results
+  security/      Current threat models and security boundaries
   research/      Time-specific source research
   assets/
     screenshots/ Versioned product screenshots

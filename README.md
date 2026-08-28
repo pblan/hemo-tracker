@@ -1,7 +1,7 @@
 # hemo-tracker
 
 Hemo Tracker stores and plots laboratory results. V1 keeps source files and
-manual result entries in an encrypted local account vault. V1 runs without a
+manual measurements in an encrypted local account vault. V1 runs without a
 server.
 
 The project does not give medical advice.
