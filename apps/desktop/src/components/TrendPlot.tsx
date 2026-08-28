@@ -67,8 +67,8 @@ export function TrendPlot({
           </Table.Row>
         </Table.Header>
         <Table.Body>
-          {points.map((point) => (
-            <Table.Row key={`${point.date}-${point.value}`}>
+          {points.map((point, index) => (
+            <Table.Row key={`${point.date}-${point.value}-${index}`}>
               <Table.Cell>{point.date}</Table.Cell>
               <Table.Cell>
                 {point.value === null
