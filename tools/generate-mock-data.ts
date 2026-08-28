@@ -1,4 +1,5 @@
 import { mkdir, writeFile } from "node:fs/promises";
+import prettier from "prettier";
 
 const root = new URL("../fixtures/v1/", import.meta.url);
 const generatedAt = "2026-08-28T00:00:00Z";
@@ -183,19 +184,35 @@ const reports = reportDates.map((collectionTime, reportIndex) => ({
 }));
 
 await mkdir(root, { recursive: true });
+const json = (value: unknown) =>
+  prettier.format(JSON.stringify(value), { parser: "json" });
 await writeFile(
   new URL("analytes.json", root),
-  `${JSON.stringify({ fixtureVersion: "v1.0.0", generatedAt, analytes }, null, 2)}\n`,
+  await json({ fixtureVersion: "v1.0.0", generatedAt, analytes }),
 );
 await writeFile(
   new URL("reports.json", root),
-  `${JSON.stringify({ fixtureVersion: "v1.0.0", generatedAt, reports }, null, 2)}\n`,
+  await json({ fixtureVersion: "v1.0.0", generatedAt, reports }),
 );
 await writeFile(
   new URL("expected-normalization.json", root),
-  `${JSON.stringify({ glucoseMgDlToMmolL: 4.99567, creatinineMgDlToUmolL: 88.4, ruleIds: ["curated:2345-7->14749-6:nist-srd-69:50-99-7", "curated:2160-0->14682-9:nist-srd-69:60-27-5"] }, null, 2)}\n`,
+  await json({
+    glucoseMgDlToMmolL: 4.99567,
+    creatinineMgDlToUmolL: 88.4,
+    ruleIds: [
+      "curated:2345-7->14749-6:nist-srd-69:50-99-7",
+      "curated:2160-0->14682-9:nist-srd-69:60-27-5",
+    ],
+  }),
 );
 await writeFile(
   new URL("expected-trends.json", root),
-  `${JSON.stringify({ reportCount: reports.length, analyteCount: analytes.length, irregularDates: true, missingMeasurement: "fixture-measurement-7-10", archivedReport: "fixture-report-005", draftReport: "fixture-report-010" }, null, 2)}\n`,
+  await json({
+    reportCount: reports.length,
+    analyteCount: analytes.length,
+    irregularDates: true,
+    missingMeasurement: "fixture-measurement-7-10",
+    archivedReport: "fixture-report-005",
+    draftReport: "fixture-report-010",
+  }),
 );
