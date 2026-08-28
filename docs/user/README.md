@@ -44,7 +44,11 @@ Hemo Tracker encrypts the backup. The backup does not contain the passphrase or 
 
 ## Read a trend
 
-A trend plot shows the change for one analyte. Read the data table below the plot when you need exact values. The table also shows missing and flagged results. A plot does not give medical advice.
+1. Select an analyte in **Analyte trend**.
+2. Review the plot for recorded numeric values.
+3. Read the data table below the plot when you need exact values.
+
+The table also shows missing and flagged results. A plot does not give medical advice. Results with different units are not comparable until Hemo Tracker confirms a safe normalization rule.
 
 ## Safety limits
 
