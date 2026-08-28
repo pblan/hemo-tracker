@@ -271,6 +271,7 @@ impl LocalAccountVault {
             ._vault
             .integrity_check()
             .map_err(|_| LocalAccountError::Operation)?;
+        drop(candidate);
         let parent = self
             .directory
             .parent()
@@ -289,9 +290,21 @@ impl LocalAccountVault {
             let _ = fs::rename(&previous, &self.directory);
             return Err(LocalAccountError::Operation);
         }
-        sync_directory(parent)?;
-        let mut restored = LocalAccountVault::open(&self.directory)?;
-        restored.unlock_with_passphrase(passphrase_text)?;
+        let restored = (|| {
+            sync_directory(parent)?;
+            let mut restored = LocalAccountVault::open(&self.directory)?;
+            restored.unlock_with_passphrase(passphrase_text)?;
+            Ok::<_, LocalAccountError>(restored)
+        })();
+        let restored = match restored {
+            Ok(restored) => restored,
+            Err(error) => {
+                let _ = fs::remove_dir_all(&self.directory);
+                let _ = fs::rename(&previous, &self.directory);
+                let _ = sync_directory(parent);
+                return Err(error);
+            }
+        };
         self.manifest = restored.manifest;
         self.unlocked = restored.unlocked;
         let _ = fs::remove_dir_all(previous);
