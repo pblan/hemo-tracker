@@ -9,6 +9,7 @@ export type TrendPoint = {
   unit: string;
   sourceValue?: string;
   sourceUnit?: string;
+  sourceReferenceInterval?: string;
   flag?: string;
   targetStatus?: "below target" | "in target" | "above target";
 };
@@ -141,6 +142,7 @@ export function TrendPlot({
           <Table.Row>
             <Table.ColumnHeader>Date</Table.ColumnHeader>
             <Table.ColumnHeader>Source value</Table.ColumnHeader>
+            <Table.ColumnHeader>Source interval</Table.ColumnHeader>
             <Table.ColumnHeader>Normalized value</Table.ColumnHeader>
             <Table.ColumnHeader>Flag</Table.ColumnHeader>
             <Table.ColumnHeader>Personal target</Table.ColumnHeader>
@@ -158,6 +160,7 @@ export function TrendPlot({
                     ? `${point.sourceValue}${point.sourceUnit ? ` ${point.sourceUnit}` : ""}`
                     : "Not recorded"}
               </Table.Cell>
+              <Table.Cell>{point.sourceReferenceInterval || "—"}</Table.Cell>
               <Table.Cell>
                 {point.value === null
                   ? "Not evaluated"

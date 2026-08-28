@@ -733,6 +733,7 @@ function UnlockedVault({
               unit: normalized.unit,
               sourceValue: measurement.sourceValue,
               sourceUnit: measurement.sourceUnit,
+              sourceReferenceInterval: measurement.sourceReferenceInterval,
               flag: measurement.sourceFlag,
               targetStatus: (() => {
                 if (!analyte) return undefined;
