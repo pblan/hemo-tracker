@@ -78,6 +78,8 @@ Hemo Tracker uses the analyte canonical unit for a connected trend. It excludes 
 
 The table can classify a result as below target, in target, or above target. Hemo Tracker does this only when one personal target range applies to the collection date and its unit can be normalized safely. It does not classify the result when ranges overlap or an applicability note needs human interpretation. **Not evaluated** does not mean that the result is healthy or unhealthy.
 
+The plot uses an orange band for a numeric laboratory interval and a teal band for one consistent personal target range. Free-text, changing, or context-dependent ranges remain in the table and are not drawn as one misleading band.
+
 Select **Compare with another analyte** to show a second local series. Use the source units and flags to check that the two series are meaningful to compare. Hemo Tracker does not convert incompatible units.
 
 To create an overview, select up to six analytes in **Pin analytes for this overview**. The plots share collection-time zoom. Each plot keeps its own unit and numeric axis. Hemo Tracker does not rank pinned analytes or calculate a health score.
