@@ -41,6 +41,9 @@ mod tests {
             serde_json::from_str(include_str!("../tauri.conf.json")).unwrap();
 
         assert_eq!(config["productName"], "Hemo Tracker");
+        let csp = config["app"]["security"]["csp"].as_str().unwrap();
+        assert!(csp.contains("object-src 'none'"));
+        assert!(csp.contains("frame-ancestors 'none'"));
     }
 
     #[test]
